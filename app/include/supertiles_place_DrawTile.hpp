@@ -5,19 +5,19 @@
 #include "helper_CairoDraw.h"
 #include "helper_imath.h"
 #include "helper_idx.h"
-#include "supertiles_configTypes.h"
-#include "supertiles_QuadTree.h"
+#include "supertiles_configTypes.hpp"
+#include "supertiles_QuadTree.hpp"
 #include "helper_random.h"
-#include "supertiles_place_cost.h"
+#include "supertiles_place_cost.hpp"
 #include "helper_color/cm_plasma.h"
 #include "helper_color/cm_turbo.h"
 #include "helper_color/cm_map.h"
 #include "helper_blur.h"
 
 #include "helper_pixelArtScaling.h"
-#include "supertiles_place_DrawOpts.h"
+#include "supertiles_place_DrawOpts.hpp"
 
-#include "supertiles_place_useCases.h"
+#include "supertiles_place_useCases.hpp"
 
 
 namespace supertiles {

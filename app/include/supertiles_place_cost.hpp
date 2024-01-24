@@ -3,8 +3,8 @@
 
 #include <array>
 #include "helper_util.h"
-#include "supertiles_configTypes.h"
-#include "supertiles_QuadTree.h"
+#include "supertiles_configTypes.hpp"
+#include "supertiles_QuadTree.hpp"
 #include <bitset>
 #include <unordered_map>
 //#include "helper/helper_hash.h"

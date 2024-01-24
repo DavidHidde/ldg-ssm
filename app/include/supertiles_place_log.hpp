@@ -1,8 +1,8 @@
 #ifndef __SUPERTILES_PLACE_LOG__
 #define __SUPERTILES_PLACE_LOG__
 
-#include "supertiles_place_term.h"
-#include "supertiles_place_plan.h"
+#include "supertiles_place_term.hpp"
+#include "supertiles_place_plan.hpp"
 #include <sstream>
 
 namespace supertiles {
