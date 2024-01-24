@@ -52,4 +52,10 @@ compile_commands.json
 
 *_qmlcache.qrc
 
+# Project specific
 .idea
+data/*.*
+data/input/*
+data/output/*
+.DS_Store
+!*.gitkeep
