@@ -21,7 +21,7 @@ FetchContent_MakeAvailable(helper)
 
 # There are several things to unpack here. one is both the name of the executable file generated, and the name of the CMake target created (you'll hear a lot more about targets soon, I promise). The source file list comes next, and you can list as many as you'd like. CMake is smart, and will only compile source file extensions. The headers will be, for most intents and purposes, ignored; the only reason to list them is to get them to show up in IDEs. Targets show up as folders in many IDEs. More about the general build system and targets is available at buildsystem.
 
-add_executable(ldg_core supertiles_place.cpp)
+add_executable(ldg_core src/supertiles_place.cpp)
 
 # PUBLICdoesn't mean much for an executable; for a library it lets CMake know that any targets that link to this target must also need that include directory.
 target_include_directories(ldg_core PUBLIC ..)
