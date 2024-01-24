@@ -1,20 +1,20 @@
 #ifndef __SUPERTILES_PLACE_PRESENTATION__
 #define __SUPERTILES_PLACE_PRESENTATION__
 
-#include "supertiles_place_cost.hpp"
-#include "supertiles_QuadTree.hpp"
+#include "../../model/place/cost.hpp"
+#include "../../model/quad_tree.hpp"
 #include <set>
 #include "helper_CairoDraw.h"
 #include "helper_color/cm_plasma.h"
 #include "helper_color/cm_map.h"
 #include "helper_string.h"
-#include "supertiles_place_useCases.hpp"
+#include "use_cases.hpp"
 #include <map>
-#include "supertiles_place_DrawTile.hpp"
-#include "supertiles_place_plan.hpp"
+#include "../../model/place/draw_tile.hpp"
+#include "../../model/place/plan.hpp"
 #include "helper_color.h"
-#include "supertiles_place_DrawOpts.hpp"
-#include "supertiles_place_LevelIndicator.hpp"
+#include "../../model/place/draw_options.hpp"
+#include "../../model/place/level_indicator.hpp"
 
 namespace supertiles {
     namespace place {

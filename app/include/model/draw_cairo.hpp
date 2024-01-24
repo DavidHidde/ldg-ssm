@@ -2,7 +2,7 @@
 #define __SUPERTILES_DRAW_CAIRO__
 
 #include "helper/helper_CairoDraw.h"
-#include "supertiles_DrawBase.hpp"
+#include "draw_base.hpp"
 
 // template<typename A, typename POS, typename TILE, typename DIM>
 // void tiles_draw(cairo_t* cr,

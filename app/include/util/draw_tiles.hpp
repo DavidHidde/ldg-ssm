@@ -1,7 +1,7 @@
 #ifndef __SUPERTILES_DRAW_TILES__
 #define __SUPERTILES_DRAW_TILES__
 
-#include "supertiles_QuadTree.hpp"
+#include "../model/quad_tree.hpp"
 
 template<typename T>
 V4 <uint8_t> x2cairo4(const T &v) {

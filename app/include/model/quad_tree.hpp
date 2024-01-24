@@ -4,7 +4,7 @@
 #include "helper_util.h"
 #include "helper_assert.h"
 #include "helper_imath.h"
-#include "supertiles_place_NodeLeafCounts.hpp"
+#include "place/node_leaf_counts.hpp"
 
 namespace supertiles {
     namespace place {

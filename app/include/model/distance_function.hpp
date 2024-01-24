@@ -5,7 +5,7 @@
 #include "helper/helper_hash.h"
 #include "helper/helper_assert.h"
 #include "helper/helper_util.h"
-#include "supertiles_configTypes.hpp"
+#include "config_types.hpp"
 
 //#define DBG_SUPERTILES_DF
 

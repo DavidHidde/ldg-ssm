@@ -1,8 +1,8 @@
 #ifndef __SUPERTILES_PLACE_ASSIGN_GROUP_PERMUTATIONS__
 #define __SUPERTILES_PLACE_ASSIGN_GROUP_PERMUTATIONS__
 
-#include "supertiles_place_cost.hpp"
-#include "supertiles_place_init.hpp"
+#include "../model/place/cost.hpp"
+#include "place/init.hpp"
 #include <unordered_map>
 
 #include "helper_hungarian.h"
@@ -66,7 +66,7 @@ namespace supertiles {
 #define __NO_OMP
         //#include "supertiles_place_assignGroupPermutations_.h"
 
-#include "supertiles_place_assignGroupHungarian_.hpp"
+#include "assign_group_hungarian.hpp"
 
 #undef __NO_OMP
 #endif

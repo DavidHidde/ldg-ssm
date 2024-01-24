@@ -4,7 +4,7 @@
 #include <vector>
 #include "helper_volData/splitStr.h"
 #include "helper_lexicalCast.h"
-#include "supertiles_configTypes.hpp"
+#include "config_types.hpp"
 #include <iostream>
 #include <cassert>
 #include "helper_assert.h"
