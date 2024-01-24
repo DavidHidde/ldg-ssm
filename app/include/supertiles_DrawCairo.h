@@ -29,78 +29,85 @@
 //   //     std::cout << std::endl;
 //   //   }
 
-  
-  
+
+
 // }
 
 
 template<typename DATA, typename DIM>
-struct supertiles_DrawSignalCairo : supertiles_DrawBase<DATA,DIM>
-{
+struct supertiles_DrawSignalCairo : supertiles_DrawBase<DATA, DIM> {
 
-  template<typename F2, typename F>
-  supertiles_DrawSignalCairo(const DATA data, const DIM memberDim,
-			     const F2 offset, const F scale)
-    :
-    supertiles_DrawBase<DATA,DIM>(data, memberDim, offset, scale)
-  {
-  }
-
-  
-  virtual void operator()(uint32_t qtIdx, V2<size_t> tilePos, V2<size_t> memberGridDim, const uint32_t leavesFrom, const uint32_t nLeaves)
-  {
-    const auto nPixels = helper::ii2n(this->_memberDim);
-    
-    static_assert(std::is_integral<decltype(tilePos.x)>::value, "Integral required.");
-
-    assert(cr != 0);
-
-    const auto pos = this->grid2canvas(tilePos);
-
-    // supertiles_DrawSignalCairo<TILE*, DIM> drawSignal(tilesFull, memberDim);
-    // drawSignal.cr = cr;
-
-    // drawSignal(qtIdx, tilesPos, nodes2leaves);
+    template<typename F2, typename F>
+    supertiles_DrawSignalCairo(
+        const DATA data, const DIM memberDim,
+        const F2 offset, const F scale
+    )
+        :
+        supertiles_DrawBase<DATA, DIM>(data, memberDim, offset, scale) {
+    }
 
 
-    //
-    // draw box
-    //
-    V2<double> chartBoxDim;
-    chartBoxDim.x = chartBoxDim.y = this->_scale*memberGridDim.x;
-    // signal mode
-    cairo_set_line_width(cr,chartBoxDim.x/100.);
-    cairo_rectangle(cr, pos.x, pos.y, chartBoxDim.x, chartBoxDim.y);	  
-    cairo_set_source_rgba(cr, .0, .0, .0, 1.);
-    cairo_stroke(cr);
+    virtual void operator()(
+        uint32_t qtIdx,
+        V2 <size_t> tilePos,
+        V2 <size_t> memberGridDim,
+        const uint32_t leavesFrom,
+        const uint32_t nLeaves
+    ) {
+        const auto nPixels = helper::ii2n(this->_memberDim);
 
-    auto drawSignal = [&](const auto qtIdx)
-    {
-      //
-      // draw signal
-      //
+        static_assert(std::is_integral<decltype(tilePos.x)>::value, "Integral required.");
 
-      cairo_move_to(cr, pos.x, pos.y+chartBoxDim.y);
-      for(const auto & j : helper::range_n(this->_memberDim.x))
-	cairo_line_to(cr,
-		      pos.x+(chartBoxDim.x*j)/this->_memberDim.x,
-		      pos.y+((1.-this->_data[qtIdx*nPixels+j]/*(static_cast<double>(j)/_memberDim.x)*/)*chartBoxDim.y)
-		      );
-      cairo_stroke(cr);
-    };
+        assert(cr != 0);
 
-    if(nLeaves > 0)
-      {
-      cairo_set_source_rgba(cr, .1, .1, 1., 1.);
-      for(const auto l : helper::range_bn(leavesFrom, nLeaves))
-	drawSignal(l);
-      }
+        const auto pos = this->grid2canvas(tilePos);
 
-    cairo_set_source_rgba(cr, 1., 1., .1, 1.);
-    drawSignal(qtIdx);
-  }
+        // supertiles_DrawSignalCairo<TILE*, DIM> drawSignal(tilesFull, memberDim);
+        // drawSignal.cr = cr;
 
-  cairo_t* cr=0;
+        // drawSignal(qtIdx, tilesPos, nodes2leaves);
+
+
+        //
+        // draw box
+        //
+        V2<double> chartBoxDim;
+        chartBoxDim.x = chartBoxDim.y = this->_scale * memberGridDim.x;
+        // signal mode
+        cairo_set_line_width(cr, chartBoxDim.x / 100.);
+        cairo_rectangle(cr, pos.x, pos.y, chartBoxDim.x, chartBoxDim.y);
+        cairo_set_source_rgba(cr, .0, .0, .0, 1.);
+        cairo_stroke(cr);
+
+        auto drawSignal = [&](const auto qtIdx) {
+            //
+            // draw signal
+            //
+
+            cairo_move_to(cr, pos.x, pos.y + chartBoxDim.y);
+            for (
+                const auto &j: helper::range_n(this->_memberDim.x))
+                cairo_line_to(
+                    cr,
+                    pos.x + (chartBoxDim.x * j) / this->_memberDim.x,
+                    pos.y + ((1. - this->_data[qtIdx * nPixels + j]/*(static_cast<double>(j)/_memberDim.x)*/) * chartBoxDim
+                        .y)
+                );
+            cairo_stroke(cr);
+        };
+
+        if (nLeaves > 0) {
+            cairo_set_source_rgba(cr, .1, .1, 1., 1.);
+            for (
+                const auto l: helper::range_bn(leavesFrom, nLeaves))
+                drawSignal(l);
+        }
+
+        cairo_set_source_rgba(cr, 1., 1., .1, 1.);
+        drawSignal(qtIdx);
+    }
+
+    cairo_t *cr = 0;
 };
 
 
