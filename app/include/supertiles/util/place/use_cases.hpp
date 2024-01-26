@@ -12,55 +12,65 @@ using strax_mcmc_opts_t=strax_mcmc_opts<mcmc2col<double>,mcmc2height>;
 
 #else
 
-struct strax_mcmc_opts_t {
+struct strax_mcmc_opts_t
+{
 };
 
 #endif // USE_STRAX_MCMC
 
 template<bool use_omp/*typename DATA, typename DIM*/>
-std::vector <V4<uint8_t>> strax_mcmc(std::vector <V4<uint8_t>> data, V2<int>, strax_mcmc_opts_t, std::mt19937) {
+std::vector <V4<uint8_t>> strax_mcmc(std::vector <V4<uint8_t>> data, V2<int>, strax_mcmc_opts_t, std::mt19937)
+{
     return data;
 }
 
 template<bool use_omp/*typename DATA, typename DIM*/>
 std::vector <V4<uint8_t>>
-strax_mcmc(std::vector <V4<uint8_t>> data, V2<unsigned long>, strax_mcmc_opts_t, std::mt19937) {
+strax_mcmc(std::vector <V4<uint8_t>> data, V2<unsigned long>, strax_mcmc_opts_t, std::mt19937)
+{
     return data;
 }
 
 template<bool use_omp/*typename DATA, typename DIM*/>
-std::vector <V4<uint8_t>> strax_mcmc(std::vector <V3<float>> data, V2<unsigned long>, strax_mcmc_opts_t, std::mt19937) {
+std::vector <V4<uint8_t>> strax_mcmc(std::vector <V3<float>> data, V2<unsigned long>, strax_mcmc_opts_t, std::mt19937)
+{
     assert(false);
     return std::vector < V4 < uint8_t >> ();
 }
 
 template<bool use_omp/*typename DATA, typename DIM*/>
-std::vector <V4<uint8_t>> strax_mcmc(std::vector<float> data, V2<int>, strax_mcmc_opts_t, std::mt19937) {
+std::vector <V4<uint8_t>> strax_mcmc(std::vector<float> data, V2<int>, strax_mcmc_opts_t, std::mt19937)
+{
     assert(false);
     return std::vector < V4 < uint8_t >> ();
 }
 
-namespace supertiles {
-    namespace place {
+namespace supertiles
+{
+    namespace place
+    {
 
 
         // A generic sort function
         template<class T>
-        T mcmc_binarize(T v) {
+        T mcmc_binarize(T v)
+        {
             return v;
         }
 
         // Template Specialization: A function
         // specialized for char data type
         template<>
-        double mcmc_binarize<double>(double v) {
+        double mcmc_binarize<double>(double v)
+        {
             // if(v<-1 || v > 1.)
             // 	std::cout << "mcmc_binarize: " << v << std::endl;
             return v > 0.5;
         }
 
         template<typename F>
-        std::vector <V4<double>> mcmc2col_f(const F *feat, const size_t nElems, const uint32_t colMapMode) {
+        std::vector <V4<double>> mcmc2col_f(const F *feat, const size_t nElems, const uint32_t colMapMode)
+        {
             // V3<double> a(0.11, 0.38, 0.65);
             // V3<double> b(0.5, 0.5, 0.5);
             // V3<double> c(0.98, 0.41, 0.07);
@@ -200,24 +210,28 @@ namespace supertiles {
 
 
         template<typename IT>
-        std::vector <V4<double>> mcmc2col(IT /*feat*/, const size_t /*nElems*/, const uint32_t) {
+        std::vector <V4<double>> mcmc2col(IT /*feat*/, const size_t /*nElems*/, const uint32_t)
+        {
             hassertm(false, "mcmc2col does not support this type");
             return std::vector < V4 < double >> ();
         }
 
         template<>
-        std::vector <V4<double>> mcmc2col<double *>(double *feat, const size_t nElems, const uint32_t colMapMode) {
+        std::vector <V4<double>> mcmc2col<double *>(double *feat, const size_t nElems, const uint32_t colMapMode)
+        {
             return mcmc2col_f(feat, nElems, colMapMode);
         }
 
         template<>
         std::vector <V4<double>>
-        mcmc2col<const double *>(const double *feat, const size_t nElems, const uint32_t colMapMode) {
+        mcmc2col<const double *>(const double *feat, const size_t nElems, const uint32_t colMapMode)
+        {
             return mcmc2col_f(feat, nElems, colMapMode);
         }
 
 
-        auto normRange(const size_t n) {
+        auto normRange(const size_t n)
+        {
             std::vector<double> feat(n);
 
             for (
@@ -229,7 +243,8 @@ namespace supertiles {
             return feat;
         }
 
-        void mcmc_cm(const std::string fname, const uint32_t colMapMode) {
+        void mcmc_cm(const std::string fname, const uint32_t colMapMode)
+        {
             using CairoDraw_t = helper::CairoDraw <V2<double>>;
             CairoDraw_t cd(helper::cairoBackend_rec);
             // template<>
@@ -284,7 +299,8 @@ namespace supertiles {
             cd.writePDF(o);
         }
 
-        auto feat2rep_rgb(const std::vector<double> &feat) {
+        auto feat2rep_rgb(const std::vector<double> &feat)
+        {
             // V3<double> a(0.11, 0.38, 0.65);
             // V3<double> b(0.5, 0.5, 0.5);
             // V3<double> c(0.98, 0.41, 0.07);
@@ -301,13 +317,15 @@ namespace supertiles {
         }
 
         template<typename IT>
-        std::vector <V4<double>> caltech2col(IT /*feat*/, const size_t /*nElems*/) {
+        std::vector <V4<double>> caltech2col(IT /*feat*/, const size_t /*nElems*/)
+        {
             throw "caltech2col does not support this type";
             return std::vector < V4 < double >> ();
         }
 
         template<>
-        std::vector <V4<double>> caltech2col<const V4 <uint8_t> *>(const V4 <uint8_t> *repin, const size_t nElems) {
+        std::vector <V4<double>> caltech2col<const V4 <uint8_t> *>(const V4 <uint8_t> *repin, const size_t nElems)
+        {
             std::vector <V4<double>> rep;
             rep.reserve(nElems);
             for (
@@ -317,14 +335,16 @@ namespace supertiles {
         }
 
         template<typename IT>
-        std::vector <V4<double>> colRGB2col(IT feat, const size_t /*nElems*/) {
+        std::vector <V4<double>> colRGB2col(IT feat, const size_t /*nElems*/)
+        {
             //throw "caltech2col does not support this type";
             hassertm(false, typeid(*feat).name());
             return std::vector < V4 < double >> ();
         }
 
         template<>
-        std::vector <V4<double>> colRGB2col<const V3<float> *>(const V3<float> *repin, const size_t nElems) {
+        std::vector <V4<double>> colRGB2col<const V3<float> *>(const V3<float> *repin, const size_t nElems)
+        {
             std::vector <V4<double>> v(nElems);
 
             for (
@@ -339,7 +359,8 @@ namespace supertiles {
         *>(
         V3<float> *repin,
         const size_t nElems
-        ) {
+        )
+    {
         std::vector <V4<double>> v(nElems);
 
         for(
@@ -357,7 +378,8 @@ namespace supertiles {
 
 
     template<typename _DIM>
-    auto chartPos_x(const size_t ix, const size_t n, const _DIM chartBoxDim) {
+    auto chartPos_x(const size_t ix, const size_t n, const _DIM chartBoxDim)
+    {
         const V2<double> pos(0, 0);
         return
             pos.x
@@ -365,7 +387,8 @@ namespace supertiles {
     }
 
     template<typename _DIM>
-    auto chartPos_y(const double vy, const _DIM chartBoxDim) {
+    auto chartPos_y(const double vy, const _DIM chartBoxDim)
+    {
         const V2<double> pos(0, 0);
         return
             pos.y
@@ -381,7 +404,8 @@ namespace supertiles {
         const _DIM chartBoxDim,
         const CM &colMap,
         const OPTS &opts,
-        double ref = std::numeric_limits<double>::max()) {
+        double ref = std::numeric_limits<double>::max())
+    {
         const double scaleFac = 0.05;
         //const double scaleFac=opts.chart_scaleFac;
         //const double scaleLineWidth=4;
@@ -448,7 +472,8 @@ namespace supertiles {
         const size_t nElemsFeatTile,
         const CBD &chartBoxDim,
         const CM &colMap, const OPTS &opts
-    ) {
+    )
+    {
 
         std::vector<double>
             minv(
@@ -580,7 +605,8 @@ namespace supertiles {
     }
 
     template<typename _DIM>
-    void drawGrid(cairo_t *cr, const size_t n, const _DIM chartBoxDim, double scaleFac = 0.005) {
+    void drawGrid(cairo_t *cr, const size_t n, const _DIM chartBoxDim, double scaleFac = 0.005)
+    {
         cairo_set_source_rgba(cr, 0., 0, 0., 1.);
         cairo_set_line_width(cr, scaleFac * chartBoxDim.x);
         const size_t nLines = 8;
@@ -609,7 +635,8 @@ namespace supertiles {
         const size_t nElemsFeatTile,
         const CBD &chartBoxDim,
         const CM &colMap, const OPTS &opts
-    ) {
+    )
+    {
         //
         // draw box
         //
@@ -646,7 +673,8 @@ namespace supertiles {
     }
 
     template<typename CM, typename OPTS>
-    void stock_cm(const std::string fname, const CM &colMap, const OPTS &opts) {
+    void stock_cm(const std::string fname, const CM &colMap, const OPTS &opts)
+    {
         using CairoDraw_t = helper::CairoDraw <V2<double>>;
         CairoDraw_t cd(helper::cairoBackend_rec);
         // template<>

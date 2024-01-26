@@ -16,15 +16,18 @@
 #include "../../model/place/draw_options.hpp"
 #include "../../model/place/level_indicator.hpp"
 
-namespace supertiles {
-    namespace place {
+namespace supertiles
+{
+    namespace place
+    {
 
         template<typename DIM1, typename BO>
         auto tileDimDraw(
             const DIM1 &tileDimRef,
             const uint32_t level,
             const BO &borderOffsets
-        ) {
+        )
+        {
             const auto levelScale = helper::ipow2(level);
 
             const DIM1 gridPosId(0, 0);
@@ -45,7 +48,8 @@ namespace supertiles {
         }
 
         auto level0BorderDefault(uint32_t
-        tileDimX) {
+        tileDimX)
+    {
         return
         std::max(tileDimX
         /20,
@@ -53,13 +57,15 @@ namespace supertiles {
     }
 
     template<typename T0, typename T1>
-    auto borderWidthFromLevel(const T0 level, const T1 level0Border) {
+    auto borderWidthFromLevel(const T0 level, const T1 level0Border)
+    {
         //return std::pow(level+1, 1.6)*level0Border;
         return (level + 1) * level0Border;
     };
 
     template<typename DIM, typename B>
-    V2 <std::vector<uint32_t>> determineBorderOffsets(DIM gridDim, const B level0Border, bool uniformBorder = false) {
+    V2 <std::vector<uint32_t>> determineBorderOffsets(DIM gridDim, const B level0Border, bool uniformBorder = false)
+    {
         V2 <std::vector<uint32_t>> borderOffsets;
         auto borderLevel = [](uint32_t tileIdInDim) {
             const uint32_t i = tileIdInDim + 1;
@@ -121,7 +127,8 @@ namespace supertiles {
         const DIM2 gridDim,
         const OV &borderOffsets,
         bool swapXY = false
-    ) {
+    )
+    {
 
 
         const auto levelScale = helper::ipow2(level);
@@ -141,7 +148,8 @@ namespace supertiles {
         const OV &borderOffsets,
         const std::vector <L2P> &leaf2gridPos,
         bool swapXY = false
-    ) {
+    )
+    {
         const auto level = qt.getLevel(nodeId);
 
         const auto levelScale = helper::ipow2(level);
@@ -175,7 +183,8 @@ namespace supertiles {
         const DIM2 gridDim,
         const OV &borderOffsets,
         bool swapXY = false
-    ) {
+    )
+    {
         const auto level = qt.getLevel(nodeId);
         const auto leaf2gridPos = determine_leaf2gridPos(level, tileDimRef, qt, gridDim, borderOffsets, swapXY);
         return nodeTilePos(nodeId, tileDimRef, qt, gridDim, borderOffsets, leaf2gridPos, swapXY);
@@ -190,7 +199,8 @@ namespace supertiles {
         const IS_VOID isVoid,
         const uint32_t levelThresholdMin = -1,
         const uint32_t levelThresholdMax = -1
-    ) {
+    )
+    {
         const auto nElemsQT = qt.nElems();
         std::vector <nodeId_t> nodeIndices;
         {
@@ -257,7 +267,8 @@ namespace supertiles {
     }
 
 
-    double disparityIndicatorLineWidth(const uint32_t level, const double level0Border) {
+    double disparityIndicatorLineWidth(const uint32_t level, const double level0Border)
+    {
         const double borderWidthFac = .15;
         return borderWidthFromLevel(level, level0Border) * borderWidthFac;
     }
@@ -310,7 +321,8 @@ namespace supertiles {
             const double level0Border,
             //const LID& levelImgDim,
             bool swapXY = false
-        ) {
+        )
+    {
         const double scale = 1.;
 
         using F2 = V2<double>;
@@ -453,7 +465,8 @@ namespace supertiles {
             const double levelIndicatorScale,
             //const LID& levelImgDim,
             bool swapXY = false
-        ) {
+        )
+    {
         const double scale = 1.;
         auto _drawDisparityIndicatorNode = [&](auto n) {
             return
@@ -533,7 +546,8 @@ namespace supertiles {
             //const LID& levelImgDim,
             //bool swapXY/*=false*/,
             const IMG_OPTS &imgOpts
-        ) {
+        )
+    {
         const auto swapXY = imgOpts.swapXY;
         const auto levelIndicatorScale = imgOpts.levelIndicatorScale;
         const auto disparityIndicatorCol = imgOpts.disparityIndicatorCol;
@@ -670,7 +684,8 @@ namespace supertiles {
     }
 
     template<typename QT>
-    auto nodeDrawMask(const QT &qt, const size_t nTilesAssign) {
+    auto nodeDrawMask(const QT &qt, const size_t nTilesAssign)
+    {
         std::cout << "generate map checking for regular tiles\n";
         const auto isRegular = Plans::isRegularMap<supertiles_QuadTree<int64_t>>(nTilesAssign, qt.nLeaves());
         // std::cout << "generate map checking for regular tiles\n";
@@ -735,7 +750,8 @@ namespace supertiles {
         const std::vector<bool> &drawNode,
         const IMG_OPTS &imgOpts,
         size_t shownNodesIdx = -1
-    ) {
+    )
+    {
 
         std::vector <uint8_t> shownNodes;
         if (shownNodesIdx < imgOpts.shownNodes.size())
@@ -1007,7 +1023,8 @@ namespace supertiles {
         std::map <uint32_t, std::bitset<4>> parentsChildren;
 
 
-        struct TileImg {
+        struct TileImg
+        {
             // using DIM_TILE=
             //   typename std::remove_const<typename std::remove_reference<decltype(drawTile.getTileDim(0))>::type>::type
             //   tileDim;
@@ -1021,7 +1038,8 @@ namespace supertiles {
             V2<double> borderDelta;
             double lineWidth;
 
-            void free() {
+            void free()
+            {
                 // trick to actually free up memory from vector
                 std::vector<cairo4_t>().swap(buf);
             }
@@ -1783,7 +1801,8 @@ namespace supertiles {
                         continue;
 
                     using mark_t = std::uint8_t;
-                    enum class MarkMode : mark_t {
+                    enum class MarkMode : mark_t
+                    {
                         select = 2, lookAt = 3
                     };
 
@@ -1926,7 +1945,8 @@ namespace supertiles {
             const bool drawDisparityIndicator,
             const std::string imgOutOpts,
             const size_t nTilesAssign
-        ) {
+        )
+    {
 
         const supertiles_QuadTree<int64_t> qt(gridDim);
 

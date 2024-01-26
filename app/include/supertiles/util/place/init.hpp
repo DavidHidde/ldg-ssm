@@ -1,10 +1,13 @@
 #ifndef __SUPERTILES_PLACE_INIT__
 #define __SUPERTILES_PLACE_INIT__
 
-namespace supertiles {
-    namespace place {
+namespace supertiles
+{
+    namespace place
+    {
         template<typename NodeLeafCounts, typename D, typename QT, typename A, typename T>
-        auto initSupertiles(const QT &qt, const A &qtLeafAssignment, const T &tiles, size_t nElemsTile) {
+        auto initSupertiles(const QT &qt, const A &qtLeafAssignment, const T &tiles, size_t nElemsTile)
+        {
             {
                 const double sizeMB = (qt.nElems() * nElemsTile * sizeof(D)) * 1.e-6;
 

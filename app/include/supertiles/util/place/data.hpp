@@ -10,14 +10,17 @@
 #include "helper_imath.h"
 #include "helper_io.h"
 
-namespace supertiles {
-    namespace place {
+namespace supertiles
+{
+    namespace place
+    {
 
         template<typename D>
         D genSynthDataElem(
             const V2 <size_t> /*gridId*/, const V2 <size_t> /*gridDim*/,
             const V2 <size_t> /*tileElemId*/, const V2 <size_t> /*tileDim*/
-        ) {
+        )
+        {
             std::cerr << "THIS SHOULD NEVER BE INSTANTIATED\n";
             assert(false);
             exit(-1);
@@ -29,7 +32,8 @@ namespace supertiles {
             (
                 const V2 <size_t> gridId, const V2 <size_t> gridDim,
                 const V2 <size_t> /*tileElemId*/, const V2 <size_t> /*tileDim*/
-            ) {
+            )
+        {
             return std::max(
                 static_cast<double>(gridId.x) / gridDim.x,
                 static_cast<double>(gridId.y) / gridDim.y
@@ -42,7 +46,8 @@ namespace supertiles {
         (
         const V2 <size_t> gridId,
         const V2 <size_t> gridDim,
-        const V2 <size_t> /*tileElemId*/, const V2 <size_t> /*tileDim*/) {
+        const V2 <size_t> /*tileElemId*/, const V2 <size_t> /*tileDim*/)
+    {
         return
         V4<unsigned char>(gridId
         .x*255./gridDim.x,
@@ -52,7 +57,8 @@ namespace supertiles {
         );
     }
 
-    auto readUserData(std::string configFName) {
+    auto readUserData(std::string configFName)
+    {
         using UserData_t = UserData <V3<int>, V3<double>>;
         UserData_t ud;
         {
@@ -74,7 +80,8 @@ namespace supertiles {
         const size_t firstNFiles = std::numeric_limits<size_t>::max(),
         bool normalize = true,
         bool force2d = false
-    ) {
+    )
+    {
         std::vector <F> data;
 
         V4 <size_t> dim(0, 0, 0, 0);
@@ -188,12 +195,14 @@ namespace supertiles {
     }
 
     template<typename DIM>
-    auto nTilesFromConfigDim(const DIM &dim) {
+    auto nTilesFromConfigDim(const DIM &dim)
+    {
         return dim.z;
     }
 
     template<typename DIM>
-    auto initGridNTiles(size_t nFull, size_t nTilesAssign) {
+    auto initGridNTiles(size_t nFull, size_t nTilesAssign)
+    {
         DIM gridDim;
         size_t nTiles = nFull;
         if (nTilesAssign != static_cast<size_t>(-1)) {
@@ -212,7 +221,8 @@ namespace supertiles {
     }
 
     template<typename D, typename PO>
-    auto initData(const PO &po, std::string configFName) {
+    auto initData(const PO &po, std::string configFName)
+    {
         V2 <size_t> gridDim(16, 16);
 
         // use loaded image to initalize data values and compute distances
@@ -291,7 +301,8 @@ namespace supertiles {
     }
 
     template<typename D, typename PO>
-    auto initData(const PO &po) {
+    auto initData(const PO &po)
+    {
         return initData<D>(
             po,
             po.configFNames.empty()
@@ -300,7 +311,8 @@ namespace supertiles {
     }
 
     template<typename I=uint32_t, typename DIM>
-    auto read_qtLeafAssignment(const std::string loadAssignments, const DIM gridDim) {
+    auto read_qtLeafAssignment(const std::string loadAssignments, const DIM gridDim)
+    {
         size_t nTiles = -1;
         std::vector <I> qtLeafAssignment;
         std::cout << "load assignment from file |" << loadAssignments << "|\n";
