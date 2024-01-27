@@ -8,10 +8,10 @@
 #include <iostream>
 #include <algorithm>
 #include <cmath>
-#include "supertiles/model/quad_tree.hpp"
+#include "model/quad_tree.hpp"
 #include <random>
 #include <array>
-#include "supertiles/model/config_types.hpp"
+#include "model/config_types.hpp"
 #include "helper_asciiFile.h"
 #include "helper_hungarian.h"
 #include "helper_ChronoTimer.h"
@@ -24,20 +24,19 @@
 
 #include <bitset>
 
-//#include "supertiles_place_assignGroup.h"
-#include "supertiles/util/create_assign_group_permutations.hpp"
+#include "util/create_assign_group_permutations.hpp"
 
-#include "supertiles/util/place/data.hpp"
-#include "supertiles/model/place/plan.hpp"
+#include "util/place/data.hpp"
+#include "model/place/plan.hpp"
 
-#include "supertiles/util/adapt_assignment.hpp"
+#include "util/adapt_assignment.hpp"
 
-#include "supertiles/model/place/log.hpp"
-#include "supertiles/model/place/term.hpp"
+#include "model/place/log.hpp"
+#include "model/place/term.hpp"
 #include "helper_readFile.h"
 
-#include "supertiles/model/program_options.hpp"
-#include "supertiles/util/place/presentation.hpp"
+#include "model/program_options.hpp"
+#include "util/place/presentation.hpp"
 
 #include "helper_bzip.h"
 #include "helper_string.h"

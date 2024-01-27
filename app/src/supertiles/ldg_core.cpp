@@ -1,4 +1,4 @@
-#include "../include/ldg_generator.hpp"
+#include "../../include/supertiles/ldg_core.hpp"
 
 int main(int argc, const char **argv) {
 
