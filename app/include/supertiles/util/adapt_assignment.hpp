@@ -1,14 +1,17 @@
 #ifndef __SUPERTILES_PLACE_ADAPT_ASSIGNMENT__
 #define __SUPERTILES_PLACE_ADAPT_ASSIGNMENT__
 
-namespace supertiles {
-    namespace place {
+namespace supertiles
+{
+    namespace place
+    {
 
         template<typename QT_IT, typename NodeLeafCounts, typename D, typename D_TILE>
         void addRm(
             QT_IT qt_it_add, QT_IT qt_it_rm, D *supertiles, NodeLeafCounts &nodeLeafCounts,
             const D_TILE *tile, size_t nElemsTile
-        ) {
+        )
+        {
             while (qt_it_add.idx != qt_it_rm.idx) {
                 for (
                     const auto &i: helper::range_n(nElemsTile)) {
@@ -19,8 +22,6 @@ namespace supertiles {
 
                     auto &e_rm = supertiles[qt_it_rm.idx * nElemsTile + i];
                     e_rm -= v;
-
-                    //hassertm2(e_rm >= -m_eps, e_rm, qt_it_add.nElemsLevel);
                 }
 
                 nodeLeafCounts.addNode(qt_it_add.idx);
@@ -41,15 +42,15 @@ namespace supertiles {
             IT idcs_end,
             const N &nodes2leaves,
             const QT &qt,
-            A &qtLeafAssignment_out, /*const A& qtNodeAssignment_vanilla,*/
+            A &qtLeafAssignment_out,
             const M &movedFromQTPos,
             size_t supertileLevelOffset
-        ) {
+        )
+        {
 
             //
             // convert higher level node assigment to leaf assignments
             //
-            //auto qtLeafAssignment_out = qtLeafAssignment;
             const auto qtLeafAssignment = qtLeafAssignment_out;
 
             auto movedFromQTPos_out = helper::range_n < std::vector < uint32_t >> (qt.nLeaves());
@@ -65,7 +66,6 @@ namespace supertiles {
                 leafIdcs.reserve(n);
             }
 
-            //for(size_t qtPosIdx=0; qtPosIdx<qtNodeAssignment_vanilla.size(); qtPosIdx++)
             for (
                 auto it = idcs_begin; it != idcs_end; it++
                 ) {
@@ -76,10 +76,6 @@ namespace supertiles {
                 const auto oldQTPosIdx = movedFromQTPos[qtPosIdx];
 
                 const auto oldNodeId = oldQTPosIdx + supertileLevelOffset;
-
-                //std::cout << "[" << qtPosIdx << "|" << nodeId << "|" << oldQTPosIdx<< "]\n";
-
-                //hassertm4(qtNodeAssignment_vanilla[qtPosIdx]==movedFromQTPos[qtPosIdx], qtPosIdx, qt.nNodesLevel(5), qtNodeAssignment_vanilla[qtPosIdx],movedFromQTPos[qtPosIdx]);
 
                 if (qtPosIdx != oldQTPosIdx/* || true*/) {
                     const auto &leavesTo = nodes2leaves[nodeId];
@@ -102,17 +98,6 @@ namespace supertiles {
                     }
                 }
             }
-            //std::cout << std::endl;
-
-            //qtLeafAssignment = qtLeafAssignment_out;
-
-// #ifndef NDEBUG
-            // THIS ONLY HOLDS TRUE IF NOT FILTERING qtPosIdx != oldQTPosIdx
-// 	RangeLeaves<IT> rangeLeaves(idcs_begin, idcs_end, supertileLevelOffset, nodes2leaves);
-// 	hassertm2(leafIdcs.size()==rangeLeaves.size(), leafIdcs.size(), rangeLeaves.size());
-// 	for(size_t i=0;i<leafIdcs.size();i++)
-// 	  hassertm4(leafIdcs[i]==rangeLeaves.size(), leafIdcs[i], rangeLeaves[i], i, leafIdcs.size());
-// #endif
 
             return std::make_tuple(leafIdcs, movedFromQTPos_out);
         }
@@ -123,9 +108,8 @@ namespace supertiles {
             IT idcs_begin, IT idcs_end, S &supertiles, const T &tiles,
             NodeLeafCounts &nodeLeafCounts,
             const QT &qt, const size_t nElemsTile, A &qtLeafAssignment, M &movedFromQTPos
-        ) {
-            //for(size_t qtPosIdx=0; qtPosIdx<qtLeafAssignment.size(); qtPosIdx++)
-            //std::cout << "---------\n";
+        )
+        {
             for (
                 auto it = idcs_begin; it != idcs_end; it++
                 ) {
@@ -134,13 +118,11 @@ namespace supertiles {
                 const auto oldQTPosIdx = movedFromQTPos[qtPosIdx];
                 const bool isVoid = (tileId == voidTileIdx);
 
-                //std::cout << "qtPosIdx " << qtPosIdx << " tileId " << tileId << " void: " << isVoid << " nodeLeafCounts " << nodeLeafCounts(qtPosIdx) << std::endl;
-
                 if (qtPosIdx != oldQTPosIdx && !isVoid) {
                     addRm(
                         qt(qtPosIdx), qt(oldQTPosIdx),
                         &supertiles[0], nodeLeafCounts,
-                        /*isVoid ? static_cast<D*>(0) :*/ &tiles[nElemsTile * tileId],
+                        &tiles[nElemsTile * tileId],
                         nElemsTile
                     );
                 }
@@ -170,7 +152,8 @@ namespace supertiles {
             const M &movedFromQTPos,
             bool aggregateExchangeMode,
             size_t supertileLevelOffset
-        ) {
+        )
+        {
 #ifndef NDEBUG
             nodeLeafCounts.dbg_sanityCheck();
 #endif
@@ -194,11 +177,9 @@ namespace supertiles {
                         movedFromQTPos,
                         supertileLevelOffset
                     );
-                //adaptAssignmentLeaf(_idcs.begin(), _idcs.end(), supertiles, tiles, nodeLeafCounts, qt, nElemsTile,  qtLeafAssignment, _movedFromQTPos);
                 _adaptAssignmentLeaf(_idcs.begin(), _idcs.end(), _movedFromQTPos);
 
             } else
-                //adaptAssignmentLeaf(idcs_begin, idcs_end, supertiles, tiles, nodeLeafCounts, qt, nElemsTile,  qtLeafAssignment, movedFromQTPos);
                 _adaptAssignmentLeaf(idcs_begin, idcs_end, movedFromQTPos);
 
 #ifndef NDEBUG
@@ -218,17 +199,12 @@ namespace supertiles {
           auto qtLeafAssignment_out = qtLeafAssignment;
           auto movedFromQTPos_out = helper::range_n(qt.nLeaves());
 
-
-
-          //for(size_t qtPosIdx=0; qtPosIdx<qtNodeAssignment_vanilla.size(); qtPosIdx++)
           for(auto it=idcs_begin; it != idcs_end; it++)
             {
               const auto qtPosIdx=*it;
               const auto nodeId =qtPosIdx;
 
               const auto oldQTPosIdx = movedFromQTPos[qtPosIdx];
-
-              //std::cout << "[" << qtPosIdx << "|" << nodeId << "|" << oldQTPosIdx<< "]\n";
 
               assert(qtNodeAssignment_vanilla[qtPosIdx]==movedFromQTPos[qtPosIdx]);
 
@@ -252,7 +228,6 @@ namespace supertiles {
                 }
             }
             }
-          //std::cout << std::endl;
 
           qtLeafAssignment = qtLeafAssignment_out;
           movedFromQTPos = movedFromQTPos_out;

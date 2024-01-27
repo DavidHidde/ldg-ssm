@@ -59,7 +59,6 @@ namespace supertiles
     template<typename T0, typename T1>
     auto borderWidthFromLevel(const T0 level, const T1 level0Border)
     {
-        //return std::pow(level+1, 1.6)*level0Border;
         return (level + 1) * level0Border;
     };
 
@@ -108,14 +107,6 @@ namespace supertiles
             }
         }
 
-        // for(const uint32_t dimId : {0,1})
-        //   {
-        //     for(const auto e : borderOffsets[dimId])
-        //       {
-        // 	std::cout << e << " ";
-        //       }
-        //     std::cout << std::endl;
-        //   }
         return borderOffsets;
     }
 
@@ -129,8 +120,6 @@ namespace supertiles
         bool swapXY = false
     )
     {
-
-
         const auto levelScale = helper::ipow2(level);
         const auto levelDim = gridDim / levelScale;
 
@@ -244,7 +233,7 @@ namespace supertiles
                     continue;
 
                 uint32_t prevId = leafId;
-                hassertm(!splitMask[leafId]/* || !drawNode[leafId]*/, leafId);
+                hassertm(!splitMask[leafId], leafId);
 
                 auto qt_it = qt(leafId);
                 do {
@@ -266,36 +255,11 @@ namespace supertiles
         return nodeIndices;
     }
 
-
     double disparityIndicatorLineWidth(const uint32_t level, const double level0Border)
     {
         const double borderWidthFac = .15;
         return borderWidthFromLevel(level, level0Border) * borderWidthFac;
     }
-
-    // template<typename ID, typename QT,
-    //   typename DIM, typename DIM2, typename O>
-    // auto node2tileImg(ID nodeId, const QT& qt, const double scale,
-    // 		       const DIM2 tileDimRef,
-    // 		       const DIM& gridDim,
-    // 		       const O& borderOffsets,
-    // 		       const double level0Border,
-    // 		       bool swapXY=false)
-    // {
-
-    //   const auto level=qt.getLevel(nodeId);
-    //   const auto imgPos = scale*nodeTilePos(nodeId, tileDimRef, qt, gridDim, borderOffsets, swapXY);
-
-
-    //   const double borderWidthFac=.15;
-    //   const auto lineWidth =
-    // 	borderWidthFromLevel(level, level0Border)*scale*borderWidthFac;
-    //   //(level+1)*level0Border*scale*borderWidthFac;
-
-    //   return std::make_tuple(imgPos, lineWidth);
-    // }
-
-
 
     template<
         typename ID, typename PV,
@@ -304,7 +268,6 @@ namespace supertiles
         typename DIM,
         typename DIM2,
         typename O
-        //, typename LID
     >
     auto drawDisparityIndicatorNode
         (
@@ -314,12 +277,11 @@ namespace supertiles
             const DISP &disparities,
 
 
-            const QT &qt, //const double scale,
+            const QT &qt,
             const DIM2 &tileDimRef,
             const DIM &gridDim,
             const O &borderOffsets,
             const double level0Border,
-            //const LID& levelImgDim,
             bool swapXY = false
         )
     {
@@ -338,7 +300,6 @@ namespace supertiles
         );
 
         auto imgDim =
-            //std::get<1>(rsltParent);
             tileDimDraw(
                 tileDimRef,
                 qt.getLevel(nodeId),
@@ -353,27 +314,13 @@ namespace supertiles
 
         const auto lineWidth = scale * disparityIndicatorLineWidth(qt.getLevel(nodeId), level0Border);
 
-        // const auto rsltParent = node2tileImg(parentv[nodeId],
-        // 				     qt, scale,
-        // 				     tileDimRef,
-        // 				      gridDim,
-        // 				      borderOffsets,
-        // 				      level0Border,
-        // 				      swapXY);
-
-        // auto borderDelta=V2<double>(std::get<1>(rsltParent),
-        // 				  std::get<1>(rsltParent));
-
         auto borderDelta = V2<double>(
             lineWidth,
             lineWidth
         );
 
         borderDelta *= 2.;
-
-        //const auto imgPosParent=std::get<0>(rsltParent);
         const auto imgDimParent =
-            //std::get<1>(rsltParent);
             tileDimDraw(
                 tileDimRef,
                 qt.getLevel(parentNodeId),
@@ -385,14 +332,11 @@ namespace supertiles
         const auto imgPosBorderMin = imgPos - borderDelta;
         const auto imgPosBorderMax = imgPos + imgDim + borderDelta;
 
-        //const auto imgPosMax=imgPos+imgDim;
         const auto imgPosMax = imgPosBorderMax;
 
-        //auto originX=imgPos;
         auto originX = imgPosBorderMin;
         originX.y = imgPosBorderMin.y;
 
-        //auto originY=imgPos;
         auto originY = imgPosBorderMin;
         originY.x = imgPosBorderMin.x;
 
@@ -407,7 +351,6 @@ namespace supertiles
             code |= 1;
         }
 
-
         if (imgPos.y < imgCenterParent.y) {
             imgDim.y = -imgDim.y;
             originX.y = imgPosBorderMax.y;
@@ -421,20 +364,15 @@ namespace supertiles
         else if (code == 3)
             code = 2;
 
-        //std::cout << "nodeId: " << nodeId << " code " << static_cast<int>(code) <<std::endl;
         const double angleQuart = M_PI / 2.;
         double angleOffset = 0.;
 
         angleOffset += code * angleQuart;
 
-
         const auto newImgDim = imgDim * disparities[nodeId];
 
-        const auto toX = originX.x + newImgDim.x -
-            (originX.x - imgCenterParent.x);
-
-        const auto toY = originY.y + newImgDim.y -
-            (originY.y - imgCenterParent.y);
+        const auto toX = originX.x + newImgDim.x - (originX.x - imgCenterParent.x);
+        const auto toY = originY.y + newImgDim.y - (originY.y - imgCenterParent.y);
 
         return std::make_tuple(originX, toX, originY, toY, lineWidth);
     }
@@ -447,7 +385,6 @@ namespace supertiles
         typename DIM,
         typename DIM2,
         typename O
-        //, typename LID
     >
     auto drawLevelIndicatorNode
         (
@@ -456,14 +393,12 @@ namespace supertiles
             const PV &parentv,
             const DISP &disparities,
 
-
-            const QT &qt, //const double scale,
+            const QT &qt,
             const DIM2 &tileDimRef,
             const DIM &gridDim,
             const O &borderOffsets,
             const double level0Border,
             const double levelIndicatorScale,
-            //const LID& levelImgDim,
             bool swapXY = false
         )
     {
@@ -480,7 +415,6 @@ namespace supertiles
                         gridDim,
                         borderOffsets,
                         level0Border,
-                        //levelImgDim,
                         swapXY
                     );
         };
@@ -508,7 +442,6 @@ namespace supertiles
             2 * levelIndicatorWH
         );
 
-
         return LevelIndicatorNode(rect, level, qt.nLevels());
     }
 
@@ -521,19 +454,12 @@ namespace supertiles
         typename DIM2,
         typename O,
         typename IMG_OPTS
-        //,
-        //typename LID
     >
     void drawDisparityIndicatorNodeCairo
         (
             cairo_t *cr,
             const ID nodeId,
-            // F2 imgPos,
-            // F2 imgDim,
-            //F2 borderDelta,
-            //const double lineWidth,
             const PV &parentv,
-            //const COL& disparityIndicatorCol,
             const DISP &disparities,
 
 
@@ -542,9 +468,6 @@ namespace supertiles
             const DIM &gridDim,
             const O &borderOffsets,
             const double level0Border,
-            //const double levelIndicatorScale,
-            //const LID& levelImgDim,
-            //bool swapXY/*=false*/,
             const IMG_OPTS &imgOpts
         )
     {
@@ -556,18 +479,13 @@ namespace supertiles
             = drawDisparityIndicatorNode
                 (
                     nodeId,
-                    // imgPos,
-                    // imgDim,
-                    //borderDelta,
                     parentv,
                     disparities,
                     qt,
-                    //scale,
                     tileDimRef,
                     gridDim,
                     borderOffsets,
                     level0Border,
-                    //levelImgDim,
                     swapXY
                 );
 
@@ -613,19 +531,14 @@ namespace supertiles
                 = drawLevelIndicatorNode
                     (
                         nodeId,
-                        // imgPos,
-                        // imgDim,
-                        //borderDelta,
                         parentv,
                         disparities,
                         qt,
-                        //scale,
                         tileDimRef,
                         gridDim,
                         borderOffsets,
                         level0Border,
                         levelIndicatorScale,
-                        //levelImgDim,
                         swapXY
                     );
 
@@ -650,7 +563,7 @@ namespace supertiles
               cairo_move_to(cr, ro.x*scale, ro.y*scale);
               cairo_line_to(cr, l.x*scale, l.y*scale);
               cairo_line_to(cr, r.x*scale, r.y*scale);
-              //cairo_move_to(cr, ro.x, ro.y);
+
               cairo_close_path(cr);
 
               cairo_set_source_rgba(cr, col.x, col.y, col.z, col.w);
@@ -669,16 +582,6 @@ namespace supertiles
             drawTri(lin.root, lin.hleft, lin.hright, lin.hlineWidth(), V4<double>(0.66, 0.66, 0.66, 1.));
             for(const auto & e : lin.grd)
               drawLine(std::get<0>(e), std::get<1>(e), lin.grdLineWidth(), V4<double>(0.88, 0.88, 0.88, 1.));
-
-            // const V2<double> c(originY.x*scale, originY.y*scale);
-            // const auto level = qt.getLevel(nodeId);
-            // const auto w = scale*borderWidthFromLevel(level, level0Border);
-
-            // cairo_set_source_rgba(cr, 0., 1., 0., 1.);
-
-            // std::cout << "DRAW LEVEL INDICATOR " << scale << " " <<  c.x-w << " " << c.y-w << " " << 2*w << " LIN " << lin.root << " " << lin.left << " " << lin.right << std::endl;
-            // cairo_rectangle(cr, c.x-w, c.y-w, 2*w, 2*w);
-            // cairo_fill(cr);
 #endif
         }
     }
@@ -688,8 +591,6 @@ namespace supertiles
     {
         std::cout << "generate map checking for regular tiles\n";
         const auto isRegular = Plans::isRegularMap<supertiles_QuadTree<int64_t>>(nTilesAssign, qt.nLeaves());
-        // std::cout << "generate map checking for regular tiles\n";
-        // const auto nodes2leaves=genMap_qt2leaves(qt);
 
         const auto nNodes = qt.nElems();
         std::vector<bool> drawNode(nNodes, true);
@@ -701,15 +602,10 @@ namespace supertiles
         nodeId < nNodes;
         nodeId++)
         {
-            //const auto & leaves=nodes2leaves[nodeId];
-            // drawNode[nodeId] = std::all_of(leaves.begin(), leaves.end(),
-            // 				   [&isRegular](size_t n){return isRegular[n];});
             const auto leafRange = getRange_qt2leaves(nodeId, qt);
-            //for(const auto leafId : leaves)
             for (
                 auto leafId = leafRange.first; leafId < leafRange.first + leafRange.second; leafId++
                 ) {
-                //assert(leafId==leaves[leafId-leafRange.first]);
                 if (!isRegular[leafId]) {
                     drawNode[nodeId] = false;
                     break;
@@ -717,14 +613,6 @@ namespace supertiles
             }
         }
 
-        // for(size_t nodeId=0; nodeId<nNodes; nodeId++)
-        //   std::cout << "drawNode " << nodeId << ": " << drawNode[nodeId] << std::endl;
-
-        // size_t cnt=0;
-        // for(size_t nodeId=0; nodeId<qt.nLeaves(); nodeId++)
-        //   cnt+=drawNode[nodeId];
-
-        // std::cout << "LEAFDRAWCOUNT: " << cnt << std::endl;
         return drawNode;
     }
 
@@ -735,9 +623,6 @@ namespace supertiles
         const std::string fnamePNG,
         const DIM0 gridDim,
         const A &qtLeafAssignment,
-        // const std::vector<V4<double>> rep_supertileData,
-        // const REP_OFFV& rep_levelOffsets,
-        // const DIM1 tileDim,
         const DRAW_TILE &drawTile,
         const DISPARITIES &disparities,
         const COSTS &costs,
@@ -745,7 +630,7 @@ namespace supertiles
         const uint32_t levelThresholdMin,
         const uint32_t levelThresholdMax,
         const double level0Border,
-        const double scale/*=1.*/,
+        const double scale,
         const bool drawDisparityIndicator,
         const std::vector<bool> &drawNode,
         const IMG_OPTS &imgOpts,
@@ -760,14 +645,10 @@ namespace supertiles
 #ifdef __NO_OMP
 #error "SHOULD NOT BE DEFINED"
 #endif
-        //#define __NO_OMP
 
         const bool annotateTiles = imgOpts.annotateTiles;
         const bool writeIndividualTiles = false;
         using nodeId_t = typename DRAW_TILE::nodeId_t;
-
-
-        //const V4<double> parentIndicatorCol(.36, .15, .20, 1.);
 
         const auto parentv = getParentQT(gridDim);
 
@@ -789,8 +670,6 @@ namespace supertiles
         //
 
         const auto nElemsQT = qt.nElems();
-
-        //std::vector<nodeId_t> nodeIndices;
 
         std::vector <nodeId_t> nodeIndices;
         if (shownNodes.empty()) {
@@ -872,8 +751,7 @@ namespace supertiles
             cairo_line_to(cd.get(), 0, maxLen);
             cairo_stroke(cd.get());
 
-            for (
-                const auto &level: helper::range_n(levelImgDim.size())) {
+            for (const auto &level: helper::range_n(levelImgDim.size())) {
                 auto nTiles = helper::ipow4(level);
                 cairo_move_to(cd.get(), 0, levelImgDim[level][dir]);
                 cairo_line_to(cd.get(), tickLen, levelImgDim[level][dir]);
@@ -932,15 +810,6 @@ namespace supertiles
             );
 
             const auto lineWidth = scale * disparityIndicatorLineWidth(qt.getLevel(nodeId), level0Border);
-            // const auto [imgPos, lineWidth] =
-            //   node2tileImg(nodeId,
-            // 		     qt, scale,
-            // 		    drawTile.getTileDim(0),
-            // 		     gridDim,
-            // 		     borderOffsets,
-            // 		     level0Border,
-            // 		    //levelImgDim,
-            // 		     swapXY);
 
             auto imgDim = levelImgDim[qt.getLevel(nodeId)];
 
@@ -950,38 +819,21 @@ namespace supertiles
             return std::make_tuple(imgPos, imgDim, lineWidth, 1. * V2<double>(lineWidth));
         };
 
-
-        // const auto lineWidth=level0Border*scale*0.5;
-        // cairo_set_line_width(cr, lineWidth);
-
         auto drawDisparityIndicatorNode_ =
             [&](
                 const auto nodeId
-                //,
-                // auto imgPos,
-                // auto imgDim,
-                //auto borderDelta
-                // ,
-                // const auto lineWidth
             ) {
                 return drawDisparityIndicatorNodeCairo
                     (
                         cr,
                         nodeId,
-                        // imgPos,
-                        // imgDim,
-                        //borderDelta,
-                        //lineWidth,
                         parentv,
-                        //imgOpts.disparityIndicatorCol,
                         disparities,
                         qt, scale,
                         drawTile.getTileDim(0),
                         gridDim,
                         borderOffsets,
                         level0Border,
-                        //imgOpts.levelIndicatorScale,
-                        //imgOpts.swapXY,
                         imgOpts
                     );
             };
@@ -989,34 +841,23 @@ namespace supertiles
 
         cairo_set_line_cap(cr, CAIRO_LINE_CAP_ROUND);
 
-
-
-
-
         //
         // prevent drawing of rects only consisting of void tiles
         //
         std::vector<bool> fullyVoid(nElemsQT, true);
         std::vector<double> fullVoidRatios(nElemsQT);
         {
-            //const auto nodes2leaves=genMap_qt2leaves(qt);
-
-
-            for (
-                const auto &nodeId: helper::range_n(nElemsQT)) {
+            for (const auto &nodeId: helper::range_n(nElemsQT)) {
                 size_t cnt = 0;
 
                 const auto leafRange = getRange_qt2leaves(nodeId, qt);
-                //for(const auto & leafId : nodes2leaves[nodeId])
-                for (
-                    auto leafId = leafRange.first; leafId < leafRange.first + leafRange.second; leafId++
-                    )
+                for (auto leafId = leafRange.first; leafId < leafRange.first + leafRange.second; leafId++)
                     if (!isVoid(leafId)) {
                         cnt++;
                         fullyVoid[nodeId] = false;
                     }
                 fullVoidRatios[nodeId] = static_cast<double>(cnt) /
-                    /*nodes2leaves[nodeId].size()*/leafRange.second;
+                    leafRange.second;
             }
         }
 
@@ -1025,13 +866,9 @@ namespace supertiles
 
         struct TileImg
         {
-            // using DIM_TILE=
-            //   typename std::remove_const<typename std::remove_reference<decltype(drawTile.getTileDim(0))>::type>::type
-            //   tileDim;
             std::vector <cairo4_t> buf;
             typename std::remove_const<typename std::remove_reference<decltype(drawTile.getTileDim(0))>::type>::type
                 tileDim;
-            //DIM_TILE tileDim;
             V2<double> imgPos;
             V2<double> imgDim;
             double tileScale;
@@ -1049,7 +886,6 @@ namespace supertiles
 #ifdef __NO_OMP
         const size_t batchSize=1;
 #else
-        //const size_t batchSize=256;
         const size_t batchSize = nodeIndices.size();
 #endif
 
@@ -1057,7 +893,6 @@ namespace supertiles
 
         const std::vector <V2<int64_t>> neighborOffsets
             ({V2<int64_t>(-1, 0), V2<int64_t>(1, 0), V2<int64_t>(0, -1), V2<int64_t>(0, 1)});
-        //({V2<int64_t>(0, -1), V2<int64_t>(0, -1),V2<int64_t>(0, -1),V2<int64_t>(0, -1)});
 
         const size_t nNeighbors = neighborOffsets.size();
 
@@ -1065,9 +900,7 @@ namespace supertiles
         std::vector <V4<double>> neighborSim(batchSize, V4<double>(0, 0, 0, 0));
 
         std::vector<bool> nodeIndicesMask(nElemsQT, false);
-        for (
-            const auto &e: nodeIndices
-            )
+        for (const auto &e: nodeIndices)
             nodeIndicesMask[e] = true;
 
         const bool do_experimental_neighborSim = false;
@@ -1079,23 +912,16 @@ namespace supertiles
             std::vector <FE> commonRep(drawTile.get_nElemsFeatTile(), 0.);
 
             const auto nonVoidLeaves = drawTile.getNonVoidLeaves(qt.nElems() - 1);
-            for (
-                const auto &leafId: nonVoidLeaves
-                )
-                for (
-                    size_t i = 0; i < commonRep.size(); i++
-                    )
+            for (const auto &leafId: nonVoidLeaves)
+                for (size_t i = 0; i < commonRep.size(); i++)
                     commonRep[i] += drawTile.get_feat_tileData_fromLeaf(leafId)[i];
 
             constexpr
             distFuncType_t distFuncType = distFuncType_norm2;
-            //distFuncType_cosine_normalized=2,
             using D = double;
 
 
-            for (
-                const auto &leafId: nonVoidLeaves
-                ) {
+            for (const auto &leafId: nonVoidLeaves) {
                 DistOp <distFuncType, D> dist;
                 for (
                     size_t i = 0; i < commonRep.size(); i++
@@ -1115,11 +941,7 @@ namespace supertiles
 #else
         std::cout << "start parallel rendering in batches\n";
 #endif
-        for (
-            size_t batchIdx = 0; batchIdx < nodeIndices.size(); batchIdx += batchSize
-            )
-            //for(const auto & nodeId : nodeIndices)
-        {
+        for (size_t batchIdx = 0; batchIdx < nodeIndices.size(); batchIdx += batchSize) {
             helper::progressBar(batchIdx / static_cast<double>(nodeIndices.size()));
 
             const size_t maxIdx = std::min(nodeIndices.size(), batchIdx + batchSize);
@@ -1130,9 +952,7 @@ namespace supertiles
 #ifndef __NO_OMP
 #pragma omp parallel for
 #endif
-            for (
-                size_t idx = batchIdx; idx < maxIdx; idx++
-                ) {
+            for (size_t idx = batchIdx; idx < maxIdx; idx++) {
                 const auto nodeId = nodeIndices[idx];
 
                 auto &tileImg = tileImgs[idx - batchIdx];
@@ -1142,17 +962,13 @@ namespace supertiles
                 tileImg.tileDim = drawTile.getTileDim(nodeId);
                 const auto nElemsRepTile = helper::ii2n(tileImg.tileDim);
 
-                //std::cout << "nodeId: " << nodeId << ": nElemsRepTile: " << nElemsRepTile << " " << tileImg.tileDim << std::endl;
-
-                //size_t levelOffset;
-
                 std::vector <V4<double>> bufRGBA;
                 bufRGBA.resize(nElemsRepTile);
                 tileImg.buf.resize(nElemsRepTile);
 
                 std::tie(
                     tileImg.imgPos,
-                    tileImg.imgDim, /*levelOffset,*/ tileImg.lineWidth, tileImg.borderDelta
+                    tileImg.imgDim, tileImg.lineWidth, tileImg.borderDelta
                 )
                     = node2tileImg_(nodeId);
 
@@ -1166,7 +982,6 @@ namespace supertiles
 
                 // output tile image to file
                 if (imgOpts.individualTileImgs != "") {
-                    //const std::string fname(fnamePNG.substr(0, fnamePNG.size()-4)+"_"+std::to_string(idx)+".png");
 
                     const std::string fname
                         (imgOpts.individualTileImgs + "_" + helper::leadingZeros(idx, 6) + ".png");
@@ -1183,8 +998,6 @@ namespace supertiles
                         << std::endl;
                     continue;
                 }
-
-                //using R = V4<double>;
 
                 for (
                     const auto &i: helper::range_n(nElemsRepTile))
@@ -1207,17 +1020,11 @@ namespace supertiles
 
                     assert(nodeId >= off);
 
-                    //if(idx==0)
-                    for (
-                        size_t j = 0; j < nNeighbors; j++
-                        ) {
-                        //using IDX=decltype(qt.nElemsLevel_begin);
+                    for (size_t j = 0; j < nNeighbors; j++) {
                         auto n = qtNeighborsPerLevel[level][(nodeId - off) * nNeighbors + j];
-                        //std::cout << "j: " << j << " n: " << n << " " << neighborOffsets[j]<< "  " << off << std::endl;
                         if (n == -1)
                             continue;
                         n += off;
-                        //std::cout << "neighbor " << nodeId << ": " << n << std::endl;
                         hassertm2(n < qt_nElems, n, off);
 
 
@@ -1226,10 +1033,6 @@ namespace supertiles
                             n = qt.parent(n);
                         }
 
-                        //std::cout << "test " << nodeId << ": " << n << " " << qt_nElems << std::endl;
-
-
-
                         if (n != -1 && nodeId < n) {
                             hassertm2(n >= 0, n, qt_nElems);
                             const auto a = nodeId;
@@ -1237,8 +1040,6 @@ namespace supertiles
                             assert(a >= 0 && a < qt_nElems);
                             assert(b >= 0 && b < qt_nElems);
                             const auto nElemsFeatTile = drawTile.get_nElemsFeatTile();
-                            //const auto a_begin=drawTile.get_feat_tileData(a);
-                            //const auto b_begin=drawTile.get_feat_tileData(b);
 
                             auto ___e = drawTile.get_feat_tileData(0)[0];
                             using FE =
@@ -1249,12 +1050,8 @@ namespace supertiles
                             const auto b_nonVoidLeaves = drawTile.getNonVoidLeaves(b);
 
                             auto addToCommonRep = [&](const auto &nonVoidLeaves) {
-                                for (
-                                    const auto &leafId: nonVoidLeaves
-                                    )
-                                    for (
-                                        size_t i = 0; i < nElemsFeatTile; i++
-                                        )
+                                for (const auto &leafId: nonVoidLeaves)
+                                    for (size_t i = 0; i < nElemsFeatTile; i++)
                                         commonRep[i] += drawTile.get_feat_tileData_fromLeaf(leafId)[i];
                             };
 
@@ -1271,7 +1068,6 @@ namespace supertiles
 
                                 constexpr
                                 distFuncType_t distFuncType = distFuncType_norm2;
-                                //distFuncType_cosine_normalized=2,
 
                                 DistOp <distFuncType, D> dist;
 
@@ -1291,27 +1087,17 @@ namespace supertiles
 
                             double d = 0.;
 
-                            for (
-                                const auto &leafId: a_nonVoidLeaves
-                                )
+                            for (const auto &leafId: a_nonVoidLeaves)
                                 d += dispPerLeaf(drawTile.get_feat_tileData_fromLeaf(leafId));
 
 
-                            for (
-                                const auto &leafId: b_nonVoidLeaves
-                                )
+                            for (const auto &leafId: b_nonVoidLeaves)
                                 d += dispPerLeaf(drawTile.get_feat_tileData(leafId));
 
                             assert(!a_nonVoidLeaves.empty());
                             assert(!b_nonVoidLeaves.empty());
 
-                            //std::cout << "active larger neighbor for " << nodeId << ": " << n << " (j=" << j << ")" << std::endl;
                             d /= nodeLeafCount;
-
-
-
-                            //std::cout << "combined disparity " << d << " " << maxDisparity << " " << disparities[a] << " " << d/maxDisparity << std::endl;
-
                             d /= maxDisparity;
                             if (d < disparityThreshold)
                                 neighborSim[idx][j] = d;//1.-d;
@@ -1321,30 +1107,20 @@ namespace supertiles
             }
 
             if (imgOpts.individualTileImgs == "") {
-                for (
-                    size_t idx = batchIdx; idx < maxIdx; idx++
-                    ) {
+                for (size_t idx = batchIdx; idx < maxIdx; idx++) {
                     const auto tileImgIdx = idx - batchIdx;
-                    //const auto nodeId=nodeIndices[idx];
-                    //const auto & tileImg=tileImgs[idx-batchIdx];
                     auto tileImg = tileImgs[tileImgIdx];
 
-                    //const auto fullVoidRatio=fullVoidRatios[nodeId];
                     //
                     // original tile data prior to modification
                     //
                     const auto dim = tileImgs[tileImgIdx].imgDim;
                     const auto p = tileImgs[tileImgIdx].imgPos;
 
-                    for (
-                        size_t j = 0; j < neighborOffsets.size(); j++
-                        ) {
+                    for (size_t j = 0; j < neighborOffsets.size(); j++) {
                         auto f = neighborSim[idx][j];
                         if (f > 0) {
                             f = std::min(f, 1.);
-                            //f=1.;
-                            //std::cout << "draw j " << j << std::endl;
-                            //cairo_set_source_rgba(cr, 1., 0.2, 0.8, 0.3);
                             cairo_set_source_rgba(cr, 0., 0., 0., 0.3);
                             if (j == 0)
                                 cairo_rectangle(cr, p.x, p.y, -dim.x, f * dim.y);
@@ -1359,12 +1135,9 @@ namespace supertiles
                     }
                 }
 
-                for (
-                    size_t idx = batchIdx; idx < maxIdx; idx++
-                    ) {
+                for (size_t idx = batchIdx; idx < maxIdx; idx++) {
                     const auto tileImgIdx = idx - batchIdx;
                     const auto nodeId = nodeIndices[idx];
-                    //const auto & tileImg=tileImgs[idx-batchIdx];
                     auto tileImg = tileImgs[tileImgIdx];
 
 
@@ -1389,7 +1162,6 @@ namespace supertiles
 
                             if (fullVoidRatio > 0.) {
                                 const auto leafRange = getRange_qt2leaves(nodeId, qt);
-                                //for(const auto & leafId : nodes2leaves[nodeId])
 
                                 V2<double> center(0, 0);
                                 {
@@ -1432,12 +1204,6 @@ namespace supertiles
                             );
                         }
                         if (annotateTiles) {
-                            // const auto tileCol=CairoDraw_t::cairo42rgba(tileImg.buf[0]);
-                            // const auto tileLuminance=0.3*tileCol.x+0.59*tileCol.y+0.11*tileCol.z;
-
-                            // double fontLuminance=std::sqrt(tileLuminance);
-                            // if(tileLuminance<0.5)
-                            //   fontLuminance=1.-fontLuminance;
 
                             const double fontLuminance = 1.;
 
@@ -1491,10 +1257,6 @@ namespace supertiles
 
                             }
 
-
-                            // cairo_set_font_size(cr, 0.5*fontSize);
-                            // cairo_move_to(cr, tileImg.imgPos.x+border.x, tileImg.imgPos.y+dim.y-border.y);
-
                             std::string s;
 
                             if (nodeId >= 64) {
@@ -1508,7 +1270,6 @@ namespace supertiles
                                 ss << std::fixed << std::setprecision(2) << costs[nodeId];
                                 s = "γ=" + ss.str();
                             }
-                            //cairo_show_text(cr, s.c_str());
                             std::cout << "draw string |" << s << "|" << std::endl;
                             drawText(
                                 s,
@@ -1524,8 +1285,6 @@ namespace supertiles
                         CairoDraw_t cd(helper::cairoBackend_rec);
                         draw(cd.get());
 
-                        //cd.writePDF(fnamePDF.substr(0, fnamePDF.size()-4)+"_"+std::to_string(nodeId)+".pdf");
-
                         const std::string fname = fnamePDF.substr(0, fnamePDF.size() - 4) + "_" + helper::leadingZeros(
                             nodeId,
                             6
@@ -1539,9 +1298,8 @@ namespace supertiles
                     // draw indicator rectangles: lower level
                     //
                     if (drawDisparityIndicator && imgOpts.disparityIndicatorCol.w > 0.) {
-                        //auto tileImg = tileImgs[tileImgIdx];
                         drawDisparityIndicatorNode_
-                            (nodeId/*, tileImg.imgPos, tileImg.imgDim,*/ /*tileImg.borderDelta, tileImg.lineWidth*/);
+                            (nodeId);
                     }
 
                     if (!fullyVoid[nodeId]) {
@@ -1557,7 +1315,6 @@ namespace supertiles
                 }
             }
         }
-
 
 #if 0
         //
@@ -1635,14 +1392,11 @@ namespace supertiles
             cairo_stroke(cr);
           }
           }
-        //drawRect(nodeIdParent, imgPos-borderDelta, imgDim+2*borderDelta);
-        //}
       }
 #endif
 
 
         if (imgOpts.individualTileImgs == "") {
-            // includeInactive=2 : include everything
             auto shownNodesArea_ = [&](
                 const auto &nv, uint32_t
             includeInactive = false
@@ -1668,8 +1422,6 @@ namespace supertiles
                         )
                             = node2tileImg_(nodeId, false);
 
-                        // imgPosMin=helper::min(imgPosMin, imgPos);
-                        // imgPosMax=helper::max(imgPosMax, imgPos+imgDim);
                         imgPosMin = minv(imgPosMin, imgPos);
                         imgPosMax = maxv(imgPosMax, imgPos + imgDim);
                     }
@@ -1775,8 +1527,7 @@ namespace supertiles
                 auto sn_it = snv.begin();
                 auto col_it = colv.begin();
 
-                for (
-                    ; sn_it != snv.end() && col_it != colv.end();
+                for (; sn_it != snv.end() && col_it != colv.end();
                     sn_it++, col_it++
                     ) {
                     shownNodesBorder_(
@@ -1892,30 +1643,6 @@ namespace supertiles
                 );
 
         }
-
-        //       import cairo
-
-        // img = cairo.ImageSurface.create_from_png("in.png")
-        // width = img.get_width()
-        // height = img.get_height()
-
-        // imgpat = cairo.SurfacePattern(img)
-
-        // scaler = cairo.Matrix()
-        // #1 = 100%; 2 = 50%;0.5 = 200%
-        // scaler.scale(2,2) #50% downscale in this case
-        // imgpat.set_matrix(scaler)
-
-        // #set resampling filter
-        // imgpat.set_filter(cairo.FILTER_BEST)
-
-        // canvas = cairo.ImageSurface(cairo.FORMAT_ARGB32,320,240)
-        // ctx = cairo.Context(canvas)
-
-        // ctx.set_source(imgpat)
-        // ctx.paint()
-
-        // canvas.write_to_png("out.png")
 #ifdef __NO_OMP
 #undef __NO_OMP
 #endif
@@ -1955,22 +1682,22 @@ namespace supertiles
         DrawOpts drawOpts(imgOutOpts);
 
 
-        const std::vector<bool> drawNode =
-            nodeDrawMask(qt, nTilesAssign);
+        const std::vector<bool> drawNode = nodeDrawMask(qt, nTilesAssign);
 
         std::cout << "initialize DrawTile" << std::endl;
 
-        DrawTile <AS, FTD, RTD, DIM_GRID, DIM_TILE> drawTile
-            (
-                gridDim, qtLeafAssignment,
-                feat_tileData, nElemsFeatTile,
-                tileData,
-                tileDim_in,
-                repAggregationType,
-                distFuncType,
-                nodeDisparities,
-                drawOpts
-            );
+        DrawTile <AS, FTD, RTD, DIM_GRID, DIM_TILE> drawTile(
+            gridDim,
+            qtLeafAssignment,
+            feat_tileData,
+            nElemsFeatTile,
+            tileData,
+            tileDim_in,
+            repAggregationType,
+            distFuncType,
+            nodeDisparities,
+            drawOpts
+        );
 
         if (drawOpts.level0Border < 0.)
             drawOpts.level0Border = drawOpts.level0BorderScale * level0BorderDefault((uint32_t) drawTile.getTileDim(0)
@@ -1981,17 +1708,14 @@ namespace supertiles
             for (
                 size_t i = 0; i < drawOpts.shownNodes.size(); i++
                 ) {
-                std::string fnameBase(outDir/*+"shownNodes"*/);
+                std::string fnameBase(outDir);
                 if (drawOpts.shownNodes.size() > 1)
                     fnameBase += helper::leadingZeros(i, 6);
 
-                // if(swapXY)
-                //   fnameBase+="_swapXY";
                 presentationAdaptiveGrid(
                     drawOpts.do_pdf ? fnameBase + ".pdf" : "",
                     drawOpts.do_png ? fnameBase + ".png" : "",
                     gridDim,
-                    //V2<int64_t>(16,16),
                     qtLeafAssignment,
                     drawTile,
                     nodeDisparities,
@@ -2008,31 +1732,18 @@ namespace supertiles
                 );
 
             }
-            // should not be needed anymore with latest change
-            //drawOpts.shownNodes.clear();
         }
 
 
         if (!drawOpts.levels.empty()) {
-            // if(drawOpts.levels.empty())
-            //   drawOpts.levels=helper::range_n(qt.nLevels());
-
-            // std::reverse(std::begin(drawOpts.levels), std::end(drawOpts.levels));
-
-
-            for (
-                const auto level: drawOpts.levels
-                ) {
+            for (const auto level: drawOpts.levels) {
                 std::cout << "render level " << level << std::endl;
                 std::string fnameBase(outDir + "adaptiveGridLevels_" + helper::leadingZeros(level, 5));
-                // if(drawOpts.swapXY)
-                //   fnameBase+="_swapXY";
 
                 presentationAdaptiveGrid(
                     drawOpts.do_pdf ? fnameBase + ".pdf" : "",
                     drawOpts.do_png ? fnameBase + ".png" : "",
                     gridDim,
-                    //V2<int64_t>(16,16),
                     qtLeafAssignment,
                     drawTile,
                     nodeDisparities,
@@ -2050,27 +1761,17 @@ namespace supertiles
         }
 
         if (!drawOpts.disparities.empty()) {
-            // size_t maxStep=20;
-            // if(drawOpts.disparityMaxStep!=static_cast<decltype(drawOpts.disparityMaxStep)>(-1))
-            //   maxStep=drawOpts.disparityMaxStep;
-
-            // auto steps=helper::range_n(maxStep+1);
-            // std::reverse(std::begin(steps), std::end(steps));
             for (
                 const auto disparityThreshold: drawOpts.disparities
                 ) {
-                //const double disparityThreshold = disparityThresholdI/static_cast<double>(maxStep);
-
                 std::string fnameBase(
                     outDir + "adaptiveGrid_"
                         + helper::leadingZeros(int(10000. * disparityThreshold), 5));
-                // if(drawOpts.swapXY)
-                //   fnameBase+="_swapXY";
+
                 presentationAdaptiveGrid(
                     drawOpts.do_pdf ? fnameBase + ".pdf" : "",
                     drawOpts.do_png ? fnameBase + ".png" : "",
                     gridDim,
-                    //V2<int64_t>(16,16),
                     qtLeafAssignment,
                     drawTile,
                     nodeDisparities,
@@ -2086,9 +1787,7 @@ namespace supertiles
                 );
             }
         }
-
     }
-
 }
 }
 #endif //__SUPERTILES_PLACE_PRESENTATION__

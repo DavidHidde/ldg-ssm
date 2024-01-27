@@ -1,24 +1,29 @@
 #ifndef __SUPERTILES_PLACE_LEVEL_INDICATOR_NODE__
 #define __SUPERTILES_PLACE_LEVEL_INDICATOR_NODE__
-namespace supertiles {
-    namespace place {
-        struct LevelIndicatorNode {
-            LevelIndicatorNode() {}
+namespace supertiles
+{
+    namespace place
+    {
+        struct LevelIndicatorNode
+        {
+            LevelIndicatorNode()
+            {}
 
             template<typename R>
-            LevelIndicatorNode(const R &rect, const uint32_t level, const uint32_t nLevels) {
+            LevelIndicatorNode(const R &rect, const uint32_t level, const uint32_t nLevels)
+            {
                 init(rect, level, nLevels);
             }
 
             template<typename R>
-            void init(const R &rect, const uint32_t level, const uint32_t nLevels) {
+            void init(const R &rect, const uint32_t level, const uint32_t nLevels)
+            {
                 if (rect.z == 0 || rect.w == 0)
                     return;
 
                 root = V2<double>(rect.x + (rect.z / 2), rect.y);
                 left = V2<double>(rect.x, rect.y + rect.w);
                 right = V2<double>(rect.x + rect.z, rect.y + rect.w);
-
 
                 auto triHeight = [&](auto l) {
                     const double s = (nLevels - l - 1) / static_cast<double>(nLevels - 1);
@@ -47,7 +52,8 @@ namespace supertiles {
             }
 
             template<typename F>
-            void trans(F f) {
+            void trans(F f)
+            {
                 root = f(root);
                 left = f(left);
                 right = f(right);
@@ -61,22 +67,24 @@ namespace supertiles {
                 }
             }
 
-            double lineWidth() const {
+            double lineWidth() const
+            {
                 return lineWidthScale * (right.x - left.x) / 20.;
             }
 
-            double hlineWidth() const {
-                //return (hright.x-hleft.x)/20.;
+            double hlineWidth() const
+            {
                 return lineWidth();
             }
 
-            double grdLineWidth() const {
-                //return (hright.x-hleft.x)/20.;
+            double grdLineWidth() const
+            {
                 return 0.3 * lineWidth();
             }
 
 
-            void drawCairo(cairo_t *cr, const double scale = 1.) const {
+            void drawCairo(cairo_t *cr, const double scale = 1.) const
+            {
                 if (right == left)
                     return;
 
@@ -95,7 +103,6 @@ namespace supertiles {
                     cairo_move_to(cr, ro.x * scale, ro.y * scale);
                     cairo_line_to(cr, l.x * scale, l.y * scale);
                     cairo_line_to(cr, r.x * scale, r.y * scale);
-                    //cairo_move_to(cr, ro.x, ro.y);
                     cairo_close_path(cr);
 
                     cairo_set_source_rgba(cr, col.x, col.y, col.z, col.w);

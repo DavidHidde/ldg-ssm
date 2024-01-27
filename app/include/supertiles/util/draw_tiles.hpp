@@ -4,13 +4,15 @@
 #include "../model/quad_tree.hpp"
 
 template<typename T>
-V4 <uint8_t> x2cairo4(const T &v) {
+V4 <uint8_t> x2cairo4(const T &v)
+{
     assert(false);
     return V4<uint8_t>(0, 0, 0, 0);
 }
 
 template<>
-V4 <uint8_t> x2cairo4(const double &v) {
+V4 <uint8_t> x2cairo4(const double &v)
+{
     using CairoDraw_t = helper::CairoDraw <V2<double>>;
     return CairoDraw_t::rgbaf2cairo4 < V4 < uint8_t >> (V4<double>(v, v, v, 1));
 
@@ -29,7 +31,8 @@ void drawTiles(
     double pixelSize,
     POS offset,
     double scale,
-    const MAP &nodes2leaves = MAP()) {
+    const MAP &nodes2leaves = MAP())
+{
 
     /*
       TILE OFFSETS TO MAP GRID POSITION TO QT IDS
@@ -37,18 +40,6 @@ void drawTiles(
       USE QT IDS TO MAP DOWN TO LEAVE LEVEL
       CONSIDER THIS
     */
-
-    // for(size_t i=0; i<assignments->size(); i++)
-    //   {
-    //     std::cout << i;
-    //     for(auto it = assignments->cbegin(i);
-    // 	  it != assignments->cend(i); it++)
-    // 	{
-    // 	  const auto supertileId = assignments->getIdx(*it);
-    // 	  std::cout << " [" << supertileId << ":" << assignments->getMass(*it) << "]";
-    // 	}
-    //     std::cout << std::endl;
-    //   }
 
     const bool imgMode = (tilePixelDim.y > 1);
 
@@ -65,13 +56,10 @@ void drawTiles(
         const auto qtIdx = levelOffset + tileOffsets[i];
         const auto pos = offset + scale * tilesPos[i];
         if (imgMode) {
-            //const auto tiles=tilesFull+levelOffset*nPixels;
-
             for (
                 size_t j = 0; j < nPixels; j++
                 )
                 buf[j] =
-                    //CairoDraw_t::rgbaf2cairo4<V4<uint8_t>>
                     x2cairo4
                         (tilesFull[qtIdx * nPixels + j]);
 
@@ -83,12 +71,6 @@ void drawTiles(
                 scale * pixelSize
             );
         } else {
-            // supertiles_DrawSignalCairo<TILE*, DIM> drawSignal(tilesFull, tilePixelDim);
-            // drawSignal.cr = cr;
-
-            // drawSignal(qtIdx, tilesPos, nodes2leaves);
-
-
             //
             // draw box
             //
@@ -111,7 +93,7 @@ void drawTiles(
                     cairo_line_to(
                         cr,
                         pos.x + (chartBoxDim.x * j) / tilePixelDim.x,
-                        pos.y + ((1. - tilesFull[qtIdx * nPixels + j]/*(static_cast<double>(j)/tilePixelDim.x)*/) * chartBoxDim
+                        pos.y + ((1. - tilesFull[qtIdx * nPixels + j]) * chartBoxDim
                             .y)
                     );
                 cairo_stroke(cr);
@@ -136,7 +118,8 @@ void drawTiles(
 
 template<typename QT, typename DATA, typename DIM0, typename DIM1, typename N2L, typename PO>
 void
-drawLevels(const QT &qt, const DATA &supertileData, DIM0 dim, DIM1 tileDim, const N2L &nodes2leaves, const PO &po) {
+drawLevels(const QT &qt, const DATA &supertileData, DIM0 dim, DIM1 tileDim, const N2L &nodes2leaves, const PO &po)
+{
     const auto map_qt2grid_leaves =
         helper::invertMap(genMap_grid2qt(dim));
 
@@ -169,10 +152,6 @@ drawLevels(const QT &qt, const DATA &supertileData, DIM0 dim, DIM1 tileDim, cons
 
             cd.writePDF(po.outDir + "map_grid2qt_" + std::to_string(cnt) + ".pdf");
         }
-
-
-        //const auto map_qt2grid = helper::invertMap(map_grid2qt);
-
         CairoDraw_t cd(helper::cairoBackend_rec);
 
         V2<double> offset(0., 0.);

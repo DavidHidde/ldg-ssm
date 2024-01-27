@@ -7,31 +7,27 @@ template<
     typename NodeLeafCounts,
     typename NodeLeafCounts0,
     typename N2L,
-    typename QT/*, typename P*/>
+    typename QT
+>
 auto assignGroupPermutations
     (
         ASS &qtLeafAssignment,
         std::vector <MIDX> &movedFromQTPos,
         const D_IT supertiles,
         const D_IT supertiles_0,
-        //const std::vector<D>& tiles,
         const size_t nElemsTile,
         const NodeLeafCounts &nodeLeafCounts,
         const NodeLeafCounts0 &nodeLeafCounts_0,
         const N2L &nodes2leaves_0,
         const QT &qt,
-        const std::vector <IDX> &qtIdxv, const std::vector <uint32_t> &qtNeighbors,
-        const size_t nNeighbors, const double neighborFac/*,
-						    const P& assignmentCandidatesv*/, const size_t maxNLevelsUp
-    ) {
+        const std::vector <IDX> &qtIdxv,
+        const std::vector <uint32_t> &qtNeighbors,
+        const size_t nNeighbors, const double neighborFac,
+        const size_t maxNLevelsUp
+    )
+{
 
     using D = double;
-
-
-    //const size_t maxNLevelsUp=-1;
-    //const size_t maxNLevelsUp=1;
-    //const bool beginOneLevelUp=true;
-
     const auto N = qtIdxv.size();
 
     assert(N > 0);
@@ -55,20 +51,11 @@ auto assignGroupPermutations
         assert(qtLeafAssignment[qtIdxv[i]] == tileIdxv[i]);
         assert(movedFromQTPos[p] == p);
     }
-    // using idcs_t = typename
-    //   std::remove_const<typename std::remove_reference<decltype(assignmentCandidates[0])>::type>::type;
-
-    // std::vector<std::pair<D, idcs_t>>
-    //   bestv(nThreads, std::make_pair(std::numeric_limits<D>::max(), idcs_t()));
-
 
     std::vector <D> costMatrix(N * N, 0.);
-
     std::vector <CostVecCache<D>> costCachev(N);
 
-    for (
-        size_t x = 0; x < costMatrix.size(); x++
-        ) {
+    for (size_t x = 0; x < costMatrix.size(); x++) {
         const auto qtPosListIdx = x / N;
         const auto refNodeIdx = x - qtPosListIdx * N;
 
@@ -82,16 +69,6 @@ auto assignGroupPermutations
 
         // can begin one level up as base level is element itself by definition
 
-        // std::cout << "test: " <<
-        // 	costVec<costVecMode_replace, DIST_FUNC>
-        // 	(costCache,
-        // 	 qt_itv, qt_it_ref,
-        // 	 refLeafNodeIdcs,
-        // 	 &supertiles[0],
-        // 	 &supertiles_0[0],
-        // 	 nElemsTile, nodeLeafCounts, nodeLeafCounts_0, 0, 0)
-        // 		<< std::endl;
-
         cost
             += costVec<costVecMode_replace, DIST_FUNC>
             (
@@ -103,9 +80,7 @@ auto assignGroupPermutations
                 nElemsTile, nodeLeafCounts, nodeLeafCounts_0, maxNLevelsUp, 1
             );
 
-        for (
-            uint32_t i = 0; i < nNeighbors; i++
-            ) {
+        for (uint32_t i = 0; i < nNeighbors; i++) {
             const auto neighbor = qtNeighbors[nNeighbors * qt_it_ref.idx + i];
 
             if (neighbor != -1) {
@@ -133,8 +108,6 @@ auto assignGroupPermutations
     const bool adapt = !std::is_sorted(assignment.begin(), assignment.end());
 
     if (adapt) {
-        // auto updateAssignment = [&assignment, &qtIdxv, &tileIdxv, &N]
-        // 	 (auto& qtLeafAssignment, auto& movedFromQTPos)
         {
             for (
                 const auto i: helper::range_n(N)) {
@@ -149,9 +122,6 @@ auto assignGroupPermutations
                 }
             }
         };
-
-        //updateAssignment(qtLeafAssignment, movedFromQTPos);
     }
     return adapt;
-
 }

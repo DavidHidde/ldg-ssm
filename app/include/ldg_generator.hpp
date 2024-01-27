@@ -57,29 +57,27 @@
 
 #if CHECK_IMPROVEMENT == 1
 #define CHECK_IMPROVEMENT_AFTER_BATCH
-//#pragma message "CHECK_IMPROVEMENT_AFTER_BATCH"
 #elif CHECK_IMPROVEMENT == 2
 #define CHECK_IMPROVEMENT_AFTER_PASS
-//#pragma message "CHECK_IMPROVEMENT_AFTER_PASS"
 #elif CHECK_IMPROVEMENT != 0
 #error "INVALID CHECK IMPROVEMENT MODE"
 #endif
 
 #if REVERT_ASSIGNMENT_MODE == 0
 #define REVERT_ASSIGNMENT_ADAPT
-//#pragma message "REVERT_ASSIGNMENT_ADAPT"
 #elif REVERT_ASSIGNMENT_MODE == 1
 #define REVERT_ASSIGNMENT_COPY
-//#pragma message "REVERT_ASSIGNMENT_COPY"
 #else
 #error "INVALID REVERT_ASSIGNMENT_MODE"
 #endif
 
+namespace supertiles
+{
+    namespace place
+    {
 
-namespace supertiles {
-    namespace place {
-
-        bool is_initAndExit(std::string loadAssignments) {
+        bool is_initAndExit(std::string loadAssignments)
+        {
             return (loadAssignments == "INIT_AND_EXIT");
         }
 
@@ -103,7 +101,8 @@ namespace supertiles {
             const size_t maxBatchSize,
             const size_t maxNLevelsUp,
             const size_t maxNodeExchangeLevel
-        ) {
+        )
+        {
             using D = double;
 
             std::cout << "sizeof(D): " << sizeof(D) << std::endl;
@@ -112,7 +111,6 @@ namespace supertiles {
                 nTilesAssign = nTilesFull;
 
             assert(nTilesAssign >= nTilesFull);
-
 
             Log<TERM, PassTimings> log(term);
 
@@ -124,12 +122,6 @@ namespace supertiles {
             using IDX = int64_t;
 
             const size_t nTiles = helper::ii2n(gridDim);
-
-            /*
-          nTiles := number of leaves in the qt
-          nTilesAssign := number of leaves that should be assigned
-          nTilesFull := number of tiles with valid input data
-             */
 
             hassertm2(nTilesAssign <= nTiles, nTilesAssign, nTiles);
             hassertm2(nTilesFull <= nTilesAssign, nTilesFull, nTilesAssign);
@@ -147,7 +139,6 @@ namespace supertiles {
 
             if (loadAssignments != "" && !is_initAndExit(loadAssignments))
                 qtLeafAssignment = read_qtLeafAssignment(loadAssignments, gridDim);
-
 
             if (qtLeafAssignment.empty()) {
                 anyChange = true;
@@ -168,8 +159,7 @@ namespace supertiles {
                     );
 
                 size_t regularIdx = 0;
-                for (
-                    const auto &idx: helper::range_n(nTiles))
+                for (const auto &idx: helper::range_n(nTiles))
                     if (isRegular[idx]) {
                         assert(regularIdx < tileIdcs.size());
                         qtLeafAssignment[idx] = tileIdcs[regularIdx];
@@ -177,7 +167,6 @@ namespace supertiles {
                     }
                 hassertm3(regularIdx == nTilesFull, regularIdx, nTilesFull, nTiles);
             }
-
 
             std::vector <D> supertiles;
 #ifdef REVERT_ASSIGNMENT_COPY
@@ -201,8 +190,7 @@ namespace supertiles {
                 //
                 // CHECK NODE LEAF COUNTS
                 //
-                for (
-                    const auto nodeId: helper::range_n(qt.nElems())) {
+                for (const auto nodeId: helper::range_n(qt.nElems())) {
                     size_t cnt = 0;
                     const auto &leaves = nodes2leaves[nodeId];
                     for (
@@ -221,15 +209,13 @@ namespace supertiles {
             sanityCheck_nodeLeafCounts();
 #endif
 
-
-
             //
             // assess cost
             //
             const auto regularLeafIndices = std::get<0>(Plans::regularTileIndices<QT>(nTilesAssign));
 
             auto supertilesCost_ = [
-                &qt, /*&tiles,*/
+                &qt,
                 &nElemsTile,
                 &neighborFac,
                 &nNeighbors,
@@ -239,18 +225,17 @@ namespace supertiles {
                 & regularLeafIndices,
                 & maxNLevelsUp
             ]
-                (/*auto & supertiles, auto& nodeLeafCounts*//*, size_t leafLevel*/size_t level) {
-                //const size_t leafLevel=0;
+                (size_t level) {
                 std::vector <D> __ignore;
                 return supertilesCost<DIST_FUNC>
                     (
                         __ignore,
                         regularLeafIndices,
-                        supertiles.begin()/*+qt.getLevelOffset(leafLevel)*nElemsTile*/,
+                        supertiles.begin(),
                         nElemsTile,
-                        nodeLeafCounts/*.higherLevelCopy(leafLevel)*/,
-                        qt/*.higherLevelCopy(leafLevel)*/,
-                        qtNeighbors[/*leafLevel*/0],
+                        nodeLeafCounts,
+                        qt,
+                        qtNeighbors[0],
                         nNeighbors,
                         neighborFac,
                         level,
@@ -267,7 +252,6 @@ namespace supertiles {
             std::get<0>(best_qtLeafAssignment)=qtLeafAssignment;
             std::get<1>(best_qtLeafAssignment)=supertilesCost_();
 #endif
-
 
             if (term.maxNSeconds > 0 && term.maxNPasses && !is_initAndExit(loadAssignments)) {
                 Plans plans(
@@ -317,7 +301,6 @@ namespace supertiles {
                     auto updateLog = [&]() {
                         helper::ChronoTimer timer;
 
-
 #ifndef NDEBUG
                         {
                             // check whether iterative updates are actually accurate
@@ -348,15 +331,9 @@ namespace supertiles {
 #endif
                         }
 #endif
-
-                        //const auto cost = supertilesCost_(0);
-                        //currentCost_0;
                         const auto cost = currentCost_0;
 
                         log(cost, changeInPass, leafLevel, aggregateExchangeMode, passTimings);
-
-                        // auto writeAssignment= [&](const std::string fname)
-                        // {helper::bzip_compress(qtLeafAssignment, fname);};
 
 #if CHECK_IMPROVEMENT == 0
                         if(cost<best_qtLeafAssignment.second)
@@ -382,13 +359,10 @@ namespace supertiles {
                                     6
                                 ) + ".raw.bz2"
                             );
-                        //writeAssignment(writeIntermediateAssignments+/*helper::leadingZeros(term.passN, 6)+*/".raw.bz2");
-
                     };
 
                     if (term.passN == 0)
                         updateLog();
-
 
                     assert(qtLeafAssignment.size() == qt.nNodesLevel(0));
 
@@ -396,7 +370,6 @@ namespace supertiles {
 
                     auto qtNodeAssignment_vanilla =
                         helper::range_n<ass_t>(qt.nNodesLevel(leafLevel));
-
 
                     helper::ChronoTimer timerAdapt;
                     timerAdapt.pause();
@@ -420,8 +393,6 @@ namespace supertiles {
 
                         if (post_cost >= prev_cost) {
                             // set aggregate exchange mode to true here even for level 0 because qtLeafAssignment actually needs to be changed
-                            //std::cout << "revert assignment, prev_cost " << prev_cost << " vs post_cost " << post_cost << std::endl;
-                            //#ifdef REVERT_ASSIGNMENT_ADAPT
                             adaptAssignment(
                                 plan_begin + b_from,
                                 plan_begin + b_to,
@@ -435,13 +406,8 @@ namespace supertiles {
 #endif
                             return true;
                         } else {
-                            // std::cout
-                            // 	<< std::setprecision(std::numeric_limits<double>::max_digits10)
-                            // 	<< "UPDATE " << prev_cost << " vs " << post_cost << std::endl;
                             currentCost_leafLevel = post_cost;
                             currentCost_0 = supertilesCost_(0);
-                            // if(changeInPass==0)
-                            // 	changeInPass=2;
                             return false;
                         }
                     };
@@ -452,9 +418,7 @@ namespace supertiles {
                     supertiles_backup=supertiles;
 #endif
                     adhocTimer.restart();
-                    for (
-                        size_t b_idx = 0; b_idx < plan_size; b_idx += nElemsConsidered
-                        ) {
+                    for (size_t b_idx = 0; b_idx < plan_size; b_idx += nElemsConsidered) {
                         const auto b_from = b_idx;
                         auto b_to = std::min(b_idx + nElemsConsidered, plan_size);
 
@@ -462,7 +426,6 @@ namespace supertiles {
                             b_to = plan_size;
                             b_idx = plan_size;
                         }
-
 
                         timerExchange.unpause();
 
@@ -480,11 +443,7 @@ namespace supertiles {
 #ifndef NO_OMP
 #pragma omp parallel for
 #endif // NO_OMP
-                        for (
-                            size_t b_idx_batch = b_from;
-                            b_idx_batch < b_to;
-                            b_idx_batch += planChunkSize
-                            )
+                        for (size_t b_idx_batch = b_from; b_idx_batch < b_to; b_idx_batch += planChunkSize)
 #endif //ASSIGN_GROUP_HUNGARIAN
                         {
 #ifdef ASSIGN_GROUP_HUNGARIAN
@@ -501,7 +460,6 @@ namespace supertiles {
                             const auto begin_idx = b_idx;
 #endif // ASSIGN_GROUP_HUNGARIAN
 
-
                             assert(begin_idx < plan_size);
 
                             const auto nElemsSubPlan =
@@ -509,9 +467,7 @@ namespace supertiles {
 
                             if (nElemsSubPlan > 1) {
                                 std::vector <IDX> qtIdxv(nElemsSubPlan);
-                                for (
-                                    uint32_t i = 0; i < nElemsSubPlan; i++
-                                    ) {
+                                for (uint32_t i = 0; i < nElemsSubPlan; i++) {
                                     const auto planIdx = begin_idx + i;
                                     assert(planIdx < plan_size);
                                     const auto &p = plan[planIdx];
@@ -550,15 +506,8 @@ namespace supertiles {
                                 else
                                     assignGroupPermutations_(qtLeafAssignment);
 #else
-
-
-                                //movedFromQTPos = helper::range_n(qt.nNodesLevel(leafLevel));
                                 auto & ass = (!aggregateExchangeMode) ? qtLeafAssignment : qtNodeAssignment_vanilla;
                                 changev[0] |=
-                                  // run_pass(b_idx,
-                                  // 	     (!aggregateExchangeMode) ? qtLeafAssignment : qtNodeAssignment_vanilla));
-
-
                                   omp::assignGroupPermutations
                                   <DIST_FUNC>
                                   (ass,
@@ -579,9 +528,7 @@ namespace supertiles {
                         timerExchange.pause();
 
                         bool changeThis = false;
-                        for (
-                            const auto e: changev
-                            ) {
+                        for (const auto e: changev) {
                             if (changeThis)
                                 break;
                             changeThis = (e || changeThis);
@@ -592,11 +539,7 @@ namespace supertiles {
                             timerAdapt.unpause();
 #ifndef NDEBUG
                             if (aggregateExchangeMode) {
-                                for (
-                                    auto it = plan_begin + b_from;
-                                    it != plan_begin + b_to;
-                                    it++
-                                    )
+                                for (auto it = plan_begin + b_from; it != plan_begin + b_to; it++)
                                     assert(qtNodeAssignment_vanilla[*it] == movedFromQTPos[*it]);
                             }
 #endif
@@ -671,30 +614,22 @@ namespace supertiles {
 #if CHECK_IMPROVEMENT == 0
             qtLeafAssignment=best_qtLeafAssignment.first;
 #endif
-
-            //return std::make_tuple(qtLeafAssignment, supertiles, supertilesCost_(), term, log, nodeLeafCounts);
-
             return std::make_tuple(qtLeafAssignment, supertilesCost_(0), term, log, anyChange);
         }
 
-
         template<typename D_ST, distFuncType_t distFuncType, typename D_TILE, typename NodeLeafCounts, typename PO>
-        auto runMe_(PO po) {
-            //using D=double;
-            //using D=float;
-
+        auto runMe_(PO po)
+        {
             std::vector <D_TILE> tileData;
             size_t nTilesFull;
             V2<int> tileDim;
             V2 <size_t> gridDim;
 
-            //const auto [tileData, nTilesFull, tileDim, gridDim]
             std::tie(tileData, nTilesFull, tileDim, gridDim)
                 = initData<D_TILE>(po);
 
             std::cout << "identified grid dim " << gridDim << std::endl;
             supertiles::place::Term<double> term(po);
-
 
             const size_t nElemsTile = helper::ii2n(tileDim);
 
@@ -702,8 +637,6 @@ namespace supertiles {
             bool anyChange = false;
             if ((po.termTime > 0 && po.termIterations > 0) || po.getCost || is_initAndExit(po.loadAssignments)) {
                 helper::ChronoTimer timer;
-
-                //std::vector<uint32_t> qtLeafAssignment;
 
                 const auto rslt = run_<
                     distFuncType,
@@ -743,14 +676,12 @@ namespace supertiles {
 
                 if ((term.maxNSeconds > 0 && term.maxNPasses > 0)
                     || is_initAndExit(po.loadAssignments)) {
-                    //helper::writeFile(qtLeafAssignment, po.outDir+"/qtLeafAssignment.raw");
                     helper::bzip_compress(qtLeafAssignment, po.outDir + "/qtLeafAssignment.raw.bz2");
                     const bool append = (po.loadAssignments != "");
                     log.writeCSV(po.outDir + "/log.csv", append);
                 }
 
                 if (po.writeGridAssignmentTXT != "") {
-
                     // convert qtLeafAssignment to as
                     const auto leaf2gridPos =
                         helper::invertMap(gridPos2QTLeaves(gridDim));
@@ -759,15 +690,13 @@ namespace supertiles {
                     std::vector <uint32_t> as;
 
                     as.resize(helper::ii2n(gridDim));
-                    for (
-                        const auto &i: helper::range_n(as.size()))
+                    for (const auto &i: helper::range_n(as.size()))
                         as[leaf2gridPos[i]] = qtLeafAssignment[i];
 
                     {
                         const auto grid2leaves = gridPos2QTLeaves(gridDim);
                         std::vector <uint32_t> qtLeafAssignment_test(as.size());
-                        for (
-                            const auto &i: helper::range_n(as.size()))
+                        for (const auto &i: helper::range_n(as.size()))
                             qtLeafAssignment_test[grid2leaves[i]] = as[i];
                         assert(qtLeafAssignment_test == qtLeafAssignment);
                     }
@@ -786,8 +715,6 @@ namespace supertiles {
                 const std::vector <uint32_t> qtLeafAssignment
                     = read_qtLeafAssignment(po.loadAssignments, gridDim);
 
-                //helper::readFileAuto(qtLeafAssignment, po.loadAssignments);
-
                 hassertm3(
                     qtLeafAssignment.size() == helper::ii2n(gridDim),
                     qtLeafAssignment.size(),
@@ -799,31 +726,11 @@ namespace supertiles {
                 std::vector <D_ST> supertiles;
                 NodeLeafCounts nodeLeafCounts;
 
-                //const auto & nodeLeafCounts = std::get<5>(rslt);
-                //const auto & supertiles = std::get<1>(rslt);
-
                 std::tie(supertiles, nodeLeafCounts) =
                     initSupertiles<NodeLeafCounts, D_ST>
                         (qt, qtLeafAssignment, tileData, nElemsTile);
 
-                //std::vector<D> leafCosts(qt.nLeaves());
                 std::vector<double> leafCosts;
-
-                // if(false)
-                //   {
-                // 	leafCosts.resize(qt.nLeaves());
-
-                // 	const auto leafIdcs=helper::range_n(helper::ii2n(gridDim));
-                // 	std::cout << "there are " << leafIdcs.size() << " leaf indices\n";
-                //     {
-                // 	const auto qtNeighbors = getNeighborsQT(gridDim, getNeighborDeltas(po.nNeighbors));
-                // 	supertilesCost<distFuncType>
-                // 	(leafCosts, leafIdcs, supertiles.begin(), nElemsTile, nodeLeafCounts/*.higherLevelCopy(0)*/,
-                // 	 qt, qtNeighbors[0], po.nNeighbors, po.neighborFac, 0, po.maxNLevelsUp);
-                //     }
-                //     helper::normalize_max(leafCosts.begin(), leafCosts.end());
-                // 	std::cout << "leafCosts.size() " << leafCosts.size() << std::endl;
-                //   }
 
                 size_t nTilesAssign = po.nTilesAssign;
                 if (nTilesAssign == -1)
@@ -833,28 +740,9 @@ namespace supertiles {
 
                 using DIM = typename std::remove_cv<decltype(gridDim)>::type;
 
-                // std::vector<size_t> rep_levelOffsets;
-                // std::vector<DIM> gridDims;
-                // std::vector<bool> rep_imgGridMask;
-                // std::vector<DIM> gridDimsNonVoid;
-
-
-
-
-
                 const auto nodeDisparities
                     = computeNodeDisparity<distFuncType>
                         (supertiles.begin(), nElemsTile, qt, qtLeafAssignment, nodeLeafCounts);
-
-
-
-                // {
-                //   helper::writeASCIIv(nodeDisparities, "disparities.txt");
-                // }
-
-                // auto rects = nodeRectangles(gridDim);
-
-                // assert(nodeDisparities.size()==rects.size());
 
                 if (po.writeDisparitesOnly != "") {
                     helper::writeFileAuto(nodeDisparities, po.writeDisparitesOnly);
@@ -876,8 +764,6 @@ namespace supertiles {
                     );
 
                 } else {
-
-
                     auto _draw = [&](auto rep_tileData) {
                         using R =
                             typename std::remove_const<typename std::remove_reference<decltype(rep_tileData[0])>::type>::type;
@@ -908,14 +794,6 @@ namespace supertiles {
                                 assert(false);
                         }
 
-
-                        // if(rep_tileData.size() < helper::ii2n(rep_tileDim*gridDim))
-                        // 	{
-                        // 	  std::cerr << "rep data size " << rep_tileData.size() << " vs " << rep_tileDim << " " << gridDim
-                        // 		    << std::endl;
-                        // 	  throw "invalid representation data size";
-                        // 	}
-
                         std::cout << "rep_tile data elements: " << rep_tileData.size() << std::endl;
 
                         drawAdaptiveGrids<distFuncType>(
@@ -936,7 +814,6 @@ namespace supertiles {
                         );
                     };
 
-
                     if (po.repAggregationType == repAggregationType_central) {
                         std::vector <V4<uint8_t>> rep_tileData;
                         _draw(rep_tileData);
@@ -949,39 +826,22 @@ namespace supertiles {
 
                 }
             }
-
-
             return anyChange ? cost : -cost;
         }
 
         template<typename D_ST, typename ARGV>
-        double runT(int argc, const ARGV argv) {
+        double runT(int argc, const ARGV argv)
+        {
             const auto po = initPO(argc, argv);
 
             const auto feat_ud = readUserData(po.configFNames.front());
             const size_t feat_hashCode = std::get<0>(feat_ud.getType());
 
-            // auto out = [po](const auto& qtLeafAssignment, const auto& supertiles, const auto& cost, const auto& term, const auto& log)
-            // {
-            // 	if(term.maxNSeconds>0 && term.maxNPasses>0)
-            // 	  {
-            // 	    //helper::writeFile(qtLeafAssignment, po.outDir+"/qtLeafAssignment.raw");
-            // 	    helper::bzip_compress(qtLeafAssignment, po.outDir+"/qtLeafAssignment.raw.bz2");
-            // 	    const bool append=(po.loadAssignments != "");
-            // 	    log.writeCSV(po.outDir+"/log.csv", append);
-            // 	  }
-            // };
-
             if (helper::hc_eq<double>(feat_hashCode) || helper::hc_eq<float>(feat_hashCode)) {
-                //using D=double;
-
                 auto run__ = [&](auto f) {
                     using D =
                     decltype(f);
                     using QT = supertiles_QuadTree<int64_t>;
-
-                    //using NLC_full=NodeLeafCounts_full<QT>;
-                    //using NLC_full=NodeLeafCounts_part<QT>;
 
                     if (po.distFuncType == distFuncType_norm2) {
                         return runMe_<D_ST, distFuncType_norm2, D, NodeLeafCounts_part<QT>>(po);
@@ -1010,15 +870,16 @@ namespace supertiles {
         }
 
         template<typename ARGV>
-        double run(int argc, const ARGV argv) {
+        double run(int argc, const ARGV argv)
+        {
             return runT<double>(argc, argv);
         }
 
         template<typename ARGV>
-        double run_f32(int argc, const ARGV argv) {
+        double run_f32(int argc, const ARGV argv)
+        {
             return runT<float>(argc, argv);
         }
-
     }
 }
 

@@ -3,17 +3,19 @@
 
 #include "helper_color.h"
 
-namespace supertiles {
-    struct DrawOpts {
-        DrawOpts(const std::string &imgOutOpts) {
+namespace supertiles
+{
+    struct DrawOpts
+    {
+        DrawOpts(const std::string &imgOutOpts)
+        {
             parse(imgOutOpts);
         }
 
-        void parse(const std::string &imgOutOpts) {
+        void parse(const std::string &imgOutOpts)
+        {
             const auto keyValuePairs = helper::split(imgOutOpts, ',');
-            for (
-                const auto &e: keyValuePairs
-                ) {
+            for (const auto &e: keyValuePairs) {
                 if (e.empty())
                     continue;
                 const auto keyValue = helper::split(e, ':');
@@ -76,8 +78,6 @@ namespace supertiles {
                 else if (keyValue[0] == "tileRepDimScale")
                     tileRepDimScale = std::stod(keyValue[1]);
                 else if (keyValue[0] == "shownNodes") {
-                    //std::vector<std::string> fnames
-                    //=helper::genFileNames(std::vector<std::string>(1,keyValue[1]));
 
                     std::vector <std::string> fnames = helper::cmd_ls(keyValue[1]);
                     std::sort(fnames.begin(), fnames.end());
@@ -89,20 +89,14 @@ namespace supertiles {
                         std::cout << "load shownNodes " << e << std::endl;
                         const bool success
                             = helper::readFileAuto(shownNodes[cnt++], e);
-                        hassertm(success, /*keyValue[1]*/e);
+                        hassertm(success, e);
                     }
-                    // hassertm2(shownNodes.size()==qt.nElems(),
-                    // 		shownNodes.size(),
-                    // 		qt.nElems());
                 } else if (keyValue[0] == "shownNodes_ann") {
                     std::vector <uint8_t> shownNodes_ann;
                     const bool success
                         = helper::readFileAuto(shownNodes_ann, keyValue[1]);
                     hassert(success);
                     shownNodesv_ann.push_back(shownNodes_ann);
-                    // hassertm2(shownNodes_ann.size()==qt.nElems(),
-                    // 		shownNodes_ann.size(),
-                    // 		qt.nElems());
                 } else if (keyValue[0] == "borderLineWidthScale")
                     borderLineWidthScale = std::stod(keyValue[1]);
                 else if (keyValue[0] == "levelIndicatorScale")
@@ -148,9 +142,7 @@ namespace supertiles {
         V4<double> shownNodes_borderCol = V4<double>(0, 0, 0, 0);
         std::vector <std::vector<uint8_t>> shownNodesv_ann;
         std::vector <V4<double>> shownNodesv_ann_borderCol;
-        //= V4<double>(0, 0, 0, 0);
         bool zoomActiveNodes = false;
-        //V4<double> disparityIndicatorCol=V4<double>(.3, .3, .3, 1.);
         V4<double> disparityIndicatorCol = V4<double>(0., 0., 0., 0.);
         bool fullVoidRatioAdapt = true;
         double borderLineWidthScale = 1.;

@@ -7,23 +7,24 @@
 #include "../quad_tree.hpp"
 #include <bitset>
 #include <unordered_map>
-//#include "helper/helper_hash.h"
 
-namespace supertiles {
-    namespace place {
+namespace supertiles
+{
+    namespace place
+    {
         const double m_eps = 1e-5;
 
-        enum costVecMode_t {
-            //costVecMode_remove=0,
+        enum costVecMode_t
+        {
             costVecMode_replace = 1,
-            //costVecMode_single=2,
             costVecMode_singleRoot = 3,
-            //costVecMode_replaceUpdate=4,
         };
 
         template<distFuncType_t DIST_FUNC, typename D>
-        struct DistOp {
-            void operator()(const D &v, const D &value) {
+        struct DistOp
+        {
+            void operator()(const D &v, const D &value)
+            {
                 if (DIST_FUNC == distFuncType_norm2) {
                     dists += (v - value) * (v - value);
                     cnt++;
@@ -34,11 +35,11 @@ namespace supertiles {
                     cnt++;
                 } else
                     assert(false);
-
             }
 
             template<bool squared = false>
-            D get() const {
+            D get() const
+            {
                 assert(cnt > 0);
                 if (DIST_FUNC == distFuncType_norm2) {
                     const auto d2 = (dists / cnt);
@@ -68,68 +69,25 @@ namespace supertiles {
             }
 
             D dists = 0.;
-
             D mag0 = 0.;
             D mag1 = 0.;
-
 
             uint32_t cnt = 0;
         };
 
         template<typename cost_t=double>
-        class CostVecCache {
+        class CostVecCache
+        {
         public:
-            // void resetSeed()
-            // {
-            // 	//seed=1337;
-            // 	seed.str(std::string());
-            // }
-
-            // template<typename I>
-            // void seedCombine(supertiles_QuadTree_iterator_up<I> qt_it)
-            // {
-            // 	//helper::hash_combine(seed, qt_it.idx);
-            // 	seed<<"|" << qt_it.idx;
-            // }
-
-
-            // void seedCombine(uint32_t i)
-            // {
-            // 	//helper::hash_combine(seed, i);
-            // 	seed<<"|" <<i;
-            // }
-
-            // template<typename I>
-            // void seedCombine(const std::vector<supertiles_QuadTree_iterator_up<I>>& qt_itv)
-            // {
-            // 	for(const auto & qt_it : qt_itv)
-            // 	  seedCombine(qt_it);
-            // }
-
-            // void seedCombine(const std::vector<uint32_t>& v)
-            // {
-            // 	for(const auto & e : v)
-            // 	  seedCombine(e);
-            // }
-
-            // void seedCombine(const std::vector<size_t>& v)
-            // {
-            // 	for(const auto & e : v)
-            // 	  seedCombine(e);
-            // }
-
             template<typename I>
-            auto key(supertiles_QuadTree_iterator_up<I> qt_it) const {
-                // std::stringstream seed_cpy;
-                // seed_cpy <<seed.str();
-                // seed_cpy << "|" << qt_it.idx;
-
-                // return seed_cpy.str();
+            auto key(supertiles_QuadTree_iterator_up<I> qt_it) const
+            {
                 return qt_it.idx;
             }
 
             template<typename K>
-            std::pair<cost_t, bool> get(const K key) const {
+            std::pair<cost_t, bool> get(const K key) const
+            {
                 const auto it = m.find(key);
                 if (it == m.end())
                     return std::make_pair(std::numeric_limits<cost_t>::lowest(), false);
@@ -138,15 +96,9 @@ namespace supertiles {
             }
 
             template<typename K>
-            void add(const K key, const cost_t value) {
+            void add(const K key, const cost_t value)
+            {
                 if (true) {
-                    //std::cout << "add "	<< key << " = " << value << std::endl;
-                    // const auto rslt = get(key);
-                    // if(rslt.second)
-                    //   {
-                    // 	hassertm2(helper::apprEq(value,rslt.first), value, rslt.first);
-                    //   }
-                    // else
                     {
                         const bool success = m.emplace(key, value).second;
                         hassert(success);
@@ -155,12 +107,11 @@ namespace supertiles {
             }
 
             std::unordered_map<size_t, double> m;
-            //   size_t seed=1337;
-            //std::stringstream seed;
         };
 
         template<typename cost_t=double>
-        class CostVecCache_dummy {
+        class CostVecCache_dummy
+        {
         };
 
         template<
@@ -193,28 +144,16 @@ namespace supertiles {
             size_t beginNLevelsUp = 0,
             // replace the values of qt_itv when they are encountered
             std::vector <size_t> replaceLeaves = std::vector<size_t>()
-        ) {
-
-            // costCache.resetSeed();
-            // costCache.seedCombine(qt_itv);
-            // costCache.seedCombine(tileIdx_ref);
-            // costCache.seedCombine(replaceLeaves);
-
-            //std::cout << "costCache base seed: " << costCache.seed.str() << std::endl;
-
+        )
+        {
             const auto N = qt_itv.size();
             using D =
                 typename std::remove_const<typename std::remove_reference<decltype(supertiles[0])>::type>::type;
 
             constexpr bool mode_singleRoot =
                 (costVecMode == costVecMode_singleRoot);
-            // constexpr bool mode_single =
-            // 	(costVecMode==costVecMode_single);
             constexpr bool mode_replace =
                 (costVecMode == costVecMode_replace);
-
-            // std::vector<D> cost(std::max(N,static_cast<decltype(N)>(1)));
-            // std::fill(cost.begin(), cost.end(), 0.);
 
             D cost = 0.;
 
@@ -239,12 +178,6 @@ namespace supertiles {
             }
 
             auto tmp_qt_itv = qt_itv;
-
-            //constexpr uint32_t N_MAX=256;
-
-            //std::bitset<N_MAX> sameNodeAsRef;
-
-            //assert(sameNodeAsRef.size()>=qt_itv.size());
             std::vector<bool> sameNodeAsRef(qt_itv.size(), false);
 
             auto processCost = [](const auto &dists) {
@@ -284,7 +217,6 @@ namespace supertiles {
                 return true;
             };
 
-            //if(beginOneLevelUp)
             for (
                 size_t i = 0; i < beginNLevelsUp; i++
                 )
@@ -300,8 +232,6 @@ namespace supertiles {
                     std::tie(costRest, success) =
                         costCache.get(key);
                     if (success) {
-                        //std::cout << "hit at node id " << qt_it_ref.idx << std::endl;
-                        //std::cout << "cost current: " << cost << "; cost rest: " << costRest << " sum: " << cost+costRest << std::endl;
                         cost += costRest;
                         break;
                     }
@@ -342,7 +272,6 @@ namespace supertiles {
                             return supertiles_0[getValueIdx(idx)];
                         };
 
-
                         D value = getValue(qt_it_ref.idx);
                         int32_t nValidLeaves = nodeLeafCounts(qt_it_ref.idx);
 
@@ -358,7 +287,6 @@ namespace supertiles {
                                         nValidLeaves += nodeLeafCounts(replaceLeaves[i]);
                                     }
                                 }
-
 
                         assert(replaceLeaves.empty() || nValidLeaves >= 0);
 
@@ -377,12 +305,9 @@ namespace supertiles {
                             }
                     }
 
-                    for (
-                        const auto &dist: dists
-                        )
+                    for (const auto &dist: dists)
                         costLevel += processCost(dist);
                 }
-
 
                 cost += costLevel;
                 costs.emplace_back(key, cost, qt_it_ref.idx);
@@ -393,21 +318,16 @@ namespace supertiles {
 
             {
                 D prevCostLevel = 0.;
-                for (
-                    const auto [key, costLevel, nodeId]: costs
-                    ) {
-                    //std::cout << "key " << key << " nodeId " << nodeId << "tileIdx_ref " << tileIdx_ref[0] << " add cost " << cost-prevCostLevel << " | costfull " << cost << " costLeveL: " << costLevel << std::endl;
+                for (const auto [key, costLevel, nodeId]: costs) {
                     assert(cost >= costLevel);
                     costCache.add(key, cost - prevCostLevel);
                     prevCostLevel = costLevel;
                 }
             }
 
-
             return cost;
 
         }
-
 
         template<
             distFuncType_t DIST_FUNC, typename IDCS,
@@ -428,13 +348,10 @@ namespace supertiles {
             double neighborFac,
             size_t beginNLevelsUp,
             size_t maxNLevelsUp
-        ) {
+        )
+        {
 
-            //#error "MEASURE WITH considerHierarchy=true TO JUST ASSESS NEIGHBORHOOD IMPACT FOR PAPER"
-            //#warning "THIS IS ONLY HERE FOR TESTING"
-            //const bool considerHierarchy=true;
             const bool considerHierarchy = (maxNLevelsUp > 0);
-
 
             // need to consider at least one of the two aspects to get
             // a meaningful result
@@ -443,14 +360,10 @@ namespace supertiles {
 #ifdef __NO_OMP
 #error "SHOULD NOT BE DEFINED"
 #endif
-            //#define __NO_OMP
 
 #ifdef NO_OMP
 #define __NO_OMP
 #endif
-
-
-            //constexpr size_t maxNLevelsUp=-1;
 
             constexpr
             size_t nChunks = 128;
@@ -460,11 +373,6 @@ namespace supertiles {
             const size_t chunkSize = helper::iDivUp(static_cast<size_t>(qt.nLeaves()), nChunks);
 
             using QT_IT = supertiles_QuadTree_iterator_up<int64_t>;
-            // std::cout << "assignment:\n";
-            // for(const auto tileId : qtLeafAssignment)
-            // 	std::cout << tileId << std::endl;
-
-            //constexpr int N=1;
 
             // only leaf nodes should be queried in the following,
             // therefore the identify function should suffice
@@ -472,70 +380,43 @@ namespace supertiles {
 
             assert(costsLeaves.empty() || costsLeaves.size() == qt.nLeaves());
 
-            //D cost_alt=0.;
 #ifndef __NO_OMP
 #pragma omp parallel for
 #endif
-            for (
-                size_t chunkId = 0; chunkId < nChunks; chunkId++
-                ) {
+            for (size_t chunkId = 0; chunkId < nChunks; chunkId++) {
                 auto &cost_alt = costsChunks[chunkId];
                 cost_alt = 0;
-                //for(size_t leafIdx=0; leafIdx<qt.nLeaves(); leafIdx++)
-                for (
-                    size_t l = chunkId * chunkSize;
-                    l < std::min((chunkId + 1) * chunkSize, leafIdcs.size());
-                    l++
-                    ) {
-                    //std::cout << "\n\n\nleafIdx: "<< leafIdx << std::endl;
+                for (size_t l = chunkId * chunkSize; l < std::min((chunkId + 1) * chunkSize, leafIdcs.size()); l++) {
                     const auto leafIdx = leafIdcs[l];
 
                     CostVecCache<double> costCache;
 
                     const std::vector <uint32_t> tileIdx_ref(1, leafIdx);
 
-// #ifndef NDEBUG
-// 	  const auto a = costVec<costVecMode_singleRoot, DIST_FUNC>
-// 	    (costCache,
-// 	     std::vector<QT_IT>(),
-// 	     qt(leafIdx),
-// 	     tileIdx_ref,
-// 	     &supertiles[0],
-// 	     &supertiles[0],
-// 	     nElemsTile,
-// 	     nodeLeafCounts,
-// 	     nodeLeafCounts,
-// 	     0, 0);
-// 	  hassertm2(a==0, a, leafIdx);
-// #endif
-
                     // can begin one level up as base level is element itself by definition
 
                     D c = 0;
 
                     if (considerHierarchy)
-                        c =
-                            costVec<costVecMode_singleRoot, DIST_FUNC>
-                                (
-                                    costCache,
-                                    std::vector<QT_IT>(),
-                                    qt(leafIdx),
-                                    tileIdx_ref,
-                                    &supertiles[0],
-                                    &supertiles[0],
-                                    nElemsTile,
-                                    nodeLeafCounts,
-                                    nodeLeafCounts,
-                                    maxNLevelsUp,
-                                    std::max(beginNLevelsUp, static_cast<size_t>(1)));
+                        c = costVec<costVecMode_singleRoot, DIST_FUNC>
+                            (
+                                costCache,
+                                std::vector<QT_IT>(),
+                                qt(leafIdx),
+                                tileIdx_ref,
+                                &supertiles[0],
+                                &supertiles[0],
+                                nElemsTile,
+                                nodeLeafCounts,
+                                nodeLeafCounts,
+                                maxNLevelsUp,
+                                std::max(beginNLevelsUp, static_cast<size_t>(1)));
 
                     if (neighborFac) {
                         for (
                             uint32_t i = 0; i < nNeighbors; i++
                             ) {
                             const auto neighbor = qtNeighbors[nNeighbors * leafIdx + i];
-
-                            //std::cout << "neighbor: "<< neighbor << std::endl;
 
                             if (neighbor != -1) {
                                 c += neighborFac *
@@ -559,28 +440,19 @@ namespace supertiles {
 
                     if (!costsLeaves.empty())
                         costsLeaves[leafIdx] = c;
-// #ifndef __NO_OMP
-// #pragma omp atomic
-// #endif
                     cost_alt += c;
                 }
             }
-
-            // std::cout << "cost vs cost_alt" << cost << " " << cost_alt << std::endl;
-            //hassertm2(helper::apprEq(cost, cost_alt), cost, cost_alt);
-            //return cost_alt;
             return std::accumulate(costsChunks.begin(), costsChunks.end(), static_cast<D>(0));
 
 #ifdef __NO_OMP
 #undef __NO_OMP
 #endif
-
-            //return cost;
         }
 
-
         template<typename IT>
-        struct RangeLeaves {
+        struct RangeLeaves
+        {
             RangeLeaves(
                 const IT b_in, const IT e_in,
                 const size_t supertileLevelOffset_in,
@@ -589,21 +461,25 @@ namespace supertiles {
             ) :
                 b(b_in), e(e_in),
                 supertileLevelOffset(supertileLevelOffset_in),
-                nodes2leaves(nodes2leaves_in) {}
+                nodes2leaves(nodes2leaves_in)
+            {}
 
             template<typename I>
-            auto operator[](const I &i) const {
+            auto operator[](const I &i) const
+            {
                 const auto nodeIdLevel = i / nLeavesPerNode();
 
                 assert(nodeIdLevel < e - b);
                 return b[nodeIdLevel] + (i - nodeIdLevel * nLeavesPerNode());
             }
 
-            auto nLeavesPerNode() const {
+            auto nLeavesPerNode() const
+            {
                 return nodes2leaves[supertileLevelOffset].size();
             }
 
-            auto size() const {
+            auto size() const
+            {
                 return (e - b) * nLeavesPerNode();
             }
 
@@ -615,7 +491,6 @@ namespace supertiles {
                 nodes2leaves;
         };
 
-
         template<distFuncType_t DIST_FUNC, typename D_IT, typename NodeLeafCounts, typename QT>
         auto supertilesCost(
             D_IT supertiles,
@@ -626,7 +501,8 @@ namespace supertiles {
             size_t nNeighbors,
             double neighborFac,
             size_t maxNLevelsUp
-        ) {
+        )
+        {
 
             using D =
                 typename std::remove_const<typename std::remove_reference<decltype(supertiles[0])>::type>::type;
@@ -647,28 +523,26 @@ namespace supertiles {
 
 
         template<distFuncType_t DIST_FUNC, typename D_IT, typename QT, typename A, typename NodeLeafCounts>
-        // auto supertilesCost = [&qt, &tiles, &nElemsTile, &neighborFac, &qtNeighbors]
-        //   (auto & supertiles)
         auto computeNodeDisparity(
             D_IT supertiles,
             const size_t nElemsTile,
             const QT &qt,
             const A &qtLeafAssignment,
-            const NodeLeafCounts &nodeLeafCounts/*, bool norm=true*/) {
+            const NodeLeafCounts &nodeLeafCounts
+        )
+        {
             using D = double;
             std::vector <D> nodeDisparity(qt.nElems(), 0.);
             const auto nodes2leaves = genMap_qt2leaves(qt);
 
             std::vector<bool> isLeafVoid(qt.nLeaves());
 
-            for (
-                const auto &leafId: helper::range_n(qt.nLeaves())) {
+            for (const auto &leafId: helper::range_n(qt.nLeaves())) {
                 const auto tileId = qtLeafAssignment[leafId];
                 isLeafVoid[leafId] = (tileId == voidTileIdx);
             }
 
-            for (
-                const auto &nodeId: helper::range_be(qt.nLeaves(), qt.nElems())) {
+            for (const auto &nodeId: helper::range_be(qt.nLeaves(), qt.nElems())) {
                 auto &d = nodeDisparity[nodeId];
                 const auto &leaves = nodes2leaves[nodeId];
 
@@ -677,9 +551,7 @@ namespace supertiles {
                 const auto nodeLeafCount = nodeLeafCounts(nodeId);
 
                 size_t cnt = 0;
-                for (
-                    const auto &leafId: leaves
-                    ) {
+                for (const auto &leafId: leaves) {
                     if (isLeafVoid[leafId])
                         continue;
 
@@ -690,9 +562,7 @@ namespace supertiles {
 
                     auto it_ref = it_ref_begin;
 
-                    for (
-                        auto it = it_begin; it != it_end; it++, it_ref++
-                        )
+                    for (auto it = it_begin; it != it_end; it++, it_ref++)
                         dist(*it, (*it_ref) / nodeLeafCount);
 
                     d += dist.get();
@@ -708,13 +578,9 @@ namespace supertiles {
             {
                 const auto disparityMax = nodeDisparity.back();
                 std::cout << "DISPARITY MAX: " << nodeDisparity.back() << std::endl;
-                // hassertm2(disparityMax==*std::max_element(nodeDisparity.begin(), nodeDisparity.end()),
-                // 	  disparityMax, *std::max_element(nodeDisparity.begin(), nodeDisparity.end()));
 
                 hassertm(disparityMax > 0, disparityMax);
-                for (
-                    auto &e: nodeDisparity
-                    )
+                for (auto &e: nodeDisparity)
                     e /= disparityMax;
                 hassertm(nodeDisparity.back() == 1., nodeDisparity.back());
             }
@@ -722,8 +588,8 @@ namespace supertiles {
             return nodeDisparity;
         }
 
-
-        auto getNeighborDeltas(int N_NBRS) {
+        auto getNeighborDeltas(int N_NBRS)
+        {
             using I2 = V2<int64_t>;
 
             std::vector <I2> off;

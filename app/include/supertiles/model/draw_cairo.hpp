@@ -4,38 +4,10 @@
 #include "helper/helper_CairoDraw.h"
 #include "draw_base.hpp"
 
-// template<typename A, typename POS, typename TILE, typename DIM>
-// void tiles_draw(cairo_t* cr,
-// 		A* assignments,
-// 		TILE* tiles,
-// 		POS* tilesPos,
-// 		uint64_t nTiles,
-// 		DIM tileDim,
-// 		TILE* supertiles,
-// 		POS* supertilesPos,
-// 		uint64_t nSupertiles
-// 		)
-// {
-
-//   // for(size_t i=0; i<assignments->size(); i++)
-//   //   {
-//   //     std::cout << i;
-//   //     for(auto it = assignments->cbegin(i);
-//   // 	  it != assignments->cend(i); it++)
-//   // 	{
-//   // 	  const auto supertileId = assignments->getIdx(*it);
-//   // 	  std::cout << " [" << supertileId << ":" << assignments->getMass(*it) << "]";
-//   // 	}
-//   //     std::cout << std::endl;
-//   //   }
-
-
-
-// }
-
 
 template<typename DATA, typename DIM>
-struct supertiles_DrawSignalCairo : supertiles_DrawBase<DATA, DIM> {
+struct supertiles_DrawSignalCairo : supertiles_DrawBase<DATA, DIM>
+{
 
     template<typename F2, typename F>
     supertiles_DrawSignalCairo(
@@ -43,9 +15,9 @@ struct supertiles_DrawSignalCairo : supertiles_DrawBase<DATA, DIM> {
         const F2 offset, const F scale
     )
         :
-        supertiles_DrawBase<DATA, DIM>(data, memberDim, offset, scale) {
+        supertiles_DrawBase<DATA, DIM>(data, memberDim, offset, scale)
+    {
     }
-
 
     virtual void operator()(
         uint32_t qtIdx,
@@ -53,7 +25,8 @@ struct supertiles_DrawSignalCairo : supertiles_DrawBase<DATA, DIM> {
         V2 <size_t> memberGridDim,
         const uint32_t leavesFrom,
         const uint32_t nLeaves
-    ) {
+    )
+    {
         const auto nPixels = helper::ii2n(this->_memberDim);
 
         static_assert(std::is_integral<decltype(tilePos.x)>::value, "Integral required.");
@@ -61,12 +34,6 @@ struct supertiles_DrawSignalCairo : supertiles_DrawBase<DATA, DIM> {
         assert(cr != 0);
 
         const auto pos = this->grid2canvas(tilePos);
-
-        // supertiles_DrawSignalCairo<TILE*, DIM> drawSignal(tilesFull, memberDim);
-        // drawSignal.cr = cr;
-
-        // drawSignal(qtIdx, tilesPos, nodes2leaves);
-
 
         //
         // draw box
@@ -85,12 +52,11 @@ struct supertiles_DrawSignalCairo : supertiles_DrawBase<DATA, DIM> {
             //
 
             cairo_move_to(cr, pos.x, pos.y + chartBoxDim.y);
-            for (
-                const auto &j: helper::range_n(this->_memberDim.x))
+            for (const auto &j: helper::range_n(this->_memberDim.x))
                 cairo_line_to(
                     cr,
                     pos.x + (chartBoxDim.x * j) / this->_memberDim.x,
-                    pos.y + ((1. - this->_data[qtIdx * nPixels + j]/*(static_cast<double>(j)/_memberDim.x)*/) * chartBoxDim
+                    pos.y + ((1. - this->_data[qtIdx * nPixels + j]) * chartBoxDim
                         .y)
                 );
             cairo_stroke(cr);
@@ -98,8 +64,7 @@ struct supertiles_DrawSignalCairo : supertiles_DrawBase<DATA, DIM> {
 
         if (nLeaves > 0) {
             cairo_set_source_rgba(cr, .1, .1, 1., 1.);
-            for (
-                const auto l: helper::range_bn(leavesFrom, nLeaves))
+            for (const auto l: helper::range_bn(leavesFrom, nLeaves))
                 drawSignal(l);
         }
 

@@ -9,23 +9,26 @@
 #include <cassert>
 #include "helper_assert.h"
 
-enum dataInputFormat_t {
+enum dataInputFormat_t
+{
     dif_spatial = 0,
     dif_feature = 1
 };
 
-enum distMode_t {
+enum distMode_t
+{
     dm_euclidean2 = 0,
     dm_euclidean = 1
 };
 
-
 template<typename E>
-E getEnumType(const std::string s) {
+E getEnumType(const std::string s)
+{
     return static_cast<E>(std::stoi(s));
 }
 
-class supertiles_PO {
+class supertiles_PO
+{
 public:
     supertiles_PO() :
         termTime(100000000.),
@@ -36,9 +39,7 @@ public:
         distanceLimit(0.000001),
         preNormData(false),
 
-        //outDir("out_interp/"),
         outDir(""),
-        //initNearest(true),
         alignCenters(false),
         nIntermediates(10),
         doWriteResult(true),
@@ -46,20 +47,12 @@ public:
         maxValue(255),
         dataInputFormat(dif_spatial),
         distMode(dm_euclidean2)
-    //,
-    //binarize(-1.)
     {
     };
 
-    /*
-    static constexpr unsigned int str2int(const char* str, int h = 0)
-    {
-      return !str[h] ? 5381 : (str2int(str, h+1) * 33) ^ str[h];
-    }
-    */
-
     template<typename ARGV>
-    bool handleProgramOptions(int argc, const ARGV argv, bool doHandleVM = true) {
+    bool handleProgramOptions(int argc, const ARGV argv, bool doHandleVM = true)
+    {
 
         for (
             int argi = 1; argi < argc; argi++
@@ -85,7 +78,6 @@ public:
                 size_t len = std::string::npos;
                 if (end != std::string::npos)
                     len = end - begin;
-                //std::cout << "|" << s << "|" << begin << "|" << end << "|" << len << "|\n";
                 return s.substr(begin, len);
             };
 
@@ -97,12 +89,8 @@ public:
 
                 std::vector <std::string> xv = split(x, ',');
 
-                for (
-                    auto e: xv
-                    ) {
+                for (auto e: xv) {
                     const bool match = (__s == trim(e));
-
-                    //std::cout << __s << " vs " << trim(e) << " " << match << std::endl;
                     if (match)
                         return true;
                 }
@@ -116,8 +104,6 @@ public:
             else if (c(", --maxValue")) { helper::lexicalCast(maxValue, nextStr()); }
 
             else if (c("--distFuncType")) { distFuncType = getEnumType<distFuncType_t>(nextStr()); }
-                // else if(c(", --filterType"))
-                //   {filterType = getEnumType<filterType_t>(nextStr());}
             else if (c("--distVisType")) { distVisType = getEnumType<distVisType_t>(nextStr()); }
             else if (c("--repAggregationType")) { repAggregationType = getEnumType<repAggregationType_t>(nextStr()); }
 
@@ -125,8 +111,7 @@ public:
                 helper::lexicalCast(
                     nIntermediates,
                     nextStr());
-            }
-            else if (c("--termTime")) {
+            } else if (c("--termTime")) {
                 helper::lexicalCast(termTime, nextStr());
             } else if (c("--nNeighbors")) {
                 helper::lexicalCast(nNeighbors, nextStr());
@@ -153,19 +138,12 @@ public:
             } else if (c("--nTilesAssign")) {
                 helper::lexicalCast(nTilesAssign, nextStr());
             } else if (c("--preNormData")) { preNormData = true; }
-                // else if(c("-r,--reductionFactor", "reductionFactor"))
-                //   {reductionFactors.push_back(helper::lexicalCast<int>(nextStr()));}
 
             else if (c("--selectSliceParams", "selectSlice")) {
                 selectSliceParams.push_back(
                     helper::lexicalCast<double>(
                         nextStr()));
-            }
-                // else if(c("--binarize", "selectSlice"))
-                //   {binarize = helper::lexicalCast<double>(nextStr());}
-                // else if(c("--blurRadiusLeaf"))
-                //   {blurRadiusLeaf = helper::lexicalCast<double>(nextStr());}
-            else if (c("--outputImgScale")) { outputImgScale = helper::lexicalCast<double>(nextStr()); }
+            } else if (c("--outputImgScale")) { outputImgScale = helper::lexicalCast<double>(nextStr()); }
             else if (c("--outDir", "output directory")) {
                 outDir = nextStr();
             } else if (c("--writeIntermediateAssignments")) {
@@ -213,11 +191,9 @@ public:
         return true;
     }
 
-
-    void handleVM() {
+    void handleVM()
+    {
         if (configFNames.empty()) {
-            // configFNames.push_back("resources/i0.config");
-            // configFNames.push_back("resources/i1.config");
             configFNames.push_back("65536");
         }
 
@@ -226,7 +202,6 @@ public:
         }
     }
 
-    //std::vector<int> reductionFactors;
     std::vector<double> selectSliceParams;
     std::vector <std::string> configFNames;
     std::vector <std::string> repFNames;
@@ -239,7 +214,6 @@ public:
     double distanceLimit;
     bool preNormData;
     std::string outDir;
-    //bool initNearest;
     bool alignCenters;
 
     size_t nIntermediates;
@@ -253,24 +227,18 @@ public:
     dataInputFormat_t dataInputFormat;
     distMode_t distMode;
 
-    //double binarize;
-
-    //double blurRadiusLeaf = 2.;
-
     std::string loadAssignments = "";
 
     bool drawInputTiles = false;
     bool drawLevels = false;
 
     distFuncType_t distFuncType = distFuncType_none;
-    //filterType_t filterType=filterType_box;
     distVisType_t distVisType = distVisType_none;
     repAggregationType_t repAggregationType = repAggregationType_average;
 
     bool drawScoresSelection = true;
 
     int nNeighbors = 4;
-    //double neighborFac=1./8.;
     double neighborFac = 1. / 4.;
 
     size_t planChunkSize = 6;
@@ -304,7 +272,8 @@ public:
 };
 
 template<typename ARGV>
-auto initPO(int argc, const ARGV argv) {
+auto initPO(int argc, const ARGV argv)
+{
     supertiles_PO po;
     if (!po.handleProgramOptions(argc, argv, false)) {
         std::cout << "cannot handle program options ... exiting\n";
@@ -312,6 +281,5 @@ auto initPO(int argc, const ARGV argv) {
     }
     return po;
 }
-
 
 #endif //# __SUPERTILES_PO__

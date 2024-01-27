@@ -9,7 +9,8 @@
 
 //#define DBG_SUPERTILES_DF
 
-struct supertiles_Hash {
+struct supertiles_Hash
+{
     std::size_t operator()(const float3 &e) const
 
     noexcept
@@ -34,32 +35,19 @@ struct supertiles_Hash {
     }
 };
 
-bool operator==(const float2 &lhs, const float2 &rhs) {
+bool operator==(const float2 &lhs, const float2 &rhs)
+{
     return lhs.x == rhs.x && lhs.y == rhs.y;
 }
 
-bool operator==(const float3 &lhs, const float3 &rhs) {
+bool operator==(const float3 &lhs, const float3 &rhs)
+{
     return lhs.x == rhs.x && lhs.y == rhs.y && lhs.z == rhs.z;
 }
 
-// template <class T>
-// T supertiles_voidPos()
-// {
-//   return T();
-// }
-
-// template<>
-// float3 supertiles_voidPos()
-// {
-//   return make_float3
-//     (std::numeric_limits<float>::max(),
-//      std::numeric_limits<float>::max(),
-//      std::numeric_limits<float>::max());;
-// }
-
-
 template<distFuncType_t distFuncType, typename T, typename TILE, typename QT>
-class supertiles_DistFunc {
+class supertiles_DistFunc
+{
     using A = ::intervol::AssignmentsPlain<::intervol::assignment_e_t>;
 public:
 
@@ -76,7 +64,8 @@ public:
         const DIM tileGridDim
     ) :
         qt(qt_in),
-        qtNeighbors(qtNeighbors_in) {
+        qtNeighbors(qtNeighbors_in)
+    {
         this->pos_source = 0;
         this->pos_target = 0;
         this->nElems_source = 0;
@@ -98,14 +87,14 @@ public:
     void init(
         T *pos_source, T *pos_target, unsigned int nElems_source,
         unsigned int nElems_target, T defaultValue, A *assignments
-    ) {
+    )
+    {
         std::cout << "assignments: " << *assignments << std::endl;
         this->pos_source = pos_source;
         this->pos_target = pos_target;
         this->nElems_source = nElems_source;
         this->nElems_target = nElems_target;
         this->defaultValue = defaultValue;
-        //this->assignments = assignments;
 
 #ifdef DBG_SUPERTILES_DF
         dbg_supertileAssignments =
@@ -114,7 +103,6 @@ public:
         size_t cnt = 0;
         auto insert_pos2idx =
             [&](T &e) {
-                //std::cout << "insert " << e.x << " " << e.y << std::endl;
                 const auto success = pos2idx.insert(std::make_pair(e, cnt)).second;
                 cnt++;
                 if (!success) {
@@ -131,14 +119,9 @@ public:
         );
 
         // initialize supertiles
-        for (
-            size_t i = 0; i < assignments->size(); i++
-            ) {
+        for (size_t i = 0; i < assignments->size(); i++) {
             std::cout << i;
-            for (
-                auto it = assignments->cbegin(i);
-                it != assignments->cend(i); it++
-                ) {
+            for (auto it = assignments->cbegin(i); it != assignments->cend(i); it++) {
                 const auto supertileId = assignments->getIdx(*it);
                 std::cout << " [" << supertileId << ":" << assignments->getMass(*it) << "]";
 
@@ -155,13 +138,12 @@ public:
         }
     }
 
-    //  template<typename pos_t>
-    double idx_idx(const unsigned int &idx_source, const unsigned int &idx_target) const {
+    double idx_idx(const unsigned int &idx_source, const unsigned int &idx_target) const
+    {
         assert(idx_source < nElems_source);
         assert(idx_target >= nElems_source);
-        const T a = getPosSource(idx_source);//pos_source[idx_source];
-        const T b = getPosTarget(idx_target);//pos_target[localTargetIdx(idx_target)];
-        //return idiffs_distFunc::distFunc(a,b);
+        const T a = getPosSource(idx_source);
+        const T b = getPosTarget(idx_target);
         return distOp(a, b, -1, -1);
     }
 
@@ -170,8 +152,8 @@ public:
     __host__ __device__
 #endif
 
-    double pos_idx(const T &a, const unsigned int &idx_target) {
-        //return pos_pos(a, pos_target[localTargetIdx(idx_target)]);
+    double pos_idx(const T &a, const unsigned int &idx_target)
+    {
         return distOp(getIdxFromPos(a), getIdxFromPos(getPosTarget(idx_target)), -1, -1);
     }
 
@@ -181,10 +163,8 @@ public:
     __host__ __device__
 #endif
 
-    T getPosSource(const unsigned int &idx_source) {
-        //if(idx_source >= nElems_source)
-        //assert(defaultValue == pos_source[idx_source]);
-
+    T getPosSource(const unsigned int &idx_source)
+    {
         if (idx_source < nElems_source)
             return pos_source[idx_source];
         else
@@ -195,7 +175,8 @@ public:
     __host__ __device__
 #endif
 
-    T *getPosSource_p() {
+    T *getPosSource_p()
+    {
         return pos_source;
     }
 
@@ -203,7 +184,8 @@ public:
     __host__ __device__
 #endif
 
-    const T *getPosSource_pc() const {
+    const T *getPosSource_pc() const
+    {
         return pos_source;
     }
 
@@ -211,7 +193,8 @@ public:
     __host__ __device__
 #endif
 
-    T *getPosTarget_p() {
+    T *getPosTarget_p()
+    {
         return pos_target;
     }
 
@@ -219,7 +202,8 @@ public:
     __host__ __device__
 #endif
 
-    const T *getPosTarget_pc() const {
+    const T *getPosTarget_pc() const
+    {
         return pos_target;
     }
 
@@ -227,11 +211,9 @@ public:
     __host__ __device__
 #endif
 
-    thrust::tuple<T, bool> getPosTarget_inRange(const unsigned int &idx_target) {
+    thrust::tuple<T, bool> getPosTarget_inRange(const unsigned int &idx_target)
+    {
         unsigned int idx_target_local = localTargetIdx(idx_target);
-
-        //if(idx_target_local >= nElems_target)
-        //assert(defaultValue == pos_target[idx_target_local]);
 
         if (idx_target_local < nElems_target)
             return thrust::make_tuple(pos_target[idx_target_local], true);
@@ -243,19 +225,9 @@ public:
     __host__ __device__
 #endif
 
-    T getPosTarget(const unsigned int &idx_target) {
+    T getPosTarget(const unsigned int &idx_target)
+    {
         return thrust::get<0>(getPosTarget_inRange(idx_target));
-        /*
-        unsigned int idx_target_local = localTargetIdx(idx_target);
-
-          //if(idx_target_local >= nElems_target)
-          //assert(defaultValue == pos_target[idx_target_local]);
-
-          if(idx_target_local < nElems_target)
-          return pos_target[idx_target_local];
-          else
-        return defaultValue;
-        */
     }
 
     unsigned int nElems_source;
@@ -265,24 +237,22 @@ public:
     __host__ __device__
 #endif
 
-    auto getIdxFromPos(const T &e) {
+    auto getIdxFromPos(const T &e)
+    {
         // CURRENTLY, THINGS ARE ONLY TESTED WITH 2D DATA BUT 3D FLOATS ARE USED
         assert(e.z == 0);
 
         const auto it = pos2idx.find(e);
-        //std::cout << "pos " << e.x << " " << e.y << std::endl;
         hassertm3(it != pos2idx.end(), e.x, e.y, e.z);
         return it->second;
     }
 
-
-    //template<typename pos_t>
 #ifdef __NVCC__
     __host__ __device__
 #endif
 
-    double distOp_pos(const T &tileFrom, const T &superFrom, const T &tileTo, const T &superTo) {
-        //return pos_pos(a,b);
+    double distOp_pos(const T &tileFrom, const T &superFrom, const T &tileTo, const T &superTo)
+    {
         return distOp(
             getIdxFromPos(tileFrom),
             getIdxFromPos(superFrom),
@@ -290,38 +260,33 @@ public:
             getIdxFromPos(superTo));
     }
 
-    //template<typename pos_t>
 #ifdef __NVCC__
     __host__ __device__
 #endif
 
-    double operator()(const T &tileFrom, const T &superFrom, const T &tileTo, const T &superTo) {
+    double operator()(const T &tileFrom, const T &superFrom, const T &tileTo, const T &superTo)
+    {
         return distOp_pos(tileFrom, superFrom, tileTo, superTo);
     }
-
 
 private:
 #ifdef __NVCC__
     __host__ __device__
 #endif
 
-    unsigned int localTargetIdx(const unsigned int &idx_target) {
+    unsigned int localTargetIdx(const unsigned int &idx_target)
+    {
 #ifndef USE_CUDA_RUN_DEVICE
         using namespace std;
 #endif
-        //assert(idx_target >= nElems_source);
 
 #ifndef USE_IDIFFS_HACK_IV
         assert(idx_target >= nElems_source);
         return idx_target - nElems_source;
 #else
 #warning "THIS SEEMS TO BE REQUIRED FOR IDIFFS, BUT ACTUALLY DOESNT SEEM LIKE A TOO GOOD IDEA IN GENERAL, FIX THAT!!"
-        //printf("localTargetIdx %d, %d, target %d", nElems_source, nElems_target, idx_target);
         assert(idx_target >= max(nElems_source, nElems_target));
-        return idx_target-
-        //nElems_source
-          max(nElems_source, nElems_target)
-        ;
+        return idx_target - max(nElems_source, nElems_target);
 #endif
     }
 
@@ -335,10 +300,10 @@ private:
     std::unordered_map <T, uint64_t, supertiles_Hash> pos2idx;
 
     /*
-  IDEA:
-  conceptually remove both tiles from supertiles QT
-  on this basis, then compute distances
-  (this circumvents a certain type of bias toward the current location)
+      IDEA:
+      conceptually remove both tiles from supertiles QT
+      on this basis, then compute distances
+      (this circumvents a certain type of bias toward the current location)
      */
     double distOp(
         const uint32_t idx_tileFrom,
@@ -348,7 +313,6 @@ private:
     ) {
         // original tiles have lower ids
         // supertiles larger ids accordingly
-        //assert(st::max(idx_tileFrom, idx_tileTo) < std::min(idx_supertileFrom, idx_supertileTo));
 
         assert(idx_tileFrom < idx_supertileFrom);
         idx_supertileFrom = localTargetIdx(idx_supertileFrom);
@@ -382,9 +346,6 @@ private:
 
             double sum = 0.;
             //traverse first, not interested at leave level
-            //while(qt_it())
-
-            //size_t dbg_levelCnt=0;
             auto nextLevel = [&qt_it, &qt_it_stop, &qt_it_remove]() {
                 const bool success0 = qt_it();
                 const bool success1 = qt_it_stop();
@@ -397,7 +358,6 @@ private:
 
                 return carryOn && success0;
             };
-
 
             if (considerLeaveLevel || nextLevel())
                 do {
@@ -412,17 +372,13 @@ private:
                         assert(cnt > 0);
                     }
 
-
                     if (cnt != 1) {
                         double d = 0.;
                         double mag = 0.;
 #ifndef NDEBUG
                         double mag_tile = 0.;
 #endif
-                        for (
-                            uint32_t i = 0; i < nElems_tile; i++
-                            ) {
-
+                        for (uint32_t i = 0; i < nElems_tile; i++) {
                             auto s = supertiles[qt_it.idx * nElems_tile + i];
                             assert(sanityCheckValue(s));
 
@@ -462,12 +418,6 @@ private:
                                 default:
                                     assert(false);
                             }
-
-                            // std::cout << "super: "<< s.x << " " << s.y << " " << s.z << " " << s.w << " | " << untilSame << std::endl;
-                            // std::cout << "tile: " << t.x << " " << t.y << " " << t.z << " " << t.w << std::endl;
-                            // std::cout << "v: " << v.x << " " << v.y << " " << v.z << " " << v.w << std::endl;
-
-
                         }
                         if (distFuncType == distFuncType_norm2)
                             d /= nElems_tile;
@@ -498,23 +448,16 @@ private:
         if (individualMode)
             d = distOp_thisPos(idx_tileFrom);
         else {
-            d =
-                distOp_thisPos(idx_tileTo)
-                    -
-                    distOp_thisPos(idx_tileFrom);
-            //std::cout << "d ( " << idx_tileFrom << " " << idx_tileTo << "): " << d << std::endl;
+            d = distOp_thisPos(idx_tileTo) - distOp_thisPos(idx_tileFrom);
         }
 
         // consider neighboring (super)tiles
         if (true) {
             //check that only supertiles are considered that currently considered tile is NOT a part of
             const auto otherFac = 0.25;
-            for (
-                uint32_t i = 0; i < 4; i++
-                ) {
+            for (uint32_t i = 0; i < 4; i++) {
                 const auto neighbor = qtNeighbors[4 * idx_supertileFrom + i];
                 if (neighbor != -1) {
-
                     auto distOp_neighbor = [&](auto idx_consideredTile) {
                         return distTILE(
                             idx_consideredTile, neighbor, idx_supertileFrom,
@@ -541,7 +484,8 @@ private:
         const unsigned int oldCnt,
         const int mod,
         const TILE &v_tile
-    ) {
+    )
+    {
         const auto newCnt = oldCnt + mod;
         if (newCnt == 0)
             return 0;
@@ -549,8 +493,8 @@ private:
             return (oldCnt * v_super + mod * v_tile) / newCnt;
     }
 
-
-    static bool sanityCheckValue(float4 v) {
+    static bool sanityCheckValue(float4 v)
+    {
         const float eps_f = 1e-5;
         return
             v.x >= -eps_f && v.x <= 1. + eps_f &&
@@ -561,7 +505,8 @@ private:
                 );
     }
 
-    static bool sanityCheckValue(double v) {
+    static bool sanityCheckValue(double v)
+    {
         //const float eps_f = 1e-5;
         const double eps_f = 1e-6;
         return
@@ -572,8 +517,8 @@ private:
         uint32_t supertileId,
         uint32_t tileId,
         bool add
-    ) {
-
+    )
+    {
         hassertm2(supertileId < qt.nElems(), supertileId, qt.nElems());
 
 #ifdef DBG_SUPERTILES_DF
@@ -589,16 +534,13 @@ private:
         std::cout << "BEFORE ";
         printAssignment();
 
-        if(add)
-          {
+        if (add) {
             const bool success = (*dbg_supertileAssignments)[supertileId].insert(tileId).second;
             assert(success);
-          }
-        else
-          {
+        } else {
             const auto cnt = (*dbg_supertileAssignments)[supertileId].erase(tileId);
             hassertm2( cnt==1, supertileId, tileId);
-          }
+        }
 #endif
 
         const auto oldCnt = supertilesCnts[supertileId];
@@ -608,17 +550,11 @@ private:
 
         auto sv = &supertiles[supertileId * nElems_tile];
 
-        for (
-            uint32_t i = 0; i < nElems_tile; i++
-            ) {
+        for (uint32_t i = 0; i < nElems_tile; i++) {
             auto &s = sv[i];
 
             s = getUpdatedValue(s, oldCnt, mod, tiles[tileId * nElems_tile + i]);
             hassertm(sanityCheckValue(s), s);
-            // if(newCnt==0)
-            //   s*=0.;
-            // else
-            //   s=(oldCnt*s+mod*tiles[tileId*nElems_tile+i])/newCnt;
         }
 
         supertilesCnts[supertileId] = newCnt;
@@ -632,12 +568,12 @@ private:
     }
 
 public:
-
     template<typename E>
 #ifdef __NVCC__
     __host__ __device__
 #endif
-    auto target2supertileId(E targetId) const {
+    auto target2supertileId(E targetId) const
+    {
         hassertm3(
             targetId >= nElems_source
                 && targetId - nElems_source < nElems_target,
@@ -646,12 +582,12 @@ public:
         return targetId - nElems_source;
     }
 
-
     template<typename E>
 #ifdef __NVCC__
     __host__ __device__
 #endif
-    void swapSequence(E *swapTiles, unsigned int n) {
+    void swapSequence(E *swapTiles, unsigned int n)
+    {
 
         assert(tiles != 0);
         assert(supertiles != 0);
@@ -665,13 +601,7 @@ public:
             );
         };
 
-        //std::cout << "|"<< nElems_source << " " << nElems_target << std::endl;
-
-        //std::cout << "---------------------- " << n << "\n";
-
-        for (
-            unsigned int i = 0; i < n; i++
-            ) {
+        for (unsigned int i = 0; i < n; i++) {
             const E target = swapTiles[i];
 
             const E source = swapTiles[(i + 1) == n ? 0 : (i + 1)];
@@ -710,23 +640,18 @@ public:
 
     }
 
-
     template<typename A>
-    auto createMap_assignments_host(A *assignments) {
+    auto createMap_assignments_host(A *assignments)
+    {
         std::cout << "begin " << __func__ << std::endl;
         std::vector<unsigned int> aCnts(nElems_target, 0);
 
         std::vector <uint32_t> tileAssignment(assignments->size());
 
-        for (
-            size_t i = 0; i < assignments->size(); i++
-            ) {
+        for (size_t i = 0; i < assignments->size(); i++) {
             assert((assignments->cend(i) - assignments->cbegin(i)) == 1);
             std::cout << i;
-            for (
-                auto it = assignments->cbegin(i);
-                it != assignments->cend(i); it++
-                ) {
+            for (auto it = assignments->cbegin(i); it != assignments->cend(i); it++) {
                 auto supertileId = assignments->getIdx(*it);
                 assert(supertileId >= nElems_source);
                 supertileId -= nElems_source;
@@ -737,9 +662,7 @@ public:
             std::cout << std::endl;
         }
 
-        for (
-            size_t i = 0; i < nElems_target; i++
-            )
+        for (size_t i = 0; i < nElems_target; i++)
             hassertm3(
                 supertilesCnts[i] == aCnts[i], i,
                 supertilesCnts[i], aCnts[i]

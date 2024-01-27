@@ -4,33 +4,37 @@
 #include "helper_signal.h"
 #include "helper_ChronoTimer.h"
 
-namespace supertiles {
-    namespace place {
+namespace supertiles
+{
+    namespace place
+    {
         template<typename D>
-        struct Term {
-            Term(/*bool useSignalHandler=true*/) {
-                //if(useSignalHandler)
+        struct Term
+        {
+            Term()
+            {
                 initSignalHandler();
             }
 
             template<typename PO>
-            Term(const PO &po) {
+            Term(const PO &po)
+            {
                 maxNSeconds = po.termTime;
                 maxNPasses = po.termIterations;
                 maxNSame = po.termSame;
                 initSignalHandler();
             }
 
-            void initSignalHandler() {
+            void initSignalHandler()
+            {
                 signalHandler = new helper::SignalHandler();
             }
 
-            ~Term() {
-                // if(signalHandler)
-                //   delete signalHandler;
-            }
+            ~Term()
+            {}
 
-            bool operator()(bool change, bool justChecking = false) {
+            bool operator()(bool change, bool justChecking = false)
+            {
                 if (!justChecking)
                     passN++;
 
@@ -52,15 +56,14 @@ namespace supertiles {
                 if (sameCnt >= maxNSame)
                     return true;
 
-                //std::cout << "timer.get_s() " << timer.get_s() << " vs " << maxNSeconds << std::endl;
                 if (timer.get_s() >= maxNSeconds)
                     return true;
-
 
                 return false;
             }
 
-            auto getPassN() const {
+            auto getPassN() const
+            {
                 return passN;
             }
 

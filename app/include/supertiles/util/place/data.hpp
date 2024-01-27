@@ -14,7 +14,6 @@ namespace supertiles
 {
     namespace place
     {
-
         template<typename D>
         D genSynthDataElem(
             const V2 <size_t> /*gridId*/, const V2 <size_t> /*gridDim*/,
@@ -68,12 +67,6 @@ namespace supertiles
         return ud;
     }
 
-    // template<typename F>
-    // auto loadDataConfig(const std::string configFName)
-    // {
-
-    // }
-
     template<typename F>
     auto loadData(
         const std::string basePath,
@@ -86,7 +79,6 @@ namespace supertiles
 
         V4 <size_t> dim(0, 0, 0, 0);
 
-        //if(basePath != "")
         assert(basePath != "");
         {
             std::cout << "load config files with pattern |"
@@ -99,7 +91,6 @@ namespace supertiles
 #else
             configFiles=std::vector<std::string>(1, basePath);
 #endif
-            //std::cout << "there are << " << configFiles.size() << " config files\n";
             std::sort(configFiles.begin(), configFiles.end());
             configFiles.resize(std::min(firstNFiles, configFiles.size()));
 
@@ -111,7 +102,6 @@ namespace supertiles
                 const auto origData = helper::readDataFromConfig<F>(configFile);
                 dim = std::get<1>(origData);
                 assert(!std::get<0>(origData).empty());
-                //for(const auto timeStep : std::get<0>(origData))
                 size_t cnt = 0;
                 for (
                     size_t t = 0; t < std::get<0>(origData).size(); t++
@@ -122,7 +112,6 @@ namespace supertiles
                 }
                 nMembers += cnt;
             }
-            //dim.w = std::min(nMembers, firstNFiles);
             dim.w = nMembers;
 
             std::cout << "dim: " << dim << std::endl;
@@ -147,7 +136,6 @@ namespace supertiles
                     data.resize(nElemsDataConfig);
                 }
             }
-
 
             if (normalize) {
                 std::cout << "normalize data\n" << std::endl;
@@ -236,15 +224,6 @@ namespace supertiles
             const std::string fname(configFName);
             std::cout << "read data from config file " << configFName << std::endl;
 
-            //enum class dataMode_t {signal, image};
-
-            //dataMode_t dm = dataMode_t::image;
-
-            // if(fname.find("5Jets") != std::string::npos)
-            // 	dm = dataMode_t::signal;
-
-            //const bool doNormalize = (dm != dataMode_t::signal);
-
             auto [data, dim] = loadData<D>(
                 configFName,
                 std::numeric_limits<size_t>::max(),
@@ -254,13 +233,9 @@ namespace supertiles
             size_t nFull = 0;
 
             {
-                //dm = dataMode_t::image;
-
-                //dm = dataMode_t::signal;
                 tileDim.x = dim.x;
                 tileDim.y = dim.y;
 
-                //nFull = dim.z;
                 nFull = nTilesFromConfigDim(dim);
                 assert(dim.w == 1);
             }
@@ -278,8 +253,6 @@ namespace supertiles
             //
             // synthetic data generation for testing
             //
-
-
 
             std::cout << __func__ << " generate synthetic data\n";
 
@@ -316,8 +289,6 @@ namespace supertiles
         size_t nTiles = -1;
         std::vector <I> qtLeafAssignment;
         std::cout << "load assignment from file |" << loadAssignments << "|\n";
-        //helper::readFile2(qtLeafAssignment, loadAssignments);
-        //helper::bzip_decompress(qtLeafAssignment, loadAssignments);
         helper::readFileAuto(qtLeafAssignment, loadAssignments);
         std::cout << "loaded " << qtLeafAssignment.size() << " elements\n";
         if (qtLeafAssignment.empty()) {

@@ -3,7 +3,8 @@
 
 
 template<typename DATA, typename DATA_OFF, typename DIMV>
-struct supertiles_DrawBase {
+struct supertiles_DrawBase
+{
     using F = double;
     using F2 = V2<F>;
 
@@ -16,7 +17,8 @@ struct supertiles_DrawBase {
     }
 
     template<typename T>
-    auto getTileDim(const T &nodeId) const {
+    auto getTileDim(const T &nodeId) const
+    {
         hassertm2(nodeId < _memberDims.size(), nodeId, _memberDims.size());
         return _memberDims[nodeId];
     }
@@ -29,7 +31,6 @@ struct supertiles_DrawBase {
     const uint32_t _nLOD;
 
 protected:
-
     supertiles_DrawBase(
         const DATA data,
         const DATA_OFF dataOffsets,
@@ -42,11 +43,11 @@ protected:
         _memberDims(memberDims),
         _offset(offset),
         _scale(scale),
-        _nLOD(nLOD) {
+        _nLOD(nLOD)
+    {
         assert(!_dataOffsets.empty());
         hassertm2(_dataOffsets.back() == data.size(), _dataOffsets.back(), data.size());
     }
-
 };
 
 #endif //__SUPERTILES_DRAW_BASE__

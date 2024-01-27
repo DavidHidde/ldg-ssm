@@ -5,10 +5,14 @@
 #include "plan.hpp"
 #include <sstream>
 
-namespace supertiles {
-    namespace place {
-        struct PassTimings {
-            friend std::ostream &operator<<(std::ostream &out, const PassTimings &e) {
+namespace supertiles
+{
+    namespace place
+    {
+        struct PassTimings
+        {
+            friend std::ostream &operator<<(std::ostream &out, const PassTimings &e)
+            {
                 out << e.total << "," << e.plan << "," << e.exchangeAdapt;
                 return out;
 
@@ -20,7 +24,8 @@ namespace supertiles {
         };
 
         template<typename PASS_TIMINGS>
-        struct LogElem {
+        struct LogElem
+        {
             using D = double;
             using I = int64_t;
 
@@ -32,7 +37,8 @@ namespace supertiles {
             bool plan_aggregateExchangeMode = false;
             PASS_TIMINGS pt;
 
-            friend std::ostream &operator<<(std::ostream &out, const LogElem &e) {
+            friend std::ostream &operator<<(std::ostream &out, const LogElem &e)
+            {
                 out
                     << e.passN << ","
                     << e.timestamp << ","
@@ -47,12 +53,13 @@ namespace supertiles {
         };
 
         template<typename TERM, typename PASS_TIMINGS>
-        struct Log {
+        struct Log
+        {
             using D = double;
             using I = int64_t;
 
-            Log(TERM &term_in) :
-                term(term_in) {}
+            Log(TERM &term_in) :term(term_in)
+            {}
 
             void operator()(
                 D cost,
@@ -60,7 +67,8 @@ namespace supertiles {
                 const uint32_t level,
                 const bool aggregateExchangeMode,
                 const PASS_TIMINGS pt
-            ) {
+            )
+            {
                 LogElem<PASS_TIMINGS> e;
 
                 e.passN = term.passN;
@@ -76,7 +84,8 @@ namespace supertiles {
                 l.push_back(e);
             }
 
-            void writeCSV(const std::string fname, bool append) const {
+            void writeCSV(const std::string fname, bool append) const
+            {
                 std::cout << "write log to " << fname << std::endl;
                 std::stringstream ss;
                 for (
@@ -91,7 +100,6 @@ namespace supertiles {
             const TERM &term;
             std::vector <LogElem<PASS_TIMINGS>> l;
         };
-
     }
 }
 #endif //__SUPERTILES_PLACE_LOG__

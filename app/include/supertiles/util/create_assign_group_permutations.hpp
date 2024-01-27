@@ -10,39 +10,33 @@
 #define ASSIGN_GROUP_HUNGARIAN
 //#define ASSIGN_GROUP_PERMUTATIONS
 
-namespace supertiles {
-    namespace place {
-
+namespace supertiles
+{
+    namespace place
+    {
         template<typename T>
-        T factorial(T n) {
+        T factorial(T n)
+        {
             // single line to find factorial
             return (n == 1 || n == 0) ? 1 : n * factorial(n - 1);
         }
 
-        auto createAssignPermutations(size_t groupSizeMax) {
+        auto createAssignPermutations(size_t groupSizeMax)
+        {
             using idx_t = uint32_t;
             using idcs_t = std::basic_string<idx_t>;
 
             std::vector <std::vector<idcs_t>> assignmentCandidatesv(groupSizeMax + 1);
 
 
-            for (
-                const auto &N: helper::range_be(2, groupSizeMax + 1)) {
-
+            for (const auto &N: helper::range_be(2, groupSizeMax + 1)) {
                 std::vector <idcs_t> assignmentCandidates;
-
-
                 {
                     idcs_t assignment;
 
-                    for (
-                        uint32_t i = 0; i < N; i++
-                        ) {
+                    for (uint32_t i = 0; i < N; i++) {
                         assignment.push_back(i);
                     }
-                    //std::cout << std::endl;
-
-
 
                     assignmentCandidates.reserve(factorial(N));
 
@@ -64,7 +58,6 @@ namespace supertiles {
 
 #ifdef ASSIGN_GROUP_HUNGARIAN
 #define __NO_OMP
-        //#include "supertiles_place_assignGroupPermutations_.h"
 
 #include "assign_group_hungarian.hpp"
 
@@ -72,13 +65,12 @@ namespace supertiles {
 #endif
 
 #ifdef ASSIGN_GROUP_PERMUTATIONS
-        namespace omp
-        {
+    namespace omp
+    {
 #include "supertiles_place_assignGroupPermutations_.h"
-        }
+    }
 #endif
 
-    }
-}
+}}
 
 #endif //__SUPERTILES_PLACE_ASSIGN_GROUP_PERMUTATIONS__

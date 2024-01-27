@@ -1,4 +1,3 @@
-
 template<
     distFuncType_t DIST_FUNC, typename ASS,
     typename D_IT,
@@ -15,7 +14,6 @@ auto assignGroupPermutations
         std::vector <size_t> &movedFromQTPos,
         const D_IT supertiles,
         const D_IT supertiles_0,
-        //const std::vector<D>& tiles,
         const size_t nElemsTile,
         const NodeLeafCounts &nodeLeafCounts,
         const NodeLeafCounts0 &nodeLeafCounts_0,
@@ -24,7 +22,8 @@ auto assignGroupPermutations
         const std::vector <IDX> &qtIdxv, const std::vector <uint32_t> &qtNeighbors,
         const size_t nNeighbors, const double neighborFac,
         const P &assignmentCandidatesv
-    ) {
+    )
+{
 
 #ifndef __NO_OMP
     // currnt cost cachign only works when no openmp is enabled
@@ -34,9 +33,6 @@ auto assignGroupPermutations
     using node_t = uint32_t;
 
     using D = double;
-
-
-    //const size_t maxNLevelsUp=-1;
     const size_t maxNLevelsUp = 1;
     const bool beginOneLevelUp = true;
 
@@ -67,7 +63,6 @@ auto assignGroupPermutations
         assert(qtLeafAssignment[qtIdxv[i]] == tileIdxv[i]);
         assert(movedFromQTPos[p] == p);
     }
-    //std::cout << std::endl;
 
     const size_t nThreads =
 #ifndef __NO_OMP
@@ -87,10 +82,7 @@ auto assignGroupPermutations
 #ifndef __NO_OMP
 #pragma omp parallel for
 #endif
-    for (
-        size_t assignmentIdx = 0; assignmentIdx < assignmentCandidates.size();
-        assignmentIdx++
-        ) {
+    for (size_t assignmentIdx = 0; assignmentIdx < assignmentCandidates.size(); assignmentIdx++) {
         const auto threadIdx =
 #ifndef __NO_OMP
             omp_get_thread_num();
@@ -112,23 +104,17 @@ auto assignGroupPermutations
         hassertm2(minCost_==best.first, minCost_, best.first);
 #endif
 
-
         const auto &assignment = assignmentCandidates[assignmentIdx];
         std::vector <size_t> replaceLeaves(N);
 
-        for (
-            const auto i: helper::range_n(N))
+        for (const auto i: helper::range_n(N))
             replaceLeaves[assignment[i]] = qtIdxv[i];
 
         D new_cost = 0.;
 
         auto stillBetter = [&new_cost, &minCost_, &best]() { return new_cost < std::min(minCost_, best.first); };
 
-
-        for (
-            uint32_t qtPosListIdx = 0; qtPosListIdx < N && stillBetter();
-            qtPosListIdx++
-            ) {
+        for (uint32_t qtPosListIdx = 0; qtPosListIdx < N && stillBetter(); qtPosListIdx++) {
             auto qt_it_ref = qt_itv[qtPosListIdx];
 
             CostVecCache costCache;
@@ -142,11 +128,7 @@ auto assignGroupPermutations
                     nElemsTile, nodeLeafCounts, nodeLeafCounts_0, maxNLevelsUp, beginOneLevelUp, replaceLeaves
                 );
 
-            for (
-                uint32_t i = 0; i < nNeighbors
-                && (new_cost < best.first) && stillBetter();
-                i++
-                ) {
+            for (uint32_t i = 0; i < nNeighbors && (new_cost < best.first) && stillBetter(); i++) {
                 const auto neighbor = qtNeighbors[nNeighbors * qt_it_ref.idx + i];
 
                 if (neighbor != -1) {
@@ -168,7 +150,6 @@ auto assignGroupPermutations
 
         if (stillBetter()) {
             best = std::make_pair(new_cost, assignment);
-
 
             // it may happen in parallel execution
             // that minCost_ > best.first
@@ -207,8 +188,6 @@ auto assignGroupPermutations
 
     if (adapt) {
         auto assignment = std::get<1>(best);
-        // auto updateAssignment = [&assignment, &qtIdxv, &tileIdxv, &N]
-        // 	 (auto& qtLeafAssignment, auto& movedFromQTPos)
         {
             for (
                 const auto i: helper::range_n(N)) {
@@ -223,8 +202,6 @@ auto assignGroupPermutations
                 }
             }
         };
-
-        //updateAssignment(qtLeafAssignment, movedFromQTPos);
     }
     return adapt;
 

@@ -35,14 +35,12 @@ namespace supertiles
                             auto &out = supertiles[qt_it.idx * nElemsTile + elemIdx];
                             auto &in = tiles[tileIdx * nElemsTile + elemIdx];
                             out += in;
-                            //std::cout << "new value at " << qt_it.idx  << ": " << out << " | updated with " << in << " with level offset " << qt_it.levelOffset << std::endl;
                         }
                     } while (qt_it());
                 }
             }
             return std::make_tuple(supertiles, nodeLeafCounts);
         }
-
     }
 }
 
