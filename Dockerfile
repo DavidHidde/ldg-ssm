@@ -1,8 +1,7 @@
-#FROM ubuntu:22.04
 FROM gcc:12.3
 
-RUN apt-get update
-RUN apt install -y \
+RUN apt-get update && apt install -y \
+    ssh \
     build-essential \
     libcairo2-dev \
     libomp-dev \
@@ -11,6 +10,6 @@ RUN apt install -y \
     cimg-dev \
     bzip2 \
     cmake \
+    gdb \
+    clang \
     git
-
-WORKDIR /usr/build

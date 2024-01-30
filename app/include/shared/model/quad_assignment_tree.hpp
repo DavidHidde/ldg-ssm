@@ -1,9 +1,9 @@
 #ifndef IMPROVED_LDG_QUAD_ASSIGNMENT_TREE_HPP
 #define IMPROVED_LDG_QUAD_ASSIGNMENT_TREE_HPP
 
-#include "assignment.hpp"
-
-#include <array>
+#include <vector>
+#include <cstddef>
+#include <memory>
 
 namespace shared
 {
@@ -37,8 +37,8 @@ namespace shared
             size_t projected_num_rows;
             size_t projected_num_cols;
             size_t offset;
-            std::shared_ptr <array<DataType>> data;
-            std::shared_ptr <array<size_t>> assignment;
+            std::shared_ptr<std::vector<DataType>> data;
+            std::shared_ptr<std::vector<size_t>> assignment;
 
             size_t index;
 
@@ -48,9 +48,9 @@ namespace shared
             RowMajorIterator begin();
             RowMajorIterator end();
 
-            DataType &getValue();
+            DataType & getValue();
 
-            bool operator==(RowMajorIterator const &lhs, RowMajorIterator const &rhs);
+            bool operator==(RowMajorIterator const &rhs);
             RowMajorIterator &operator++();
         };
 
@@ -58,16 +58,16 @@ namespace shared
         size_t num_cols;
         size_t depth;
 
-        std::shared_ptr <array<DataType>> data;
-        std::shared_ptr <array<size_t>> assignment;
+        std::shared_ptr <std::vector<DataType>> data;
+        std::shared_ptr <std::vector<size_t>> assignment;
 
-    public
-        QuadAssignmentTree(std::shared_ptr<array<DataType>> data);
+    public:
+        QuadAssignmentTree(std::shared_ptr<std::vector<DataType>> data);
 
         size_t getDepth();
         size_t getNumRows();
         size_t getNumCols();
-        array<size_t> *getAssignment();
+        std::vector<size_t> *getAssignment();
 
 
     };

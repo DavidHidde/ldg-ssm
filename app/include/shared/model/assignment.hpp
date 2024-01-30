@@ -1,7 +1,9 @@
 #ifndef IMPROVED_LDG_ASSIGNMENT_HPP
 #define IMPROVED_LDG_ASSIGNMENT_HPP
 
-#include <array>
+#include <cstddef>
+#include <memory>
+#include <vector>
 
 namespace shared
 {
@@ -14,8 +16,8 @@ namespace shared
     {
         const size_t num_rows;
         const size_t num_cols;
-        array<size_t> assigned_indices;  // Row-major assignment of indices of data.
-        std::shared_ptr<array<DataType>> data;
+        std::vector<size_t> assigned_indices;  // Row-major assignment of indices of data.
+        std::shared_ptr<std::vector<DataType>> data;
     };
 }
 

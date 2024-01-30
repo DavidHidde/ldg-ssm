@@ -17,9 +17,9 @@ size_t shared::QuadAssignmentTree<DataType>::RowMajorIterator::currentIndex()
  * @return
  */
 template<typename DataType>
-shared::QuadAssignmentTree::RowMajorIterator shared::QuadAssignmentTree<DataType>::RowMajorIterator::begin()
+shared::QuadAssignmentTree<DataType>::RowMajorIterator shared::QuadAssignmentTree<DataType>::RowMajorIterator::begin()
 {
-    return shared::QuadAssignmentTree::RowMajorIterator{
+    return shared::QuadAssignmentTree<DataType>::RowMajorIterator{
         grid_num_cols,
         projected_num_rows,
         projected_num_cols
@@ -36,9 +36,9 @@ shared::QuadAssignmentTree::RowMajorIterator shared::QuadAssignmentTree<DataType
  * @return
  */
 template<typename DataType>
-shared::QuadAssignmentTree::RowMajorIterator shared::QuadAssignmentTree<DataType>::RowMajorIterator::end()
+shared::QuadAssignmentTree<DataType>::RowMajorIterator shared::QuadAssignmentTree<DataType>::RowMajorIterator::end()
 {
-    return shared::QuadAssignmentTree::RowMajorIterator{
+    return shared::QuadAssignmentTree<DataType>::RowMajorIterator{
         grid_num_cols,
         projected_num_rows,
         projected_num_cols
@@ -55,7 +55,7 @@ shared::QuadAssignmentTree::RowMajorIterator shared::QuadAssignmentTree<DataType
  * @return
  */
 template<typename DataType>
-DataType shared::QuadAssignmentTree<DataType>::RowMajorIterator::getValue()
+DataType &shared::QuadAssignmentTree<DataType>::RowMajorIterator::getValue()
 {
     return data[assignment[index]];
 }
@@ -69,11 +69,10 @@ DataType shared::QuadAssignmentTree<DataType>::RowMajorIterator::getValue()
  */
 template<typename DataType>
 bool shared::QuadAssignmentTree<DataType>::RowMajorIterator::operator==(
-    const shared::QuadAssignmentTree::RowMajorIterator &lhs,
-    const shared::QuadAssignmentTree::RowMajorIterator &rhs
+    const shared::QuadAssignmentTree<DataType>::RowMajorIterator &rhs
 )
 {
-    return lhs.currentIndex() == rhs.currentIndex();
+    return currentIndex() == rhs.currentIndex();
 }
 
 /**
@@ -82,7 +81,7 @@ bool shared::QuadAssignmentTree<DataType>::RowMajorIterator::operator==(
  * @return
  */
 template<typename DataType>
-shared::QuadAssignmentTree::RowMajorIterator &shared::QuadAssignmentTree<DataType>::RowMajorIterator::operator++()
+shared::QuadAssignmentTree<DataType>::RowMajorIterator &shared::QuadAssignmentTree<DataType>::RowMajorIterator::operator++()
 {
     ++index;
     return *this;
