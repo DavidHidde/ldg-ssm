@@ -83,7 +83,13 @@ namespace shared
 
         std::shared_ptr<std::vector<size_t>> getAssignment();
 
+        std::shared_ptr<std::vector<DataType>> getData();
+
+        std::pair<std::pair<size_t, size_t>, std::pair<size_t, size_t>> getHeightBounds(size_t height);
+
         RowMajorIterator getIteratorAtHeight(size_t height, Quadrant quadrant);
+
+        void computeAggregates();
     };
 }
 
