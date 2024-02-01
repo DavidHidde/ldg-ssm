@@ -39,18 +39,29 @@ namespace shared
             size_t offset;
             std::shared_ptr<std::vector<DataType>> data;
             std::shared_ptr<std::vector<size_t>> assignment;
-
             size_t index;
 
             size_t currentIndex();
 
         public:
+            RowMajorIterator(
+                size_t grid_num_cols,
+                size_t projected_num_rows,
+                size_t projected_num_cols,
+                size_t offset,
+                const std::shared_ptr<std::vector<DataType>> &data,
+                const std::shared_ptr<std::vector<size_t>> &assignment,
+                size_t index
+            );
+
             RowMajorIterator begin();
+
             RowMajorIterator end();
 
-            DataType & getValue();
+            DataType &getValue();
 
             bool operator==(RowMajorIterator const &rhs);
+
             RowMajorIterator &operator++();
         };
 
@@ -58,18 +69,21 @@ namespace shared
         size_t num_cols;
         size_t depth;
 
-        std::shared_ptr <std::vector<DataType>> data;
-        std::shared_ptr <std::vector<size_t>> assignment;
+        std::shared_ptr<std::vector<DataType>> data;
+        std::shared_ptr<std::vector<size_t>> assignment;
 
     public:
-        QuadAssignmentTree(std::shared_ptr<std::vector<DataType>> data);
+        QuadAssignmentTree(const std::shared_ptr<std::vector<DataType>> &data, size_t num_rows, size_t num_cols, size_t depth);
 
-        size_t getDepth();
-        size_t getNumRows();
-        size_t getNumCols();
-        std::vector<size_t> *getAssignment();
+        size_t &getDepth();
 
+        size_t &getNumRows();
 
+        size_t &getNumCols();
+
+        std::shared_ptr<std::vector<size_t>> getAssignment();
+
+        RowMajorIterator getIteratorAtHeight(size_t height, Quadrant quadrant);
     };
 }
 
