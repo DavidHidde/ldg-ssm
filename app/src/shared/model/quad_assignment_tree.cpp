@@ -88,11 +88,13 @@ namespace shared
         size_t height
     )
     {
-        size_t start = 0;
-        size_t proj_num_rows = num_rows;
-        size_t proj_num_cols = num_cols;
+        double factor = std::pow(0.25, height);
+        size_t start = (num_rows * num_cols) * ((1. - factor) / (1. - 0.25));   // Geometric series summation
+        size_t proj_num_rows = num_rows * factor;
+        size_t proj_num_cols = num_cols * factor;
 
         // Go to the start of the desired height grid in the array
+
         for (size_t curr_height = height; curr_height > 0; --curr_height) {
             start += proj_num_rows * proj_num_cols;
             proj_num_rows /= 2;

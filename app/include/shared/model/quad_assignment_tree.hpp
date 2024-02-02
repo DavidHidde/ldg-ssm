@@ -4,6 +4,7 @@
 #include <vector>
 #include <cstddef>
 #include <memory>
+#include <cmath>
 #include "app/include/shared/util/tree_traversal/row_major_iterator.hpp"
 
 namespace shared
