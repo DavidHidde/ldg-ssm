@@ -5,7 +5,6 @@
 #include <cstddef>
 #include <memory>
 #include <cmath>
-#include "app/include/shared/util/tree_traversal/row_major_iterator.hpp"
 
 namespace shared
 {
@@ -17,8 +16,7 @@ namespace shared
         NORTH_WEST,
         NORTH_EAST,
         SOUTH_WEST,
-        SOUTH_EAST,
-        NONE
+        SOUTH_EAST
     };
 
     /**
@@ -58,9 +56,9 @@ namespace shared
 
         std::shared_ptr<std::vector<DataType>> getData();
 
-        std::pair<std::pair<size_t, size_t>, std::pair<size_t, size_t>> getHeightBounds(size_t height);
+        DataType &getValue(CellPosition &position);
 
-        RowMajorIterator<DataType> getIteratorAtHeight(size_t height, Quadrant quadrant);
+        std::pair<std::pair<size_t, size_t>, std::pair<size_t, size_t>> getBounds(CellPosition &position);
 
         void computeAggregates();
     };

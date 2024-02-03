@@ -25,6 +25,13 @@ namespace shared
     );
 
     template<typename DataType>
+    float computeHierarchyDistanceForCell(
+        CellPosition &position,
+        std::function<float(DataType, DataType)> distance_function,
+        QuadAssignmentTree<DataType> &source
+    );
+
+    template<typename DataType>
     QuadAssignmentTree<float> generateCacheTree(QuadAssignmentTree<DataType> &source);
 }
 

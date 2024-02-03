@@ -26,87 +26,49 @@ namespace shared
     }
 
     /**
-     * Get an iterator at a certain height and in a certain quadrant of the tree.
+     * Get the bounds of the data arrays for the given position.
      *
+     * @param desired_height
      * @tparam DataType
-     * @param height
-     * @param quadrant
-     * @return
+     * @return <[start, end) of the data array at the given height, [num_rows, num_cols] for the given height>
      */
     template<typename DataType>
-    RowMajorIterator<DataType> QuadAssignmentTree<DataType>::getIteratorAtHeight(
-        size_t height,
-        Quadrant quadrant
-    )
+    std::pair<std::pair<size_t, size_t>, std::pair<size_t, size_t>> QuadAssignmentTree<DataType>::getBounds(CellPosition &position)
     {
-        auto bounds = getHeightBounds(height);
-        size_t start = bounds.first.first;
-        size_t proj_num_rows = bounds.second.first;
-        size_t proj_num_cols = bounds.second.second;
-
-        // Adjust for quadrant
-        if (quadrant != Quadrant::NONE) {
-            switch (quadrant) {
-                case Quadrant::NORTH_WEST:
-                    break; // Nothing to do
-                case Quadrant::NORTH_EAST:
-                    start += proj_num_cols / 2;
-                    break;
-                case Quadrant::SOUTH_WEST:
-                    start += (proj_num_rows / 2) * proj_num_cols;
-                    break;
-                case Quadrant::SOUTH_EAST:
-                    start += (proj_num_rows / 2) * proj_num_rows + proj_num_cols / 2;
-                    break;
+        size_t factor = std::pow(0.5, position.height);
+        size_t new_num_rows = num_rows * factor;
+        size_t new_num_cols = num_cols * factor;
+        size_t offset = num_rows * num_cols * ((1. - std::pow(
+            0.25,
+            position.height
+        )) / (1. - 0.25)); // Geometric summation.
+        return {
+            {
+                offset,
+                offset + new_num_rows * new_num_cols
+            },
+            {
+                new_num_rows,
+                new_num_cols
             }
-            proj_num_rows /= 2;
-            proj_num_cols /= 2;
-        }
-
-        return RowMajorIterator<DataType>{
-            num_cols,
-            proj_num_rows,
-            proj_num_cols,
-            start,
-            data,
-            assignment,
-            0
         };
     }
 
     /**
-     * Get the bounds and size of the assigment/data array at a certain height
+     * Get a value at a position in the tree. If it is out-of-bounds, returns nullptr.
      *
      * @tparam DataType
-     * @param height
-     * @return A pair of two pairs:
-     *  1. The [start, end) bounds in the assignment/data grid.
-     *  2. The size of the assignment/data grid, expressed in [num_rows, num_cols].
+     * @param position
+     * @return
      */
     template<typename DataType>
-    std::pair<std::pair<size_t, size_t>, std::pair<size_t, size_t>> QuadAssignmentTree<DataType>::getHeightBounds(
-        size_t height
-    )
+    DataType &QuadAssignmentTree<DataType>::getValue(CellPosition &position)
     {
-        double factor = std::pow(0.25, height);
-        size_t start = (num_rows * num_cols) * ((1. - factor) / (1. - 0.25));   // Geometric series summation
-        size_t proj_num_rows = num_rows * factor;
-        size_t proj_num_cols = num_cols * factor;
-
-        // Go to the start of the desired height grid in the array
-
-        for (size_t curr_height = height; curr_height > 0; --curr_height) {
-            start += proj_num_rows * proj_num_cols;
-            proj_num_rows /= 2;
-            proj_num_cols /= 2;
-        }
-
-        return std::make_pair(
-            std::pair<size_t, size_t>(start, start + proj_num_rows * proj_num_cols),
-            std::pair<size_t, size_t>(proj_num_rows, proj_num_cols)
-        );
+        auto bounds = getBounds(position);
+        auto start_end = bounds.first;
+        size_t index = start_end.first + position.index;
+        return index < start_end.second ? (*data)[(*assignment)[index]] : nullptr;
     }
-
 
     /**
      * Compute and update the aggregates of the quad tree.

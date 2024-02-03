@@ -1,6 +1,7 @@
 #ifndef LDG_CORE_ROW_MAJOR_ITERATOR_HPP
 #define LDG_CORE_ROW_MAJOR_ITERATOR_HPP
 
+#include "app/include/shared/model/quad_assignment_tree.hpp"
 #include <vector>
 #include <cstddef>
 #include <memory>
@@ -8,31 +9,33 @@
 namespace shared
 {
     /**
-     * Simple iterator for iterating over row-major arrays. in the quad tree
+     * Simple iterator for iterating over row-major arrays in the quad tree.
      * @tparam DataType Type of the underlying data.
      */
     template<typename DataType>
     class RowMajorIterator
     {
-        size_t grid_num_cols;
-        size_t projected_num_rows;
-        size_t projected_num_cols;
+        CellPosition node;
         size_t offset;
-        std::shared_ptr<std::vector<DataType>> data;
-        std::shared_ptr<std::vector<size_t>> assignment;
-        size_t index;
+        size_t num_rows;
+        size_t num_cols;
 
-        size_t currentIndex();
+        QuadAssignmentTree<DataType> *quad_tree;
 
     public:
+        RowMajorIterator(size_t height, QuadAssignmentTree<DataType> &quad_tree);
+
         RowMajorIterator(
-            size_t grid_num_cols,
-            size_t projected_num_rows,
-            size_t projected_num_cols,
+            CellPosition &position,
+            QuadAssignmentTree<DataType> &quad_tree
+        );
+
+        RowMajorIterator(
+            CellPosition &position,
+            QuadAssignmentTree<DataType> &quad_tree,
             size_t offset,
-            const std::shared_ptr<std::vector<DataType>> &data,
-            const std::shared_ptr<std::vector<size_t>> &assignment,
-            size_t index
+            size_t num_rows,
+            size_t num_cols
         );
 
         RowMajorIterator begin();
@@ -45,7 +48,6 @@ namespace shared
 
         RowMajorIterator &operator++();
     };
-
 } // shared
 
 #endif //LDG_CORE_ROW_MAJOR_ITERATOR_HPP

@@ -22,8 +22,6 @@ namespace shared
 
         QuadAssignmentTree<DataType> *quad_tree;
 
-        std::pair<size_t, size_t> getHeightBounds(size_t desired_height);
-
         size_t getParentIndex();
 
         std::array<size_t, 4> getChildrenIndices();

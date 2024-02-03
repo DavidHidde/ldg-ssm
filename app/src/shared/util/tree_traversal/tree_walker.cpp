@@ -100,9 +100,7 @@ namespace shared
     template<typename DataType>
     DataType &TreeWalker<DataType>::getNode()
     {
-        auto bounds = getHeightBounds(node.height);
-        size_t computed_idx = bounds.first + node.index;
-        return computed_idx < bounds.second ? quad_tree->getData()[quad_tree->getAssignment()[computed_idx]] : nullptr;
+        return quad_tree->getValue(node);
     }
 
     /**
@@ -119,7 +117,7 @@ namespace shared
         }
 
         size_t parent_idx = getParentIndex();
-        auto bounds = getHeightBounds(node.height + 1);
+        auto bounds = quad_tree->getBounds(CellPosition{ node.height + 1, 0}).first;
         return parent_idx < bounds.second ? quad_tree->getData()[quad_tree->getAssignment()[parent_idx]] : nullptr;;
     }
 
@@ -137,33 +135,13 @@ namespace shared
         }
 
         auto child_indices = getChildrenIndices();
-        auto bounds = getHeightBounds(node.height - 1);
+        auto bounds = quad_tree->getBounds(CellPosition{ node.height - 1, 0}).first;
 
         return {
             child_indices[0] < bounds.second ? quad_tree->getData()[quad_tree->getAssignment()[child_indices[0]]] : nullptr,
             child_indices[1] < bounds.second ? quad_tree->getData()[quad_tree->getAssignment()[child_indices[1]]] : nullptr,
             child_indices[2] < bounds.second ? quad_tree->getData()[quad_tree->getAssignment()[child_indices[2]]] : nullptr,
             child_indices[3] < bounds.second ? quad_tree->getData()[quad_tree->getAssignment()[child_indices[3]]] : nullptr,
-        };
-    }
-
-    /**
-     * Get the bounds of the data arrays for the set height.
-     *
-     * @param desired_height
-     * @tparam DataType
-     * @return [start, end) of the data array at the given height.
-     */
-    template<typename DataType>
-    std::pair<size_t, size_t> TreeWalker<DataType>::getHeightBounds(size_t desired_height)
-    {
-        size_t offset = quad_tree->getNumRows() * quad_tree->getNumCols() * ((1. - std::pow(
-            0.25,
-            desired_height
-        )) / (1. - 0.25)); // Geometric summation.
-        return {
-            offset,
-            offset + num_rows * num_cols
         };
     }
 

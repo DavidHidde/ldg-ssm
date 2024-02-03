@@ -3,45 +3,63 @@
 namespace shared
 {
     /**
+     * Construct an iterator for the whole array of a given height.
+     *
      * @tparam DataType
-     * @param grid_num_cols
-     * @param projected_num_rows
-     * @param projected_num_cols
-     * @param offset
-     * @param data
-     * @param assignment
-     * @param index
+     * @param height
      */
     template<typename DataType>
-    RowMajorIterator<DataType>::RowMajorIterator(
-        size_t grid_num_cols,
-        size_t projected_num_rows,
-        size_t projected_num_cols,
-        size_t offset,
-        const std::shared_ptr<std::vector<DataType>> &data,
-        const std::shared_ptr<std::vector<size_t>> &assignment,
-        size_t index
-    ):
-        grid_num_cols(grid_num_cols),
-        projected_num_rows(projected_num_rows),
-        projected_num_cols(projected_num_cols),
-        offset(offset),
-        data(data),
-        assignment(assignment),
-        index(index)
+    RowMajorIterator<DataType>::RowMajorIterator(size_t height, QuadAssignmentTree<DataType> &quad_tree):
+        node{height, 0},
+        offset(0),
+        num_rows(quad_tree->getNumRows() * std::pow(2, -height)),
+        num_cols(quad_tree->getNumCols() * std::pow(2, -height)),
+        quad_tree(quad_tree)
     {
     }
 
     /**
-     * Compute the current array index of the iterator.
+     * Create an iterator starting from a certain position.
      *
      * @tparam DataType
-     * @return
+     * @param position
+     * @param quad_tree
      */
     template<typename DataType>
-    size_t RowMajorIterator<DataType>::currentIndex()
+    RowMajorIterator<DataType>::RowMajorIterator(CellPosition &position, QuadAssignmentTree<DataType> &quad_tree):
+        node(position),
+        offset(0),
+        num_rows(quad_tree->getNumRows() * std::pow(2, -position.height)),
+        num_cols(quad_tree->getNumCols() * std::pow(2, -position.height)),
+        quad_tree(quad_tree)
     {
-        return offset + (index / projected_num_cols) * grid_num_cols + index % projected_num_cols;
+    }
+
+    /**
+     * Create an iterator starting at a given position given an offset and a number of rows and columns.
+     * This allows for smaller partitions of a height array to be iterated over.
+     *
+     * @tparam DataType
+     * @param position
+     * @param quad_tree
+     * @param offset
+     * @param num_rows
+     * @param num_cols
+     */
+    template<typename DataType>
+    RowMajorIterator<DataType>::RowMajorIterator(
+        CellPosition &position,
+        QuadAssignmentTree<DataType> &quad_tree,
+        size_t offset,
+        size_t num_rows,
+        size_t num_cols
+    ):
+        node(position),
+        quad_tree(quad_tree),
+        offset(offset),
+        num_rows(num_rows),
+        num_cols(num_cols)
+    {
     }
 
     /**
@@ -54,13 +72,11 @@ namespace shared
     RowMajorIterator<DataType> RowMajorIterator<DataType>::begin()
     {
         return RowMajorIterator{
-            grid_num_cols,
-            projected_num_rows,
-            projected_num_cols,
+            CellPosition{node.height, offset},
             offset,
-            data,
-            assignment,
-            0
+            num_rows,
+            num_cols,
+            quad_tree
         };
     }
 
@@ -74,13 +90,11 @@ namespace shared
     RowMajorIterator<DataType> RowMajorIterator<DataType>::end()
     {
         return RowMajorIterator{
-            grid_num_cols,
-            projected_num_rows,
-            projected_num_cols,
+            CellPosition{node.height, offset + num_rows * num_cols},
             offset,
-            data,
-            assignment,
-            projected_num_rows * projected_num_cols
+            num_rows,
+            num_cols,
+            quad_tree
         };
     }
 
@@ -93,7 +107,7 @@ namespace shared
     template<typename DataType>
     DataType &RowMajorIterator<DataType>::getValue()
     {
-        return (*data)[(*assignment)[index]];
+        return quad_tree->getValue(node);
     }
 
     /**
@@ -109,7 +123,7 @@ namespace shared
         const RowMajorIterator<DataType> &rhs
     )
     {
-        return currentIndex() == rhs.currentIndex();
+        return node.index == rhs.node.index && node.height == rhs.node.height;
     }
 
     /**
@@ -121,8 +135,7 @@ namespace shared
     template<typename DataType>
     RowMajorIterator<DataType> &RowMajorIterator<DataType>::operator++()
     {
-        ++index;
+        ++node.index;
         return *this;
     }
-
 } // shared
