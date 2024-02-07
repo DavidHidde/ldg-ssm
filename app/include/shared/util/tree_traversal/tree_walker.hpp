@@ -2,6 +2,9 @@
 #define LDG_CORE_TREE_WALKER_HPP
 
 #include "app/include/shared/model/quad_assignment_tree.hpp"
+#include "app/include/shared/util/math.hpp"
+#include "row_major_iterator.hpp"
+
 #include <array>
 #include <cmath>
 
@@ -16,18 +19,16 @@ namespace shared
     template<typename DataType>
     class TreeWalker
     {
-        CellPosition node;
-        size_t num_rows;
-        size_t num_cols;
+        CellPosition node;  // The current node.
+        size_t num_rows;    // Number of rows of the current height array.
+        size_t num_cols;    // Number of columns of the current height array.
 
         QuadAssignmentTree<DataType> *quad_tree;
 
-        size_t getParentIndex();
-
-        std::array<size_t, 4> getChildrenIndices();
-
     public:
         TreeWalker(CellPosition &position, QuadAssignmentTree<DataType> &quad_tree);
+
+        TreeWalker(CellPosition &position, size_t num_rows, size_t num_cols, QuadAssignmentTree<DataType> &quad_tree);
 
         bool moveUp();
 
@@ -35,11 +36,23 @@ namespace shared
 
         bool reposition(CellPosition &position);
 
-        DataType &getNode();
+        DataType &getNodeValue();
 
-        DataType &getParent();
+        DataType &getParentValue();
 
-        std::array<DataType, 4> getChildren();
+        std::array<DataType, 4> getChildrenValues();
+
+        size_t getParentIndex();
+
+        std::array<int, 4> getChildrenIndices();
+
+        RowMajorIterator<DataType> getLeaves();
+
+        size_t getNumRows() const;
+
+        size_t getNumCols() const;
+
+        CellPosition &getNode();
     };
 } // shared
 

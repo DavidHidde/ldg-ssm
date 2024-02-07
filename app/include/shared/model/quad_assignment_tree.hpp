@@ -1,6 +1,8 @@
 #ifndef IMPROVED_LDG_QUAD_ASSIGNMENT_TREE_HPP
 #define IMPROVED_LDG_QUAD_ASSIGNMENT_TREE_HPP
 
+#include "app/include/shared/util/tree_traversal/tree_walker.hpp"
+
 #include <vector>
 #include <cstddef>
 #include <memory>
@@ -59,6 +61,8 @@ namespace shared
         DataType &getValue(CellPosition &position);
 
         std::pair<std::pair<size_t, size_t>, std::pair<size_t, size_t>> getBounds(CellPosition &position);
+
+        std::pair<std::pair<size_t, size_t>, std::pair<size_t, size_t>> getLeafBounds(CellPosition &position);
 
         void computeAggregates();
     };

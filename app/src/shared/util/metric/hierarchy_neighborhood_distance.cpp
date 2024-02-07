@@ -57,12 +57,12 @@ namespace shared
     )
     {
         TreeWalker<DataType> walker(position, source);
-        DataType node = walker.getNode();
+        DataType node = walker.getNodeValue();
         float sum = 0;
 
         if (node != nullptr) {
             do {
-                sum += distance_function(node, walker.getParent());
+                sum += distance_function(node, walker.getParentValue());
             } while (walker.moveUp());
         }
 

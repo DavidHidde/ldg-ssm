@@ -35,13 +35,15 @@ namespace shared
     template<typename DataType>
     std::pair<std::pair<size_t, size_t>, std::pair<size_t, size_t>> QuadAssignmentTree<DataType>::getBounds(CellPosition &position)
     {
-        size_t factor = std::pow(0.5, position.height);
-        size_t new_num_rows = num_rows * factor;
-        size_t new_num_cols = num_cols * factor;
-        size_t offset = num_rows * num_cols * ((1. - std::pow(
-            0.25,
-            position.height
-        )) / (1. - 0.25)); // Geometric summation.
+        size_t new_num_rows = num_rows;
+        size_t new_num_cols = num_cols;
+        size_t offset = 0;
+        for (size_t idx = 0; idx < position.height; ++idx) {
+            offset += new_num_cols * new_num_rows;
+            new_num_cols = ceilDivideByFactor(new_num_cols, 2.);
+            new_num_rows = ceilDivideByFactor(new_num_rows, 2.);
+        }
+
         return {
             {
                 offset,
@@ -50,6 +52,38 @@ namespace shared
             {
                 new_num_rows,
                 new_num_cols
+            }
+        };
+    }
+
+    /**
+     * Get the bounds of the leaf partition in the data arrays for the given position.
+     *
+     * @param desired_height
+     * @tparam DataType
+     * @return <[start, end) of the leaf partition at h0, [num_rows, num_cols] for the partition>
+     */
+    template<typename DataType>
+    std::pair<std::pair<size_t, size_t>, std::pair<size_t, size_t>> QuadAssignmentTree<DataType>::getLeafBounds(CellPosition &position)
+    {
+        float factor = std::pow(2., position.height);
+        size_t height_num_cols = ceilDivideByFactor(num_cols, factor);
+        auto side_len = size_t(factor);
+
+        size_t offset = rowMajorIndex((position.index % height_num_cols) * side_len, (position.index / height_num_cols) * side_len, num_cols);
+        size_t start_row = offset / num_cols;
+        size_t start_col = offset % num_cols;
+        size_t actual_num_rows = start_row + side_len > num_rows ? num_rows - start_row : side_len;
+        size_t actual_num_cols = start_col + side_len > num_cols ? num_cols - start_col : side_len;
+
+        return {
+            {
+                offset,
+                rowMajorIndex(start_row + actual_num_rows, start_col + actual_num_cols, num_cols)
+            },
+            {
+                actual_num_rows,
+                actual_num_cols
             }
         };
     }
@@ -79,51 +113,28 @@ namespace shared
     template<typename DataType>
     void QuadAssignmentTree<DataType>::computeAggregates()
     {
-        size_t curr_idx = 0;
-        size_t next_height_idx = num_rows * num_cols;
-        size_t curr_num_rows = num_rows;
-        size_t curr_num_cols = num_cols;
+        size_t curr_num_rows = ceilDivideByFactor(num_rows, 2.);
+        size_t curr_num_cols = ceilDivideByFactor(num_cols, 2.);
 
         // Compute the aggregates bottom-up
-        for (size_t height = 0; height < depth - 1; ++height) {
-            size_t num_pairs = (curr_num_rows * curr_num_cols) / 4;
-            size_t num_pairs_per_row = curr_num_cols / 2;
-            for (size_t pair_idx = 0; pair_idx < num_pairs; ++pair_idx) {
-                // Load data
-                DataType tl = (*data)[(*assignment)[curr_idx]];                 // Top left
-                DataType tr = (*data)[(*assignment)[curr_idx + 1]];             // Top right
-                DataType bl = (*data)[(*assignment)[curr_idx + num_cols]];      // Bottom left
-                DataType br = (*data)[(*assignment)[curr_idx + num_cols + 1]];  // Bottom right
-
-                // Aggregate and normalize, ignoring VOID (nullptr) tiles
-                double count = 0;
+        for (size_t height = 1; height < depth; ++height) {
+            for (size_t idx = 0; idx < curr_num_rows * curr_num_cols; ++idx) {
+                CellPosition position{ height, idx };
+                TreeWalker<DataType> walker(position, num_rows, num_cols, *this);
+                float count = 0.;
                 DataType aggregate;
-                if (tl != nullptr) {
-                    aggregate += tl;
-                    ++count;
+                for (DataType child: walker.getChildrenValues()) {
+                    if (child != nullptr) {
+                        ++count;
+                        aggregate += child;
+                    }
                 }
-                if (tr != nullptr) {
-                    aggregate += tr;
-                    ++count;
-                }
-                if (bl != nullptr) {
-                    aggregate += bl;
-                    ++count;
-                }
-                if (br != nullptr) {
-                    aggregate += br;
-                    ++count;
-                }
-                (*data)[(*assignment)[next_height_idx]] = aggregate / count;
-
-                // Update for next step. The curr_idx needs to move in blocks of 4.
-                ++next_height_idx;
-                curr_idx += 2;
-                if ((pair_idx + 1) % num_pairs_per_row == 0)
-                    curr_idx += curr_num_cols;
+                DataType &node = getValue(position);
+                node = aggregate;
             }
-            curr_num_rows /= 2;
-            curr_num_cols /= 2;
+
+            curr_num_rows = ceilDivideByFactor(curr_num_rows, 2.);
+            curr_num_cols = ceilDivideByFactor(curr_num_cols, 2.);
         }
     }
 

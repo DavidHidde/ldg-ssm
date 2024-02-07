@@ -10,28 +10,13 @@ namespace shared
      */
     template<typename DataType>
     RowMajorIterator<DataType>::RowMajorIterator(size_t height, QuadAssignmentTree<DataType> &quad_tree):
-        node{height, 0},
+        node{ height, 0 },
+        quad_tree(quad_tree),
         offset(0),
-        num_rows(quad_tree->getNumRows() * std::pow(2, -height)),
-        num_cols(quad_tree->getNumCols() * std::pow(2, -height)),
-        quad_tree(quad_tree)
-    {
-    }
-
-    /**
-     * Create an iterator starting from a certain position.
-     *
-     * @tparam DataType
-     * @param position
-     * @param quad_tree
-     */
-    template<typename DataType>
-    RowMajorIterator<DataType>::RowMajorIterator(CellPosition &position, QuadAssignmentTree<DataType> &quad_tree):
-        node(position),
-        offset(0),
-        num_rows(quad_tree->getNumRows() * std::pow(2, -position.height)),
-        num_cols(quad_tree->getNumCols() * std::pow(2, -position.height)),
-        quad_tree(quad_tree)
+        num_rows(ceilDivideByPowerTwo(quad_tree.getNumRows(), height)),
+        num_cols(ceilDivideByPowerTwo(quad_tree.getNumCols(), height)),
+        height_num_rows(num_rows),
+        height_num_cols(num_cols)
     {
     }
 
@@ -42,9 +27,11 @@ namespace shared
      * @tparam DataType
      * @param position
      * @param quad_tree
-     * @param offset
-     * @param num_rows
-     * @param num_cols
+     * @param offset    0 by default.
+     * @param num_rows  Number of rows at the current height by default.
+     * @param num_cols  Number of cols at the current height by default.
+     * @param height_num_rows   Number of rows at the current height by default.
+     * @param height_num_cols   Number of cols at the current height by default.
      */
     template<typename DataType>
     RowMajorIterator<DataType>::RowMajorIterator(
@@ -52,13 +39,17 @@ namespace shared
         QuadAssignmentTree<DataType> &quad_tree,
         size_t offset,
         size_t num_rows,
-        size_t num_cols
+        size_t num_cols,
+        size_t height_num_rows,
+        size_t height_num_cols
     ):
         node(position),
         quad_tree(quad_tree),
         offset(offset),
-        num_rows(num_rows),
-        num_cols(num_cols)
+        num_rows(num_rows > 0 ? num_rows : ceilDivideByPowerTwo(quad_tree.getNumRows(), position.height)),
+        num_cols(num_cols > 0 ? num_cols : ceilDivideByPowerTwo(quad_tree.getNumCols(), position.height)),
+        height_num_rows(height_num_rows > 0 ? height_num_rows : ceilDivideByPowerTwo(quad_tree.getNumRows(), position.height)),
+        height_num_cols(height_num_cols > 0 ? height_num_cols : ceilDivideByPowerTwo(quad_tree.getNumCols(), position.height))
     {
     }
 
@@ -72,11 +63,13 @@ namespace shared
     RowMajorIterator<DataType> RowMajorIterator<DataType>::begin()
     {
         return RowMajorIterator{
-            CellPosition{node.height, offset},
+            CellPosition{ node.height, offset },
+            quad_tree,
             offset,
             num_rows,
             num_cols,
-            quad_tree
+            height_num_rows,
+            height_num_cols
         };
     }
 
@@ -90,11 +83,20 @@ namespace shared
     RowMajorIterator<DataType> RowMajorIterator<DataType>::end()
     {
         return RowMajorIterator{
-            CellPosition{node.height, offset + num_rows * num_cols},
+            CellPosition{
+                node.height,
+                rowMajorIndex(
+                    offset / height_num_cols + num_rows,
+                    offset % height_num_cols + num_cols,
+                    height_num_cols
+                ),
+            },
+            quad_tree,
             offset,
             num_rows,
             num_cols,
-            quad_tree
+            height_num_rows,
+            height_num_cols
         };
     }
 
@@ -108,6 +110,16 @@ namespace shared
     DataType &RowMajorIterator<DataType>::getValue()
     {
         return quad_tree->getValue(node);
+    }
+
+    /**
+     * @tparam DataType
+     * @return
+     */
+    template<typename DataType>
+    DataType &RowMajorIterator<DataType>::getPosition()
+    {
+        return node;
     }
 
     /**
@@ -135,7 +147,13 @@ namespace shared
     template<typename DataType>
     RowMajorIterator<DataType> &RowMajorIterator<DataType>::operator++()
     {
-        ++node.index;
+        // Move to the next row in the current partition if needed.
+        if ((node.index + 1) % height_num_cols == 0) {
+            node.index = rowMajorIndex(index / height_num_cols + 1, offset % height_num_cols, height_num_cols);
+        } else {
+            ++node.index;
+        }
+
         return *this;
     }
 } // shared

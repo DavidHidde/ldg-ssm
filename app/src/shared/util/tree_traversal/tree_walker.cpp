@@ -11,11 +11,31 @@ namespace shared
     template<typename DataType>
     TreeWalker<DataType>::TreeWalker(CellPosition &position, QuadAssignmentTree<DataType> &quad_tree):
         node(position),
-        num_rows(quad_tree->getNumRows() * std::pow(2, -position.height)),
-        num_cols(quad_tree->getNumCols() * std::pow(2, -position.height)),
+        num_rows(ceilDivideByPowerTwo(quad_tree->getNumRows(), position.height)),
+        num_cols(ceilDivideByPowerTwo(quad_tree->getNumCols(), position.height)),
         quad_tree(quad_tree)
     {
     }
+
+    /**
+     * @tparam DataType
+     * @param position
+     * @param num_rows
+     * @param num_cols
+     * @param quad_tree
+     */
+    template<typename DataType>
+    TreeWalker<DataType>::TreeWalker(
+        CellPosition &position,
+        size_t num_rows,
+        size_t num_cols,
+        QuadAssignmentTree<DataType> &quad_tree
+    ):
+        node(position),
+        num_rows(num_rows),
+        num_cols(num_cols),
+        quad_tree(quad_tree)
+    {}
 
     /**
      * Move up in the quad tree. Returns false if at the root.
@@ -32,8 +52,8 @@ namespace shared
 
         ++node.height;
         node.index = getParentIndex();
-        num_cols /= 2;
-        num_rows /= 2;
+        num_cols = ceilDivideByFactor(num_cols, 2.);
+        num_rows = ceilDivideByFactor(num_rows, 2.);
         return true;
     }
 
@@ -52,24 +72,32 @@ namespace shared
         }
 
         auto child_indices = getChildrenIndices();
-        --node.height;
-        num_cols *= 2;
-        num_rows *= 2;
-
+        int new_index = -1;
         switch (quadrant) {
             case Quadrant::NORTH_WEST:
-                node.index = child_indices[0];
+                new_index = child_indices[0];
                 break;
             case Quadrant::NORTH_EAST:
-                node.index = child_indices[1];
+                new_index = child_indices[1];
                 break;
             case Quadrant::SOUTH_WEST:
-                node.index = child_indices[2];
+                new_index = child_indices[2];
                 break;
             case Quadrant::SOUTH_EAST:
-                node.index = child_indices[3];
+                new_index = child_indices[3];
                 break;
         }
+
+        // If the child does not exist, we can't descend.
+        if (new_index < 0)
+            return false;
+
+        node.index = size_t(new_index);
+        --node.height;
+        // Tree is build bottom-up, so we need to recalculate this.
+        float factor = std::pow(2, node.height);
+        num_cols = ceilDivideByFactor(quad_tree->getNumCols(), factor);
+        num_rows = ceilDivideByFactor(quad_tree->getNumRows(), factor);
 
         return true;
     }
@@ -87,8 +115,9 @@ namespace shared
     {
         node.index = position.index;
         node.height = position.height;
-        num_rows = quad_tree->getNumRows() * std::pow(2, -position.height);
-        num_cols = quad_tree->getNumCols() * std::pow(2, -position.height);
+        float factor = std::pow(2, position.height);
+        num_rows = ceilDivideByFactor(quad_tree->getNumRows(), factor);
+        num_cols = ceilDivideByFactor(quad_tree->getNumCols(), factor);
     }
 
     /**
@@ -98,7 +127,7 @@ namespace shared
      * @return The data of the current node if it exists, else nullptr.
      */
     template<typename DataType>
-    DataType &TreeWalker<DataType>::getNode()
+    DataType &TreeWalker<DataType>::getNodeValue()
     {
         return quad_tree->getValue(node);
     }
@@ -110,15 +139,14 @@ namespace shared
      * @return The data of the parent node if it exists, else nullptr.
      */
     template<typename DataType>
-    DataType &TreeWalker<DataType>::getParent()
+    DataType &TreeWalker<DataType>::getParentValue()
     {
         if (node.height == quad_tree->getDepth() - 1) {
             return nullptr;
         }
 
         size_t parent_idx = getParentIndex();
-        auto bounds = quad_tree->getBounds(CellPosition{ node.height + 1, 0}).first;
-        return parent_idx < bounds.second ? quad_tree->getData()[quad_tree->getAssignment()[parent_idx]] : nullptr;;
+        return quad_tree->getValue(CellPosition{ node.height + 1, parent_idx });
     }
 
     /**
@@ -128,20 +156,18 @@ namespace shared
      * @return The data of the child nodes if they exist, else nullptr per child the child does not exist.
      */
     template<typename DataType>
-    std::array<DataType, 4> TreeWalker<DataType>::getChildren()
+    std::array<DataType, 4> TreeWalker<DataType>::getChildrenValues()
     {
         if (node.height == 0) {
             return { nullptr, nullptr, nullptr, nullptr };
         }
 
         auto child_indices = getChildrenIndices();
-        auto bounds = quad_tree->getBounds(CellPosition{ node.height - 1, 0}).first;
-
         return {
-            child_indices[0] < bounds.second ? quad_tree->getData()[quad_tree->getAssignment()[child_indices[0]]] : nullptr,
-            child_indices[1] < bounds.second ? quad_tree->getData()[quad_tree->getAssignment()[child_indices[1]]] : nullptr,
-            child_indices[2] < bounds.second ? quad_tree->getData()[quad_tree->getAssignment()[child_indices[2]]] : nullptr,
-            child_indices[3] < bounds.second ? quad_tree->getData()[quad_tree->getAssignment()[child_indices[3]]] : nullptr,
+            child_indices[0] >= 0 ? quad_tree->getValue(size_t(child_indices[0])) : nullptr,
+            child_indices[1] >= 0 ? quad_tree->getValue(size_t(child_indices[1])) : nullptr,
+            child_indices[2] >= 0 ? quad_tree->getValue(size_t(child_indices[2])) : nullptr,
+            child_indices[3] >= 0 ? quad_tree->getValue(size_t(child_indices[3])) : nullptr
         };
     }
 
@@ -154,24 +180,90 @@ namespace shared
     template<typename DataType>
     size_t TreeWalker<DataType>::getParentIndex()
     {
-        return (node.index % 2) / 2 + (node.index / (2 * num_cols)) * (num_cols / 2);
+        return rowMajorIndex((node.index % num_cols) / 2, node.index / (2 * num_cols), ceilDivideByFactor(num_cols, 2.));
     }
 
     /**
      * Get the indices of the children of this node.
+     * Because the quad tree is build from the bottom up and hence does not always split up into 4, we need to check
+     * and also return nullptr if a child does not exist.
      *
      * @tparam DataType
-     * @return Child indices of the node, in the order: [NW, NE, SW, SE]
+     * @return Child indices of the node, in the order: [NW, NE, SW, SE]. If it does not exist, -1 is returned.
      */
     template<typename DataType>
-    std::array<size_t, 4> TreeWalker<DataType>::getChildrenIndices()
+    std::array<int, 4> TreeWalker<DataType>::getChildrenIndices()
     {
-        size_t index = (node.index % 2) * 2 + (node.index / num_cols) * num_cols * 4;
+        float factor = std::pow(2, node.height);
+        int new_num_cols = ceilDivideByFactor(quad_tree->getNumCols(), factor);
+        int new_num_rows = ceilDivideByFactor(quad_tree->getNumRows(), factor);
+
+        int new_row = (node.index / num_cols) * 2;
+        int new_col = (node.index % num_cols) * 2;
+
+        int index = int(rowMajorIndex(new_row, new_col, new_num_cols));
         return {
-            index,                      // North-west
-            index + 1,                  // North-east
-            index + num_cols * 2,       // South-west
-            index + num_cols * 2 + 1    // South-east
+            index,                                                                                      // North-west
+            new_col + 1 < new_num_cols ? index + 1 : -1,                                                // North-east
+            new_row + 1 < new_num_rows ? index + new_num_cols : -1,                                     // South-west
+            new_col + 1 < new_num_cols && new_row + 1 < new_num_rows ? index + new_num_cols + 1 : -1    // South-east
         };
+    }
+
+    /**
+     * Get an iterator over all leaves below this node.
+     *
+     * @tparam DataType
+     * @return
+     */
+    template<typename DataType>
+    RowMajorIterator<DataType> TreeWalker<DataType>::getLeaves()
+    {
+        auto bounds = quad_tree->getLeafBounds(node);
+        auto start_end = bounds.first;
+        auto dimensions = bounds.second;
+
+        return {
+            CellPosition{
+                0,
+                start_end.first
+            },
+            quad_tree,
+            start_end.first,
+            quad_tree->getNumRows(),
+            quad_tree->getNumCols(),
+            dimensions.first,
+            dimensions.second
+        };
+    }
+
+    /**
+     * @tparam DataType
+     * @return
+     */
+    template<typename DataType>
+    size_t TreeWalker<DataType>::getNumRows() const
+    {
+        return num_rows;
+    }
+
+    /**
+     * @tparam DataType
+     * @return
+     */
+    template<typename DataType>
+    size_t TreeWalker<DataType>::getNumCols() const
+    {
+        return num_cols;
+    }
+
+    /**
+     * @tparam DataType
+     * @return
+     */
+    template<typename DataType>
+    CellPosition &TreeWalker<DataType>::getNode()
+    {
+        return node;
     }
 } // shared
