@@ -71,23 +71,32 @@ std::shared_ptr<std::vector<size_t>> createRandomAssignment(size_t size, size_t 
     return assignment;
 }
 
+void printImage(shared::QuadAssignmentTree<V3<float>> &quad_tree)
+{
+    std::cout << "\narr = np.array([\n";
+    for (shared::RowMajorIterator<V3<float>> it(0, quad_tree); it != it.end(); ++it)
+        std::cout << '\t' << *it.getValue() << ",\n";
+    std::cout << "])\n\n";
+}
+
 int main(int argc, const char **argv)
 {
     // Runtime test parameters
-    size_t n_rows = 32;
-    size_t n_cols = 32;
+    size_t n_rows = 64;
+    size_t n_cols = 64;
     size_t max_iterations = 1000;
 
     size_t depth = std::ceil(std::log2(std::max(n_cols, n_rows))) + 1;
     auto data = generateRandomColorData(n_rows, n_cols);
     auto assignment = createRandomAssignment((*data).size(), n_rows, n_cols);
     shared::QuadAssignmentTree<V3<float>> quad_tree{ data, assignment, n_rows, n_cols, depth };
-    auto tree_data = *quad_tree.getData();
+    printImage(quad_tree);
 
     std::function<float(std::shared_ptr<V3<float>>, std::shared_ptr<V3<float>>)> distance_function = shared::euclideanDistance<V3<float>>;
     std::cout << "Start HND: " << shared::computeHierarchyNeighborhoodDistance(0, distance_function, quad_tree) << "\n\n";
     ssm::sort(quad_tree, distance_function, max_iterations);
     std::cout << "After sorting HND: " << shared::computeHierarchyNeighborhoodDistance(0, distance_function, quad_tree) << '\n';
+    printImage(quad_tree);
 
     return 0;
 }

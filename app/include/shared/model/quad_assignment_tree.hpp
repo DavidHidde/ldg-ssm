@@ -49,6 +49,8 @@ namespace shared
 
         bool setValue(CellPosition position, DataType &value);
 
+        bool setAssignment(CellPosition position, size_t &value);
+
         std::pair<std::pair<size_t, size_t>, std::pair<size_t, size_t>> getBounds(CellPosition position);
 
         std::pair<std::pair<size_t, size_t>, std::pair<size_t, size_t>> getLeafBounds(CellPosition position);
@@ -127,8 +129,8 @@ namespace shared
         auto side_len = size_t(factor);
 
         size_t offset = rowMajorIndex(
-            (position.index % height_num_cols) * side_len,
             (position.index / height_num_cols) * side_len,
+            (position.index % height_num_cols) * side_len,
             num_cols
         );
         size_t start_row = offset / num_cols;
@@ -169,6 +171,7 @@ namespace shared
      *
      * @tparam DataType
      * @param position
+     * @param value
      * @return True if setting the value worked, false if not.
      */
     template<typename DataType>
@@ -180,6 +183,29 @@ namespace shared
 
         if (index < start_end.second) {
             *(*data)[(*assignment)[index]] = std::move(value);
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Set the assignment at a given position.
+     *
+     * @tparam DataType
+     * @param position
+     * @value
+     * @return True if setting the value worked, false if not.
+     */
+    template<typename DataType>
+    bool QuadAssignmentTree<DataType>::setAssignment(CellPosition position, size_t &value)
+    {
+        auto bounds = getBounds(position);
+        auto start_end = bounds.first;
+        size_t index = start_end.first + position.index;
+
+        if (index < start_end.second) {
+            (*assignment)[index] = value;
             return true;
         }
 

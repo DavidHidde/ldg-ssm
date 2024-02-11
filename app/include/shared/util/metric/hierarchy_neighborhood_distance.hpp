@@ -66,16 +66,26 @@ namespace shared
             size_t x = position.index % quad_tree.getNumCols();
             size_t y = position.index / quad_tree.getNumCols();
 
-            if (x > 0)
-                sum += *cache.getValue(CellPosition{ 0, position.index - 1 });
-            if (x < cache.getNumCols() - 1)
-                sum += *cache.getValue(CellPosition{ 0, position.index + 1 });
-            if (y > 0)
-                sum += *cache.getValue(CellPosition{ 0, position.index - cache.getNumCols() });
-            if (y < cache.getNumRows() - 1)
-                sum += *cache.getValue(CellPosition{ 0, position.index + cache.getNumCols() });
+            float neighbor_sum = 0.;
+            size_t neighbour_count = 0;
+            if (x > 0) {
+                neighbor_sum += *cache.getValue(CellPosition{ 0, position.index - 1 });
+                ++neighbour_count;
+            }
+            if (x < cache.getNumCols() - 1) {
+                neighbor_sum += *cache.getValue(CellPosition{ 0, position.index + 1 });
+                ++neighbour_count;
+            }
+            if (y > 0) {
+                neighbor_sum += *cache.getValue(CellPosition{ 0, position.index - cache.getNumCols() });
+                ++neighbour_count;
+            }
+            if (y < cache.getNumRows() - 1) {
+                neighbor_sum += *cache.getValue(CellPosition{ 0, position.index + cache.getNumCols() });
+                ++neighbour_count;
+            }
 
-            sum += *(iterator.getValue());
+            sum += *(iterator.getValue()) + neighbor_sum / (neighbour_count > 0 ? float(neighbour_count) : 1.);
         }
 
         return sum;

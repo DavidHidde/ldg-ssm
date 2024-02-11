@@ -77,7 +77,6 @@ namespace ssm
         // Load all the nodes and parents beforehand
         size_t num_nodes = nodes.size();
         size_t height_offset = quad_tree.getBounds(nodes[0]).first.first;
-        auto &assignment = *(quad_tree.getAssignment());
 
         std::vector<size_t> node_assignments(num_nodes);                                // Assigned indices per node
         std::vector<std::shared_ptr<DataType>> node_data(num_nodes);                    // Actual data per node
@@ -85,7 +84,7 @@ namespace ssm
 
         for (size_t idx = 0; idx < num_nodes; ++idx) {
             node_data[idx] = quad_tree.getValue(nodes[idx]);
-            node_assignments[idx] = assignment[nodes[idx].index + height_offset];
+            node_assignments[idx] = (*quad_tree.getAssignment())[nodes[idx].index + height_offset];
             TreeWalker<DataType> walker{ nodes[idx], quad_tree };
             walker.moveUp();
             for (size_t parent_idx = 0; parent_idx < max_height - 1 && walker.moveUp(); ++parent_idx) {
@@ -122,10 +121,11 @@ namespace ssm
         size_t swap_count = 0;
         for (size_t idx = 0; idx < num_nodes; ++idx) {
             if (best_permutation[idx] != idx) {
-                assignment[nodes[idx].index + height_offset] = node_assignments[best_permutation[idx]];
+                quad_tree.setAssignment(nodes[idx], node_assignments[best_permutation[idx]]);
                 ++swap_count;
             }
         }
+
         return swap_count;
     }
 
@@ -268,6 +268,9 @@ namespace ssm
             iterations = 0;
             shift = 0;
         }
+
+        if (num_swaps > 0)
+            computeAggregates(quad_tree);   // Fix aggregates in the end if we did perform swaps in the end.
     }
 }
 

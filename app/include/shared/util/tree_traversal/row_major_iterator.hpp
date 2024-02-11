@@ -212,10 +212,10 @@ namespace shared
     RowMajorIterator<DataType> &RowMajorIterator<DataType>::operator++()
     {
         // Move to the next row in the current partition if needed.
-        if ((node.index + 1) % height_num_cols == 0) {
-            node.index = rowMajorIndex(node.index / height_num_cols + 1, offset % height_num_cols, height_num_cols);
-        } else {
+        if ((node.index % height_num_cols - offset % height_num_cols) + 1 < num_cols) {
             ++node.index;
+        } else {
+            node.index = rowMajorIndex(node.index / height_num_cols + 1, offset % height_num_cols, height_num_cols);
         }
 
         return *this;

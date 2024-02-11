@@ -303,10 +303,10 @@ namespace shared
             },
             quad_tree,
             start_end.first,
-            quad_tree.getNumRows(),
-            quad_tree.getNumCols(),
             dimensions.first,
-            dimensions.second
+            dimensions.second,
+            quad_tree.getNumRows(),
+            quad_tree.getNumCols()
         };
     }
 
