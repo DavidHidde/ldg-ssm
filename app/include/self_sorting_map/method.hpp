@@ -108,12 +108,12 @@ namespace ssm
                         parent_data[rowMajorIndex(parent_idx, idx, num_nodes)]
                     );
                 }
+            }
 
-                // Better permutation, save it
-                if (minimum_distance == -1 || minimum_distance > distance) {
-                    minimum_distance = distance;
-                    best_permutation = permutation;
-                }
+            // Better permutation, save it
+            if (minimum_distance == -1 || minimum_distance > distance) {
+                minimum_distance = distance;
+                best_permutation = permutation;
             }
         } while (std::next_permutation(permutation.begin(), permutation.end()));
 
@@ -166,10 +166,84 @@ namespace ssm
     }
 
     /**
+     * Partition into even-odd or odd-even pairings and start the swaps.
+     *
+     * @tparam DataType
+     * @param quad_tree
+     * @param current_nodes
+     * @param distance_function
+     * @param num_rows
+     * @param num_cols
+     * @param height
+     * @param shift
+     * @return
+     */
+    template<typename DataType>
+    size_t findAndSwapPartitions(
+        shared::QuadAssignmentTree<DataType> &quad_tree,
+        std::vector<shared::TreeWalker<DataType>> &current_nodes,
+        std::function<float(std::shared_ptr<DataType>, std::shared_ptr<DataType>)> distance_function,
+        size_t num_rows,
+        size_t num_cols,
+        size_t height,
+        size_t shift
+    )
+    {
+        using namespace shared;
+        size_t num_swaps = 0;
+        computeAggregates(quad_tree);
+
+        // Solve (inner) 4x4 blocks
+        for (size_t y = shift; y < num_rows - shift; y += 2) {
+            for (size_t x = shift; x < num_cols - shift; x += 2) {
+                size_t idx = rowMajorIndex(y, x, num_cols);
+                bool x_on_right_edge = x == num_cols - 1;
+                bool y_on_right_edge = y == num_rows - 1;
+
+                std::vector<RowMajorIterator<DataType>> iterators{ current_nodes[idx].getLeaves() };
+                if (!x_on_right_edge)
+                    iterators.push_back(current_nodes[idx + 1].getLeaves());
+                if (!y_on_right_edge)
+                    iterators.push_back(current_nodes[idx + num_cols].getLeaves());
+                if (!x_on_right_edge && !y_on_right_edge)
+                    iterators.push_back(current_nodes[idx + num_cols + 1].getLeaves());
+
+                num_swaps += performSwapsWithPartitions(iterators, quad_tree, distance_function, height + 1 + shift);
+            }
+        }
+
+        // Solve for edges in case of odd-even pairings
+        if (shift) {
+            // Top & bottom edges
+            for (size_t y = 0; y < num_rows; y += num_rows - 1) {
+                for (size_t x = 1; x < num_cols - 1; x += 2) {
+                    size_t idx = rowMajorIndex(y, x, num_cols);
+                    std::vector<RowMajorIterator<DataType>> iterators{
+                        current_nodes[idx].getLeaves(),
+                        current_nodes[idx + 1].getLeaves()
+                    };
+                    num_swaps += performSwapsWithPartitions(iterators, quad_tree, distance_function, height + 1 + shift);
+                }
+            }
+            // Left & right edges
+            for (size_t x = 0; x < num_cols; x += num_cols - 1) {
+                for (size_t y = 1; y < num_rows - 1; y += 2) {
+                    size_t idx = rowMajorIndex(y, x, num_cols);
+                    std::vector<RowMajorIterator<DataType>> iterators{
+                        current_nodes[idx].getLeaves(),
+                        current_nodes[idx + num_cols].getLeaves()
+                    };
+                    num_swaps += performSwapsWithPartitions(iterators, quad_tree, distance_function, height + 1 + shift);
+                }
+            }
+        }
+
+        return num_swaps;
+    }
+
+    /**
      * The self-sorting map as detailed in https://doi.org/10.1109/TMM.2014.2306183,
      * specifically for a QuadAssignmentTree given a distance function.
-     *
-     * TODO: Fix non-square grid looping
      *
      * @tparam DataType
      * @param quad_tree
@@ -202,61 +276,14 @@ namespace ssm
         // Main loop - We use the height as an indicator of the partition size rather than calculating the partition size.
         size_t iterations = 0;
         size_t num_swaps;
-        size_t shift = 0;   // 0 == even-odd, 1 == odd-even
         for (; height > 0; --height) {
             do {
                 num_swaps = 0;
-                computeAggregates(quad_tree);
-
-                // Solve (inner) 4x4 blocks
-                for (size_t y = shift; y < num_rows - shift; y += 2) {
-                    for (size_t x = shift; x < num_cols - shift; x += 2) {
-                        size_t idx = rowMajorIndex(y, x, num_cols);
-                        bool x_on_right_edge = x == num_cols - 1;
-                        bool y_on_right_edge = y == num_rows - 1;
-
-                        std::vector<RowMajorIterator<DataType>> iterators{ current_nodes[idx].getLeaves() };
-                        if (!x_on_right_edge)
-                            iterators.push_back(current_nodes[idx + 1].getLeaves());
-                        if (!y_on_right_edge)
-                            iterators.push_back(current_nodes[idx + num_cols].getLeaves());
-                        if (!x_on_right_edge && !y_on_right_edge)
-                            iterators.push_back(current_nodes[idx + num_cols + 1].getLeaves());
-
-                        num_swaps += performSwapsWithPartitions(iterators, quad_tree, distance_function, height + 1 + shift);
-                    }
-                }
-
-                // Solve for edges in case of odd-even pairings
-                if (shift) {
-                    // Top & bottom edges
-                    for (size_t y = 0; y < num_rows; y += num_rows - 1) {
-                        for (size_t x = 1; x < num_cols - 1; x += 2) {
-                            size_t idx = rowMajorIndex(y, x, num_cols);
-                            std::vector<RowMajorIterator<DataType>> iterators{
-                                current_nodes[idx].getLeaves(),
-                                current_nodes[idx + 1].getLeaves()
-                            };
-                            num_swaps += performSwapsWithPartitions(iterators, quad_tree, distance_function, height + 1 + shift);
-                        }
-                    }
-                    // Left & right edges
-                    for (size_t x = 0; x < num_cols; x += num_cols - 1) {
-                        for (size_t y = 1; y < num_rows - 1; y += 2) {
-                            size_t idx = rowMajorIndex(y, x, num_cols);
-                            std::vector<RowMajorIterator<DataType>> iterators{
-                                current_nodes[idx].getLeaves(),
-                                current_nodes[idx + num_cols].getLeaves()
-                            };
-                            num_swaps += performSwapsWithPartitions(iterators, quad_tree, distance_function, height + 1 + shift);
-                        }
-                    }
-                }
-
-                shift = shift == 0 ? 1 : 0;
-                std::cout << "height: " << height << ", iteration: " << iterations << ", num_swaps : " << num_swaps << '\n';
+                num_swaps += findAndSwapPartitions(quad_tree, current_nodes, distance_function, num_rows, num_cols, height, 0);
+                num_swaps += findAndSwapPartitions(quad_tree, current_nodes, distance_function, num_rows, num_cols, height, 1);
                 ++iterations;
             } while (iterations < max_iterations && num_swaps > 0);
+            std::cout << "Finished height " << height << " in " << iterations << " iterations \n";
 
             // Descend to the next level
             factor /= 2;
@@ -266,7 +293,6 @@ namespace ssm
 
             // Reset counts
             iterations = 0;
-            shift = 0;
         }
 
         if (num_swaps > 0)

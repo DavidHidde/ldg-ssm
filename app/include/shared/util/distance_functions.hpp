@@ -15,7 +15,7 @@
 template<typename DataType>
 float magnitude(DataType vector)
 {
-    return std::sqrt(vector.x * vector.x + vector.y * vector.y + vector.z * vector.z);
+    return std::sqrt(dot(vector, vector));
 }
 
 namespace shared

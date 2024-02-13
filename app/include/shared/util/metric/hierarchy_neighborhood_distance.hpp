@@ -85,7 +85,7 @@ namespace shared
                 ++neighbour_count;
             }
 
-            sum += *(iterator.getValue()) + neighbor_sum / (neighbour_count > 0 ? float(neighbour_count) : 1.);
+            sum += *iterator.getValue() + neighbor_sum / (neighbour_count > 0 ? float(neighbour_count) : 1.);
         }
 
         return sum;

@@ -60,6 +60,9 @@ include_directories(${BZIP2_INCLUDE_DIRS})
 target_link_libraries(ldg_core PUBLIC ${BZIP2_LIBRARIES})
 target_link_libraries(new_ldg PUBLIC ${BZIP2_LIBRARIES})
 
+find_package(X11 REQUIRED)
+target_link_libraries(new_ldg PUBLIC X11)
+
 #find_package(CAIRO REQUIRED)
 #include_directories(${CAIRO_INCLUDE_DIR})
 #target_link_libraries(ldg_core PUBLIC ${CAIRO_LIBRARY})
