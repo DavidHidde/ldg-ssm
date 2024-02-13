@@ -8,6 +8,7 @@ RUN apt-get update && apt install -y \
     libc++-dev \
     libc++abi-dev \
     cimg-dev \
+    libx11-dev \
     bzip2 \
     cmake \
     gdb \

@@ -23,30 +23,45 @@ FetchContent_MakeAvailable(helper)
 
 add_executable(ldg_core src/supertiles/ldg_core.cpp)
 
+add_executable(new_ldg src/main.cpp)
+target_sources(new_ldg PUBLIC
+        src/shared/util/math.cpp
+)
+
 # PUBLICdoesn't mean much for an executable; for a library it lets CMake know that any targets that link to this target must also need that include directory.
 target_include_directories(ldg_core PUBLIC ..)
+target_include_directories(new_ldg PUBLIC ..)
 
 # target_link_libraries(another PUBLIC one)
 target_compile_features(ldg_core PUBLIC cxx_std_17)
+target_compile_features(new_ldg PUBLIC cxx_std_17)
 
 find_package(OpenMP)
 if(OpenMP_CXX_FOUND)
     target_link_libraries(ldg_core PUBLIC OpenMP::OpenMP_CXX)
+    target_link_libraries(new_ldg PUBLIC OpenMP::OpenMP_CXX)
 else()
     target_compile_definitions(ldg_core PUBLIC NO_OMP=1)
+    target_compile_definitions(new_ldg PUBLIC NO_OMP=1)
 endif()
 
 find_package(PNG REQUIRED)
 include_directories(${PNG_INCLUDE_DIR})
 target_link_libraries(ldg_core PUBLIC ${PNG_LIBRARY})
+target_link_libraries(new_ldg PUBLIC ${PNG_LIBRARY})
 
 add_library(helper INTERFACE)
 target_include_directories(helper INTERFACE ${helper_SOURCE_DIR})
 target_link_libraries(ldg_core PUBLIC helper)
+target_link_libraries(new_ldg PUBLIC helper)
 
 find_package(BZip2 REQUIRED)
 include_directories(${BZIP2_INCLUDE_DIRS})
 target_link_libraries(ldg_core PUBLIC ${BZIP2_LIBRARIES})
+target_link_libraries(new_ldg PUBLIC ${BZIP2_LIBRARIES})
+
+find_package(X11 REQUIRED)
+target_link_libraries(new_ldg PUBLIC X11)
 
 #find_package(CAIRO REQUIRED)
 #include_directories(${CAIRO_INCLUDE_DIR})
@@ -62,7 +77,7 @@ find_package(PkgConfig REQUIRED)
 pkg_check_modules(MY_PKG REQUIRED IMPORTED_TARGET cairo)
 
 target_link_libraries(ldg_core PUBLIC PkgConfig::MY_PKG)
-
+target_link_libraries(new_ldg PUBLIC PkgConfig::MY_PKG)
 
 # Detect if the "port" command is valid on this system; if so, return full path
 EXECUTE_PROCESS(COMMAND which port RESULT_VARIABLE DETECT_MACPORTS OUTPUT_VARIABLE MACPORTS_PREFIX ERROR_QUIET OUTPUT_STRIP_TRAILING_WHITESPACE)
