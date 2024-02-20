@@ -11,9 +11,9 @@ namespace shared
 {
     /**
      * Simple iterator for iterating over row-major arrays in the quad tree.
-     * @tparam DataType Type of the underlying data.
+     * @tparam VectorType Type of the underlying data.
      */
-    template<typename DataType>
+    template<typename VectorType>
     class RowMajorIterator
     {
         CellPosition node;  // The current node pointer.
@@ -24,14 +24,14 @@ namespace shared
         size_t height_num_rows; // Number of rows in the current height array
         size_t height_num_cols; // Number of cols in the current height array
 
-        QuadAssignmentTree<DataType> &quad_tree;
+        QuadAssignmentTree<VectorType> &quad_tree;
 
     public:
-        RowMajorIterator(size_t height, QuadAssignmentTree<DataType> &quad_tree);
+        RowMajorIterator(size_t height, QuadAssignmentTree<VectorType> &quad_tree);
 
         RowMajorIterator(
             CellPosition position,
-            QuadAssignmentTree<DataType> &quad_tree,
+            QuadAssignmentTree<VectorType> &quad_tree,
             size_t offset = 0,
             size_t num_rows = 0,
             size_t num_cols = 0,
@@ -43,7 +43,7 @@ namespace shared
 
         RowMajorIterator end();
 
-        std::shared_ptr<DataType> getValue();
+        std::shared_ptr<VectorType> getValue();
 
         CellPosition &getPosition();
 
@@ -57,11 +57,11 @@ namespace shared
     /**
      * Construct an iterator for the whole array of a given height.
      *
-     * @tparam DataType
+     * @tparam VectorType
      * @param height
      */
-    template<typename DataType>
-    RowMajorIterator<DataType>::RowMajorIterator(size_t height, QuadAssignmentTree<DataType> &quad_tree):
+    template<typename VectorType>
+    RowMajorIterator<VectorType>::RowMajorIterator(size_t height, QuadAssignmentTree<VectorType> &quad_tree):
         node{ height, 0 },
         quad_tree(quad_tree),
         offset(0),
@@ -76,7 +76,7 @@ namespace shared
      * Create an iterator starting at a given position given an offset and a number of rows and columns.
      * This allows for smaller partitions of a height array to be iterated over.
      *
-     * @tparam DataType
+     * @tparam VectorType
      * @param position
      * @param quad_tree
      * @param offset    0 by default.
@@ -85,10 +85,10 @@ namespace shared
      * @param height_num_rows   Number of rows at the current height by default.
      * @param height_num_cols   Number of cols at the current height by default.
      */
-    template<typename DataType>
-    RowMajorIterator<DataType>::RowMajorIterator(
+    template<typename VectorType>
+    RowMajorIterator<VectorType>::RowMajorIterator(
         CellPosition position,
-        QuadAssignmentTree<DataType> &quad_tree,
+        QuadAssignmentTree<VectorType> &quad_tree,
         size_t offset,
         size_t num_rows,
         size_t num_cols,
@@ -108,11 +108,11 @@ namespace shared
     /**
      * The begin iterator starts at index 0
      *
-     * @tparam DataType
+     * @tparam VectorType
      * @return
      */
-    template<typename DataType>
-    RowMajorIterator<DataType> RowMajorIterator<DataType>::begin()
+    template<typename VectorType>
+    RowMajorIterator<VectorType> RowMajorIterator<VectorType>::begin()
     {
         return RowMajorIterator{
             CellPosition{ node.height, offset },
@@ -128,11 +128,11 @@ namespace shared
     /**
      * The iterator ends when all rows and columns have been traversed.
      *
-     * @tparam DataType
+     * @tparam VectorType
      * @return
      */
-    template<typename DataType>
-    RowMajorIterator<DataType> RowMajorIterator<DataType>::end()
+    template<typename VectorType>
+    RowMajorIterator<VectorType> RowMajorIterator<VectorType>::end()
     {
         return RowMajorIterator{
             CellPosition{
@@ -155,21 +155,21 @@ namespace shared
     /**
      * Get the data value the iterator is currently pointing at.
      *
-     * @tparam DataType
+     * @tparam VectorType
      * @return
      */
-    template<typename DataType>
-    std::shared_ptr<DataType> RowMajorIterator<DataType>::getValue()
+    template<typename VectorType>
+    std::shared_ptr<VectorType> RowMajorIterator<VectorType>::getValue()
     {
         return quad_tree.getValue(node);
     }
 
     /**
-     * @tparam DataType
+     * @tparam VectorType
      * @return
      */
-    template<typename DataType>
-    CellPosition &RowMajorIterator<DataType>::getPosition()
+    template<typename VectorType>
+    CellPosition &RowMajorIterator<VectorType>::getPosition()
     {
         return node;
     }
@@ -177,13 +177,13 @@ namespace shared
     /**
      * Two iterators are equal if they point towards the same data set index.
      *
-     * @tparam DataType
+     * @tparam VectorType
      * @param lhs
      * @param rhs
      * @return
      */
-    template<typename DataType>
-    bool RowMajorIterator<DataType>::operator==(const RowMajorIterator<DataType> &rhs)
+    template<typename VectorType>
+    bool RowMajorIterator<VectorType>::operator==(const RowMajorIterator<VectorType> &rhs)
     {
         return node.index == rhs.node.index && node.height == rhs.node.height;
     }
@@ -191,13 +191,13 @@ namespace shared
     /**
      * Two iterators are not equal if they point towards a different data set index.
      *
-     * @tparam DataType
+     * @tparam VectorType
      * @param lhs
      * @param rhs
      * @return
      */
-    template<typename DataType>
-    bool RowMajorIterator<DataType>::operator!=(const RowMajorIterator<DataType> &rhs)
+    template<typename VectorType>
+    bool RowMajorIterator<VectorType>::operator!=(const RowMajorIterator<VectorType> &rhs)
     {
         return node.index != rhs.node.index || node.height != rhs.node.height;
     }
@@ -205,11 +205,11 @@ namespace shared
     /**
      * Increment the index.
      *
-     * @tparam DataType
+     * @tparam VectorType
      * @return
      */
-    template<typename DataType>
-    RowMajorIterator<DataType> &RowMajorIterator<DataType>::operator++()
+    template<typename VectorType>
+    RowMajorIterator<VectorType> &RowMajorIterator<VectorType>::operator++()
     {
         // Move to the next row in the current partition if needed.
         if ((node.index % height_num_cols - offset % height_num_cols) + 1 < num_cols) {

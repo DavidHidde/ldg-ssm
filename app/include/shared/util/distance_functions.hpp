@@ -8,12 +8,12 @@
 /**
  * Get the magnitude of a vector
  *
- * @tparam DataType
+ * @tparam VectorType
  * @param vector
  * @return
  */
-template<typename DataType>
-float magnitude(DataType vector)
+template<typename VectorType>
+double magnitude(VectorType vector)
 {
     return std::sqrt(dot(vector, vector));
 }
@@ -23,13 +23,13 @@ namespace shared
     /**
      * Take the euclidean distance between two data items.
      *
-     * @tparam DataType
+     * @tparam VectorType
      * @param lhs
      * @param rhs
      * @return 0 if the items are equal or if one of the items is nullptr.
      */
-    template<typename DataType>
-    float euclideanDistance(std::shared_ptr<DataType> const &lhs, std::shared_ptr<DataType> const &rhs)
+    template<typename VectorType>
+    double euclideanDistance(std::shared_ptr<VectorType> const &lhs, std::shared_ptr<VectorType> const &rhs)
     {
         if (lhs == nullptr || rhs == nullptr)
             return 0.;
@@ -40,13 +40,13 @@ namespace shared
     /**
      * Take the cosine distance between two items.
      *
-     * @tparam DataType
+     * @tparam VectorType
      * @param lhs
      * @param rhs
      * @return 0 if the items are equal or if one of the items is nullptr.
      */
-    template<typename DataType>
-    float cosineDistance(std::shared_ptr<DataType> const &lhs, std::shared_ptr<DataType> const &rhs)
+    template<typename VectorType>
+    double cosineDistance(std::shared_ptr<VectorType> const &lhs, std::shared_ptr<VectorType> const &rhs)
     {
         if (lhs == nullptr || rhs == nullptr)
             return 0.;

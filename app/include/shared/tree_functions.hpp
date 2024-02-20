@@ -8,12 +8,12 @@ namespace shared
 {
     /**
      * Compute and update the aggregates of the quad tree.
-     * For this we assume we can perform basic arithmetic functions on DataType.
+     * For this we assume we can perform basic arithmetic functions on VectorType.
      *
-     * @tparam DataType
+     * @tparam VectorType
      */
-    template<typename DataType>
-    void computeAggregates(QuadAssignmentTree<DataType> &quad_tree)
+    template<typename VectorType>
+    void computeAggregates(QuadAssignmentTree<VectorType> &quad_tree)
     {
         size_t curr_num_rows = ceilDivideByFactor(quad_tree.getNumRows(), 2.);
         size_t curr_num_cols = ceilDivideByFactor(quad_tree.getNumCols(), 2.);
@@ -22,10 +22,10 @@ namespace shared
         for (size_t height = 1; height < quad_tree.getDepth(); ++height) {
             for (size_t idx = 0; idx < curr_num_rows * curr_num_cols; ++idx) {
                 CellPosition position{ height, idx };
-                TreeWalker<DataType> walker(position, curr_num_rows, curr_num_cols, quad_tree);
+                TreeWalker<VectorType> walker(position, curr_num_rows, curr_num_cols, quad_tree);
                 float count = 0.;
-                DataType aggregate;
-                for (std::shared_ptr<DataType> child: walker.getChildrenValues()) {
+                VectorType aggregate;
+                for (std::shared_ptr<VectorType> child: walker.getChildrenValues()) {
                     if (child != nullptr) {
                         ++count;
                         aggregate += *child;

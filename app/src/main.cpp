@@ -20,7 +20,7 @@
  * @param num_cols
  * @return
  */
-std::shared_ptr<std::vector<std::shared_ptr<V3<float>>>> generateRandomColorData(size_t num_rows, size_t num_cols)
+std::vector<std::shared_ptr<V3<double>>> generateRandomColorData(size_t num_rows, size_t num_cols)
 {
     // Generate quad tree structure space, initialized to an empty shared ptr
     size_t num_elements = num_rows * num_cols;
@@ -32,19 +32,19 @@ std::shared_ptr<std::vector<std::shared_ptr<V3<float>>>> generateRandomColorData
         new_num_rows = shared::ceilDivideByFactor(new_num_rows, 2.);
         size += new_num_cols * new_num_rows;
     }
-    auto data = std::make_shared<std::vector<std::shared_ptr<V3<float>>>>(size);
+    auto data = std::vector<std::shared_ptr<V3<double>>>(size, std::make_shared<V3<double>>(V3<double>{}));
 
     // Fill first cells with data
     for (size_t idx = 0; idx < size; ++idx) {
         if (idx < num_elements) {
             size_t x = idx % num_cols;
             size_t y = idx / num_cols;
-            float r = x * (255. / (num_cols - 1));
-            float g = (x + y) * (255. / (num_cols + num_rows - 2));
-            float b = y * (255. / (num_rows - 1));
-            (*data)[idx] = std::make_shared<V3<float>>(V3<float>{ std::round(r), std::round(g), std::round(b) });
+            double r = x * (255. / (num_cols - 1));
+            double g = (x + y) * (255. / (num_cols + num_rows - 2));
+            double b = y * (255. / (num_rows - 1));
+            data[idx] = std::make_shared<V3<double>>(V3<double>{ std::round(r), std::round(g), std::round(b) });
         } else {
-            (*data)[idx] = std::make_shared<V3<float>>(V3<float>{});
+            data[idx] = std::make_shared<V3<double>>(V3<double>{});
         }
     }
 
@@ -58,24 +58,24 @@ std::shared_ptr<std::vector<std::shared_ptr<V3<float>>>> generateRandomColorData
  * @param num_cols
  * @return
  */
-std::shared_ptr<std::vector<size_t>> createRandomAssignment(size_t size, size_t num_rows, size_t num_cols)
+std::vector<size_t> createRandomAssignment(size_t size, size_t num_rows, size_t num_cols)
 {
-    auto assignment = std::make_shared<std::vector<size_t>>(size);
+    auto assignment = std::vector<size_t>(size);
 
     // Generate quad tree structure space, where every height starts at 0 again
     size_t offset = 0;
     while (num_rows > 1 && num_cols > 1) {
         size_t end = offset + num_cols * num_rows;
         for (size_t idx = offset; idx < end; ++idx) {
-            (*assignment)[idx] = idx;
+            assignment[idx] = idx;
         }
         if (offset == 0)    // No reason to shuffle anything but leaves
-            std::shuffle((*assignment).begin() + offset, (*assignment).begin() + end, std::mt19937());
+            std::shuffle(assignment.begin() + offset, assignment.begin() + end, std::mt19937());
         offset += num_cols * num_rows;
         num_cols = shared::ceilDivideByFactor(num_cols, 2.);
         num_rows = shared::ceilDivideByFactor(num_rows, 2.);
     }
-    (*assignment)[size - 1] = size - 1; // Fix last element
+    assignment[size - 1] = size - 1; // Fix last element
 
     return assignment;
 }
@@ -83,21 +83,21 @@ std::shared_ptr<std::vector<size_t>> createRandomAssignment(size_t size, size_t 
 int main(int argc, const char **argv)
 {
     // Runtime test parameters
-    size_t n_rows = 32;
-    size_t n_cols = 32;
-    size_t max_iterations = 2000;
+    size_t n_rows = 64;
+    size_t n_cols = 64;
+    size_t max_iterations = 1000000;
 
     size_t depth = std::ceil(std::log2(std::max(n_cols, n_rows))) + 1;
     auto data = generateRandomColorData(n_rows, n_cols);
-    auto assignment = createRandomAssignment((*data).size(), n_rows, n_cols);
-    shared::QuadAssignmentTree<V3<float>> quad_tree{ data, assignment, n_rows, n_cols, depth };
+    auto assignment = createRandomAssignment(data.size(), n_rows, n_cols);
+    shared::QuadAssignmentTree<V3<double>> quad_tree{ data, assignment, n_rows, n_cols, depth };
     shared::computeAggregates(quad_tree);
     shared::saveQuadTreeImages(quad_tree, "before");
 
-    std::function<float(
-        std::shared_ptr<V3<float>>,
-        std::shared_ptr<V3<float>>
-    )> distance_function = shared::euclideanDistance<V3<float>>;
+    std::function<double(
+        std::shared_ptr<V3<double>>,
+        std::shared_ptr<V3<double>>
+    )> distance_function = shared::euclideanDistance<V3<double>>;
     std::cout << "Start HND: " << shared::computeHierarchyNeighborhoodDistance(0, distance_function, quad_tree) << "\n\n";
     ssm::sort(quad_tree, distance_function, max_iterations);
     std::cout << "After sorting HND: " << shared::computeHierarchyNeighborhoodDistance(0, distance_function, quad_tree) << '\n';
