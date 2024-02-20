@@ -6,6 +6,7 @@
 #include "app/include/shared/model/quad_assignment_tree.hpp"
 #include "app/include/shared/util/tree_traversal/row_major_iterator.hpp"
 #include "app/include/shared/tree_functions.hpp"
+#include "app/include/shared/util/image.hpp"
 
 namespace ssm
 {
@@ -62,33 +63,37 @@ namespace ssm
      * @param nodes
      * @param quad_tree
      * @param distance_function
-     * @param max_height The maximum parent height to compare to.
+     * @param min_height The minimum parent height to compare to.
+     * @param max_height The maximum parent height to compare to (not inclusive).
      * @return The number of swaps performed.
     */
     template<typename DataType>
     size_t findAndSwapBestPermutation(
-        std::vector<shared::CellPosition> nodes,
+        std::vector<shared::CellPosition> &nodes,
         shared::QuadAssignmentTree<DataType> &quad_tree,
         std::function<float(std::shared_ptr<DataType>, std::shared_ptr<DataType>)> distance_function,
+        size_t min_height,
         size_t max_height
     )
     {
         using namespace shared;
         // Load all the nodes and parents beforehand
         size_t num_nodes = nodes.size();
+        size_t num_parents = max_height - min_height;
         size_t height_offset = quad_tree.getBounds(nodes[0]).first.first;
 
         std::vector<size_t> node_assignments(num_nodes);                                // Assigned indices per node
         std::vector<std::shared_ptr<DataType>> node_data(num_nodes);                    // Actual data per node
-        std::vector<std::shared_ptr<DataType>> parent_data(num_nodes * max_height);     // Data of the parents per node
+        std::vector<std::shared_ptr<DataType>> parent_data(num_nodes * num_parents);     // Data of the parents per node
 
         for (size_t idx = 0; idx < num_nodes; ++idx) {
             node_data[idx] = quad_tree.getValue(nodes[idx]);
             node_assignments[idx] = (*quad_tree.getAssignment())[nodes[idx].index + height_offset];
             TreeWalker<DataType> walker{ nodes[idx], quad_tree };
-            walker.moveUp();
-            for (size_t parent_idx = 0; parent_idx < max_height - 1 && walker.moveUp(); ++parent_idx) {
-                parent_data[rowMajorIndex(parent_idx, idx, num_nodes)] = walker.getNodeValue();
+            for (size_t parent_idx = 1; parent_idx < max_height && walker.moveUp(); ++parent_idx) {
+                if (parent_idx >= min_height) {
+                    parent_data[rowMajorIndex(idx, parent_idx - min_height, num_parents)] = walker.getNodeValue();
+                }
             }
         }
 
@@ -102,10 +107,10 @@ namespace ssm
         do {
             float distance = 0.;
             for (size_t idx = 0; idx < num_nodes; ++idx) {
-                for (size_t parent_idx = 0; parent_idx < max_height - 1; ++parent_idx) {
+                for (size_t parent_idx = 0; parent_idx < num_parents; ++parent_idx) {
                     distance += distance_function(
                         node_data[permutation[idx]],
-                        parent_data[rowMajorIndex(parent_idx, idx, num_nodes)]
+                        parent_data[rowMajorIndex(idx, parent_idx, num_parents)]
                     );
                 }
             }
@@ -136,6 +141,8 @@ namespace ssm
      * @param leaf_iterators
      * @param quad_tree
      * @param distance_function
+     * @param min_height
+     * @param max_height
      * @return
      */
     template<typename DataType>
@@ -143,6 +150,7 @@ namespace ssm
         std::vector<shared::RowMajorIterator<DataType>> &leaf_iterators,
         shared::QuadAssignmentTree<DataType> &quad_tree,
         std::function<float(std::shared_ptr<DataType>, std::shared_ptr<DataType>)> distance_function,
+        size_t min_height,
         size_t max_height
     )
     {
@@ -159,7 +167,7 @@ namespace ssm
                 }
             }
             if (!nodes.empty())
-                num_swaps += findAndSwapBestPermutation(nodes, quad_tree, distance_function, max_height);
+                num_swaps += findAndSwapBestPermutation(nodes, quad_tree, distance_function, min_height, max_height);
         } while (!nodes.empty());
 
         return num_swaps;
@@ -208,7 +216,7 @@ namespace ssm
                 if (!x_on_right_edge && !y_on_right_edge)
                     iterators.push_back(current_nodes[idx + num_cols + 1].getLeaves());
 
-                num_swaps += performSwapsWithPartitions(iterators, quad_tree, distance_function, height + 1 + shift);
+                num_swaps += performSwapsWithPartitions(iterators, quad_tree, distance_function, height, shift ? quad_tree.getDepth() - 1 : height + 1);
             }
         }
 
@@ -222,7 +230,7 @@ namespace ssm
                         current_nodes[idx].getLeaves(),
                         current_nodes[idx + 1].getLeaves()
                     };
-                    num_swaps += performSwapsWithPartitions(iterators, quad_tree, distance_function, height + 1 + shift);
+                    num_swaps += performSwapsWithPartitions(iterators, quad_tree, distance_function, height, quad_tree.getDepth() - 1);
                 }
             }
             // Left & right edges
@@ -233,7 +241,7 @@ namespace ssm
                         current_nodes[idx].getLeaves(),
                         current_nodes[idx + num_cols].getLeaves()
                     };
-                    num_swaps += performSwapsWithPartitions(iterators, quad_tree, distance_function, height + 1 + shift);
+                    num_swaps += performSwapsWithPartitions(iterators, quad_tree, distance_function, height, quad_tree.getDepth() - 1);
                 }
             }
         }
@@ -283,6 +291,7 @@ namespace ssm
                 num_swaps += findAndSwapPartitions(quad_tree, current_nodes, distance_function, num_rows, num_cols, height, 1);
                 ++iterations;
             } while (iterations < max_iterations && num_swaps > 0);
+            saveQuadTreeImages(quad_tree, "ssm-size(" + std::to_string(size_t(std::pow(2., height))) + ")");
             std::cout << "Finished height " << height << " in " << iterations << " iterations \n";
 
             // Descend to the next level

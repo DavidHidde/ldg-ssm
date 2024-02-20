@@ -25,6 +25,7 @@ namespace shared
 
         std::shared_ptr<std::vector<std::shared_ptr<DataType>>> data;
         std::shared_ptr<std::vector<size_t>> assignment;
+        std::vector<std::pair<std::pair<size_t, size_t>, std::pair<size_t, size_t>>> bounds_cache;
 
     public:
         QuadAssignmentTree(
@@ -78,9 +79,29 @@ namespace shared
         assignment(assignment),
         num_rows(num_rows),
         num_cols(num_cols),
-        depth(depth)
+        depth(depth),
+        bounds_cache()
     {
-
+        // Generate the bounds cache
+        bounds_cache.reserve(depth);
+        size_t new_num_rows = num_rows;
+        size_t new_num_cols = num_cols;
+        size_t offset = 0;
+        for (size_t height = 0; height < depth; ++height) {
+            bounds_cache.push_back(std::pair<std::pair<size_t, size_t>, std::pair<size_t, size_t>> {
+                {
+                    offset,
+                    offset + new_num_rows * new_num_cols
+                },
+                {
+                    new_num_rows,
+                    new_num_cols
+                }
+            });
+            offset += new_num_cols * new_num_rows;
+            new_num_cols = ceilDivideByFactor(new_num_cols, 2.);
+            new_num_rows = ceilDivideByFactor(new_num_rows, 2.);
+        }
     }
 
     /**
@@ -93,25 +114,7 @@ namespace shared
     template<typename DataType>
     std::pair<std::pair<size_t, size_t>, std::pair<size_t, size_t>> QuadAssignmentTree<DataType>::getBounds(CellPosition position)
     {
-        size_t new_num_rows = num_rows;
-        size_t new_num_cols = num_cols;
-        size_t offset = 0;
-        for (size_t idx = 0; idx < position.height; ++idx) {
-            offset += new_num_cols * new_num_rows;
-            new_num_cols = ceilDivideByFactor(new_num_cols, 2.);
-            new_num_rows = ceilDivideByFactor(new_num_rows, 2.);
-        }
-
-        return {
-            {
-                offset,
-                offset + new_num_rows * new_num_cols
-            },
-            {
-                new_num_rows,
-                new_num_cols
-            }
-        };
+        return bounds_cache[position.height];
     }
 
     /**
