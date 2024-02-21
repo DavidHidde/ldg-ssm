@@ -253,7 +253,7 @@ namespace shared
     template<typename VectorType>
     size_t TreeWalker<VectorType>::getParentIndex()
     {
-        return rowMajorIndex((node.index % num_cols) / 2, node.index / (2 * num_cols), ceilDivideByFactor(num_cols, 2.));
+        return rowMajorIndex(node.index / (2 * num_cols), (node.index % num_cols) / 2, ceilDivideByFactor(num_cols, 2.));
     }
 
     /**
