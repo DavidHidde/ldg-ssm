@@ -81,8 +81,8 @@ std::vector<size_t> createRandomAssignment(size_t size, size_t num_rows, size_t 
 int main(int argc, const char **argv)
 {
     // Runtime test parameters
-    size_t n_rows = 64;
-    size_t n_cols = 64;
+    size_t n_rows = 45;
+    size_t n_cols = 55;
     size_t max_iterations = 1000;
 
     size_t depth = std::ceil(std::log2(std::max(n_cols, n_rows))) + 1;

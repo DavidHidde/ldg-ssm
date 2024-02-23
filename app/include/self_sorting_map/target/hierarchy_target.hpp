@@ -22,7 +22,6 @@ namespace ssm
      */
     template<typename VectorType>
     std::pair<size_t, size_t> getHierarchyTargetHeightBounds(
-        std::vector<shared::CellPosition> &nodes,
         shared::QuadAssignmentTree<VectorType> &quad_tree,
         size_t current_height,
         bool is_shift

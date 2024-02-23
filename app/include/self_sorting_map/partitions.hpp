@@ -30,6 +30,7 @@ namespace ssm
         shared::QuadAssignmentTree<VectorType> &quad_tree,
         std::function<double(std::shared_ptr<VectorType>, std::shared_ptr<VectorType>)> distance_function,
         TargetType target_type,
+        size_t partition_height,
         size_t comparison_height,
         bool apply_shift,
         long partition_len,
@@ -87,7 +88,7 @@ namespace ssm
 
             // Now perform exchanges if we have nodes to compare
             if (nodes.size() > 1) {
-                auto target_data = getTargets(target_type, nodes, quad_tree, comparison_height, apply_shift);
+                auto target_data = getTargets(target_type, nodes, quad_tree, partition_height, apply_shift);
                 num_exchanges += findAndSwapBestPermutation(nodes, quad_tree, distance_function, target_data.first, target_data.second);
             }
         }
@@ -118,7 +119,7 @@ namespace ssm
     )
     {
         using namespace shared;
-        size_t num_exchanges = 0;
+
         long partition_len = long(std::pow(2., partition_height - comparison_height));
         auto comparison_height_dims = quad_tree.getBounds(CellPosition{ comparison_height, 0 }).second;
 
@@ -132,10 +133,12 @@ namespace ssm
             iteration_dims.second += 2 * partition_len;
         }
 
-        num_exchanges += performPartitionExchanges(
+        computeAggregates(quad_tree);
+        return performPartitionExchanges(
             quad_tree,
             distance_function,
             target_type,
+            partition_height,
             comparison_height,
             apply_shift,
             partition_len,
@@ -143,8 +146,6 @@ namespace ssm
             iteration_dims,
             comparison_height_dims
         );
-
-        return num_exchanges;
     }
 }
 

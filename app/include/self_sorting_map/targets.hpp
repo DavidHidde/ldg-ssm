@@ -38,7 +38,7 @@ namespace ssm
         // Get the number of targets based on the target type.
         switch (target_type) {
             case TargetType::HIERARCHY: {
-                auto height_bounds = getHierarchyTargetHeightBounds(nodes, quad_tree, current_height, is_shift);
+                auto height_bounds = getHierarchyTargetHeightBounds(quad_tree, current_height, is_shift);
                 num_targets += height_bounds.second - height_bounds.first;
 
                 std::vector<std::shared_ptr<VectorType>> targets(num_targets * num_nodes);
@@ -47,7 +47,7 @@ namespace ssm
                 return { num_targets, targets };
             }
             case TargetType::HIERARCHY_NEIGHBOURHOOD: {
-                auto height_bounds = getHierarchyTargetHeightBounds(nodes, quad_tree, current_height, is_shift);
+                auto height_bounds = getHierarchyTargetHeightBounds(quad_tree, current_height, is_shift);
                 num_targets += height_bounds.second - height_bounds.first;
 
                 std::vector<std::shared_ptr<VectorType>> targets(num_targets * num_nodes);
