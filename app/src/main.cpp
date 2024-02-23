@@ -3,7 +3,6 @@
 #include <memory>
 #include <algorithm>
 #include <random>
-#include <CImg.h>
 #include "helper_volData/vec.h"
 #include "app/include/shared/util/math.hpp"
 #include "app/include/shared/model/quad_assignment_tree.hpp"
@@ -11,7 +10,6 @@
 #include "app/include/shared/tree_functions.hpp"
 #include "app/include/self_sorting_map/method.hpp"
 #include "app/include/shared/util/metric/hierarchy_neighborhood_distance.hpp"
-#include "app/include/shared/util/image.hpp"
 
 /**
  * Generate some random RGB data in the range [0, 255], already in the quad tree structure.
@@ -85,7 +83,7 @@ int main(int argc, const char **argv)
     // Runtime test parameters
     size_t n_rows = 64;
     size_t n_cols = 64;
-    size_t max_iterations = 1000000;
+    size_t max_iterations = 1000;
 
     size_t depth = std::ceil(std::log2(std::max(n_cols, n_rows))) + 1;
     auto data = generateRandomColorData(n_rows, n_cols);

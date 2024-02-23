@@ -33,6 +33,17 @@ namespace shared
     }
 
     /**
+     * @param row
+     * @param col
+     * @param num_cols
+     * @return
+     */
+    long rowMajorIndexLong(long row, long col, long num_cols)
+    {
+        return col + row * num_cols;
+    }
+
+    /**
      * Simple shorthand to divide by a factor and round up.
      *
      * @param num
