@@ -20,10 +20,10 @@ namespace shared
     template<typename VectorType>
     QuadAssignmentTree<double> generateCacheTree(QuadAssignmentTree<VectorType> &quad_tree)
     {
-        auto empty_scores = std::vector<std::shared_ptr<double>>(
-            quad_tree.getData().size(),
-            std::make_shared<double>(EMPTY_HND_SCORE)
-        );
+        std::vector<std::shared_ptr<double>> empty_scores(quad_tree.getData().size());
+        for (size_t idx = 0; idx < quad_tree.getNumRows() * quad_tree.getNumRows(); ++idx)
+            empty_scores[idx] = std::make_shared<double>(EMPTY_HND_SCORE);  // Explicitly create a new pointer for each element
+
         return QuadAssignmentTree<double>(
             empty_scores,
             quad_tree.getAssignment(),
