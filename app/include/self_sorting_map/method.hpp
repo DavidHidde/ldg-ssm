@@ -13,49 +13,23 @@
 namespace ssm
 {
     /**
-     * Descend the tree to the next level by creating new walkers for all children of the current walkers.
+     * Get the start height of the SSM algorithm, which starts when we have at least 4 partitions in each dimension.
      *
      * @tparam VectorType
-     * @param current_nodes
      * @param quad_tree
-     * @param target_num_rows
-     * @param target_num_cols
-     * @param target_height
      * @return
      */
     template<typename VectorType>
-    std::vector<shared::TreeWalker<VectorType>> descend(
-        std::vector<shared::TreeWalker<VectorType>> &current_nodes,
-        shared::QuadAssignmentTree<VectorType> &quad_tree,
-        size_t target_num_rows,
-        size_t target_num_cols,
-        size_t target_height
-    )
+    size_t getStartHeight(shared::QuadAssignmentTree<VectorType> &quad_tree)
     {
         using namespace shared;
-        std::vector<TreeWalker<VectorType>> next_nodes(
-            target_num_cols * target_num_rows,
-            TreeWalker<VectorType>{
-                CellPosition{ 0, 0 },
-                1,
-                1,
-                quad_tree
-            }
-        ); // Temporarily assign a basically empty tree walker.
-        for (shared::TreeWalker<VectorType> node: current_nodes) {
-            std::array<int, 4> child_indices = node.getChildrenIndices();
-            for (int child_idx: child_indices) {
-                if (child_idx >= 0) {
-                    next_nodes[child_idx] = TreeWalker<VectorType>{
-                        CellPosition{ target_height, size_t(child_idx) },
-                        target_num_rows,
-                        target_num_cols,
-                        quad_tree
-                    };
-                }
-            }
+        size_t height = quad_tree.getDepth() - 1;
+        auto dims = quad_tree.getBounds(CellPosition{ height, 0 }).second;
+        while (height > 0 && (dims.first < 4 || dims.second < 4)) {
+            --height;
+            dims = quad_tree.getBounds(CellPosition{ height, 0 }).second;
         }
-        return next_nodes;
+        return height;
     }
 
     /**
@@ -76,50 +50,31 @@ namespace ssm
     )
     {
         using namespace shared;
-        size_t height = quad_tree.getDepth() - 1;
-        size_t num_rows = 1;
-        size_t num_cols = 1;
-        double factor = std::pow(2., height);
-        std::vector<TreeWalker<VectorType>> current_nodes{
-            TreeWalker<VectorType>{ CellPosition{ height, 0 }, num_rows, num_cols, quad_tree }};
-
-        // Split up until we have at least 4x4 blocks.
-        while (height > 0 && (num_rows < 4 || num_cols < 4)) {
-            --height;
-            factor /= 2.;
-            num_rows = ceilDivideByFactor(quad_tree.getNumRows(), factor);
-            num_cols = ceilDivideByFactor(quad_tree.getNumCols(), factor);
-
-            current_nodes = descend<VectorType>(current_nodes, quad_tree, num_rows, num_cols, height);
-        }
+        size_t height = getStartHeight(quad_tree);
 
         // Main loop - We use the height as an indicator of the partition size rather than calculating the partition size.
-        size_t iterations = 0;
-        size_t num_swaps;
+        size_t iterations;
+        size_t num_exchanges;
         for (; height > 0; --height) {
-            do {
-                num_swaps = 0;
-                num_swaps += optimizePartitions(quad_tree, distance_function, target_type, height, 0, false);
-                num_swaps += optimizePartitions(quad_tree, distance_function, target_type, height, 0, true);
-                num_swaps += optimizePartitions(quad_tree, distance_function, target_type, height + 1, height, false);
-                num_swaps += optimizePartitions(quad_tree, distance_function, target_type, height + 1, height, true);
-                ++iterations;
-            } while (iterations < max_iterations && num_swaps > 0);
-            saveQuadTreeImages(quad_tree, "ssm-size(" + std::to_string(size_t(std::pow(2., height))) + ")");
-            std::cout << "Finished height " << height << " in " << iterations << " iterations \n";
-
-            // Descend to the next level
-            factor /= 2;
-            num_rows = ceilDivideByFactor(quad_tree.getNumRows(), factor);
-            num_cols = ceilDivideByFactor(quad_tree.getNumCols(), factor);
-            current_nodes = descend<VectorType>(current_nodes, quad_tree, num_rows, num_cols, height - 1);
-
-            // Reset counts
             iterations = 0;
+
+            do {
+                num_exchanges = 0;
+                num_exchanges += optimizePartitions(quad_tree, distance_function, target_type, height, 0, false);
+                num_exchanges += optimizePartitions(quad_tree, distance_function, target_type, height, 0, true);
+                num_exchanges += optimizePartitions(quad_tree, distance_function, target_type, height + 1, height, false);
+                num_exchanges += optimizePartitions(quad_tree, distance_function, target_type, height + 1, height, true);
+                ++iterations;
+            } while (iterations < max_iterations && num_exchanges > 0);
+
+            saveQuadTreeImages(quad_tree, "ssm-size(" + std::to_string(size_t(std::pow(2., height))) + ")");
+            size_t new_score = computeHierarchyNeighborhoodDistance(0, distance_function, quad_tree);
+            std::cout << "Finished height " << height << " in " << iterations << " iterations with score " << new_score << '\n';
         }
 
-        if (num_swaps > 0)
-            computeAggregates(quad_tree);   // Fix aggregates in the end if we did perform swaps in the end.
+        // Fix aggregates in the end if we did perform swaps in the end.
+        if (num_exchanges > 0)
+            computeAggregates(quad_tree);
     }
 }
 
