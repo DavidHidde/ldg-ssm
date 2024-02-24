@@ -9,7 +9,7 @@ namespace ssm
     enum TargetType
     {
         HIERARCHY,                  // Just the parents in the hierarchy
-        QUAD_TREE_NEIGHBOURHOOD,    // Just the neighbourhood of parent aggregates
+        NEIGHBOURHOOD,              // Just the neighbourhood of parent aggregates
         HIERARCHY_NEIGHBOURHOOD     // Both the hierarchy and neighborhood components
     };
 }

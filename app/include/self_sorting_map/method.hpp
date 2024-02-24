@@ -59,123 +59,6 @@ namespace ssm
     }
 
     /**
-     * Perform swaps between partitions by iterating over the leafs. Remove a partition once it is empty.
-     *
-     * @tparam VectorType
-     * @param leaf_iterators
-     * @param quad_tree
-     * @param distance_function
-     * @param min_height
-     * @param max_height
-     * @return
-     */
-    template<typename VectorType>
-    size_t performSwapsWithPartitions(
-        std::vector<shared::RowMajorIterator<VectorType>> &leaf_iterators,
-        shared::QuadAssignmentTree<VectorType> &quad_tree,
-        std::function<double(std::shared_ptr<VectorType>, std::shared_ptr<VectorType>)> distance_function,
-        size_t current_height,
-        bool is_shift
-    )
-    {
-        using namespace shared;
-        size_t num_swaps = 0;
-        std::vector<CellPosition> nodes(leaf_iterators.size());
-        do {
-            nodes.clear();
-            for (auto &iterator: leaf_iterators) {
-                // Ignore finished partitions
-                if (iterator != iterator.end()) {
-                    nodes.push_back(iterator.getPosition());
-                    ++iterator;
-                }
-            }
-            if (!nodes.empty()) {
-                auto target_data = getTargets(TargetType::HIERARCHY, nodes, quad_tree, current_height, is_shift);
-                num_swaps += findAndSwapBestPermutation(nodes, quad_tree, distance_function, target_data.first, target_data.second);
-            }
-        } while (!nodes.empty());
-
-        return num_swaps;
-    }
-
-    /**
-     * Partition into even-odd or odd-even pairings and start the swaps.
-     *
-     * @tparam VectorType
-     * @param quad_tree
-     * @param current_nodes
-     * @param distance_function
-     * @param num_rows
-     * @param num_cols
-     * @param height
-     * @param shift
-     * @return
-     */
-    template<typename VectorType>
-    size_t findAndSwapPartitions(
-        shared::QuadAssignmentTree<VectorType> &quad_tree,
-        std::vector<shared::TreeWalker<VectorType>> &current_nodes,
-        std::function<double(std::shared_ptr<VectorType>, std::shared_ptr<VectorType>)> distance_function,
-        size_t num_rows,
-        size_t num_cols,
-        size_t height,
-        size_t shift
-    )
-    {
-        using namespace shared;
-        size_t num_swaps = 0;
-        computeAggregates(quad_tree);
-
-        // Solve (inner) 4x4 blocks
-        for (size_t y = shift; y < num_rows - shift; y += 2) {
-            for (size_t x = shift; x < num_cols - shift; x += 2) {
-                size_t idx = rowMajorIndex(y, x, num_cols);
-                bool x_on_right_edge = x == num_cols - 1;
-                bool y_on_right_edge = y == num_rows - 1;
-
-                std::vector<RowMajorIterator<VectorType>> iterators{ current_nodes[idx].getLeaves() };
-                if (!x_on_right_edge)
-                    iterators.push_back(current_nodes[idx + 1].getLeaves());
-                if (!y_on_right_edge)
-                    iterators.push_back(current_nodes[idx + num_cols].getLeaves());
-                if (!x_on_right_edge && !y_on_right_edge)
-                    iterators.push_back(current_nodes[idx + num_cols + 1].getLeaves());
-
-                num_swaps += performSwapsWithPartitions(iterators, quad_tree, distance_function, height, shift != 0);
-            }
-        }
-
-        // Solve for edges in case of odd-even pairings
-        if (shift) {
-            // Top & bottom edges
-            for (size_t y = 0; y < num_rows; y += num_rows - 1) {
-                for (size_t x = 1; x < num_cols - 1; x += 2) {
-                    size_t idx = rowMajorIndex(y, x, num_cols);
-                    std::vector<RowMajorIterator<VectorType>> iterators{
-                        current_nodes[idx].getLeaves(),
-                        current_nodes[idx + 1].getLeaves()
-                    };
-                    num_swaps += performSwapsWithPartitions(iterators, quad_tree, distance_function, height, true);
-                }
-            }
-            // Left & right edges
-            for (size_t x = 0; x < num_cols; x += num_cols - 1) {
-                for (size_t y = 1; y < num_rows - 1; y += 2) {
-                    size_t idx = rowMajorIndex(y, x, num_cols);
-                    std::vector<RowMajorIterator<VectorType>> iterators{
-                        current_nodes[idx].getLeaves(),
-                        current_nodes[idx + num_cols].getLeaves()
-                    };
-                    num_swaps += performSwapsWithPartitions(iterators, quad_tree, distance_function, height, true);
-                }
-            }
-        }
-
-        return num_swaps;
-    }
-
-    /**
      * The self-sorting map as detailed in https://doi.org/10.1109/TMM.2014.2306183,
      * specifically for a QuadAssignmentTree given a distance function.
      *
@@ -214,8 +97,8 @@ namespace ssm
         for (; height > 0; --height) {
             do {
                 num_swaps = 0;
-                num_swaps += optimizePartitions(quad_tree, distance_function, TargetType::HIERARCHY, height, 0, false);
-                num_swaps += optimizePartitions(quad_tree, distance_function, TargetType::HIERARCHY, height, 0, true);
+                num_swaps += optimizePartitions(quad_tree, distance_function, TargetType::NEIGHBOURHOOD, height, 0, false);
+                num_swaps += optimizePartitions(quad_tree, distance_function, TargetType::NEIGHBOURHOOD, height, 0, true);
                 ++iterations;
             } while (iterations < max_iterations && num_swaps > 0);
             saveQuadTreeImages(quad_tree, "ssm-size(" + std::to_string(size_t(std::pow(2., height))) + ")");

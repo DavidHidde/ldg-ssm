@@ -83,7 +83,7 @@ int main(int argc, const char **argv)
     // Runtime test parameters
     size_t n_rows = 128;
     size_t n_cols = 128;
-    size_t max_iterations = 1000;
+    size_t max_iterations = 10000;
 
     size_t depth = std::ceil(std::log2(std::max(n_cols, n_rows))) + 1;
     auto data = generateRandomColorData(n_rows, n_cols);

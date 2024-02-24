@@ -7,6 +7,7 @@
 #include "app/include/shared/model/quad_assignment_tree.hpp"
 #include "app/include/self_sorting_map/target/target_type.hpp"
 #include "app/include/self_sorting_map/target/hierarchy_target.hpp"
+#include "app/include/self_sorting_map/target/neighbourhood_target.hpp"
 
 namespace ssm
 {
@@ -19,7 +20,7 @@ namespace ssm
      * @param target_type
      * @param nodes
      * @param quad_tree
-     * @param current_height
+     * @param partition_height
      * @param is_shift
      * @return  A tuple of the number targets per node and the row-major num_nodes x num_targets vector.
      */
@@ -28,7 +29,7 @@ namespace ssm
         TargetType target_type,
         std::vector<shared::CellPosition> &nodes,
         shared::QuadAssignmentTree<VectorType> &quad_tree,
-        size_t current_height,
+        size_t partition_height,
         bool is_shift
     )
     {
@@ -38,21 +39,26 @@ namespace ssm
         // Get the number of targets based on the target type.
         switch (target_type) {
             case TargetType::HIERARCHY: {
-                auto height_bounds = getHierarchyTargetHeightBounds(quad_tree, current_height, is_shift);
+                auto height_bounds = getHierarchyTargetHeightBounds(quad_tree, partition_height, is_shift);
                 num_targets += height_bounds.second - height_bounds.first;
 
                 std::vector<std::shared_ptr<VectorType>> targets(num_targets * num_nodes);
-                loadHierarchyTargets(targets, 0, height_bounds, nodes, quad_tree);
-
+                loadHierarchyTargets(targets, 0, num_targets, height_bounds, nodes, quad_tree);
+                return { num_targets, targets };
+            }
+            case TargetType::NEIGHBOURHOOD: {
+                num_targets += 1;
+                std::vector<std::shared_ptr<VectorType>> targets(num_targets * num_nodes);
+                loadNeighbourhoodTargets(targets, 0, num_targets, partition_height, nodes, quad_tree);
                 return { num_targets, targets };
             }
             case TargetType::HIERARCHY_NEIGHBOURHOOD: {
-                auto height_bounds = getHierarchyTargetHeightBounds(quad_tree, current_height, is_shift);
-                num_targets += height_bounds.second - height_bounds.first;
+                auto height_bounds = getHierarchyTargetHeightBounds(quad_tree, partition_height, is_shift);
+                num_targets += height_bounds.second - height_bounds.first + 1;
 
                 std::vector<std::shared_ptr<VectorType>> targets(num_targets * num_nodes);
-                loadHierarchyTargets(targets, 0, height_bounds, nodes, quad_tree);
-
+                loadHierarchyTargets(targets, 0, num_targets, height_bounds, nodes, quad_tree);
+                loadNeighbourhoodTargets(targets, num_targets - 1, num_targets, partition_height, nodes, quad_tree);
                 return { num_targets, targets };
             }
         }
