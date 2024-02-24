@@ -7,8 +7,8 @@
 namespace ssm
 {
     /**
-     * Compare nodes and find the permutation which minimizes the distance to all parents.
-     * Afterwards, swap all items into this permutation.
+     * Compare nodes and find the permutation which minimizes the distance to all targets.
+     * Afterwards, exchange all items into this permutation.
      *
      * @tparam VectorType
      * @param nodes
@@ -16,7 +16,7 @@ namespace ssm
      * @param distance_function
      * @param num_targets
      * @param targets
-     * @return The number of swaps performed.
+     * @return The number of exchanges performed.
     */
     template<typename VectorType>
     size_t findAndSwapBestPermutation(
@@ -28,16 +28,28 @@ namespace ssm
     )
     {
         using namespace shared;
-        // Load all the nodes and parents beforehand
+        // Precheck if all partitions are of the same size, since this is a requirement for swapping.
         size_t num_nodes = nodes.size();
-        size_t height_offset = quad_tree.getBounds(nodes[0]).first.first;
+        size_t num_leaves = 0;
+        for (size_t idx = 0; idx < num_nodes; ++idx) {
+            auto dims = quad_tree.getLeafBounds(nodes[idx]).second;
+            size_t node_num_leaves = dims.first * dims.second;
+            if (num_leaves == 0) {
+                num_leaves = node_num_leaves;
+            } else if (node_num_leaves != num_leaves) {
+                return 0;
+            }
+        }
 
-        std::vector<size_t> node_assignments(num_nodes);                                    // Assigned indices per node
-        std::vector<std::shared_ptr<VectorType>> node_data(num_nodes);                      // Actual data per node
-
+        // Preload data and assignments
+        std::vector<std::vector<size_t>> node_assignments(num_nodes);   // Assigned indices per node
+        std::vector<std::shared_ptr<VectorType>> node_data(num_nodes);  // Actual data per node
         for (size_t idx = 0; idx < num_nodes; ++idx) {
             node_data[idx] = quad_tree.getValue(nodes[idx]);
-            node_assignments[idx] = quad_tree.getAssignment()[nodes[idx].index + height_offset];
+            auto leaf_iterator = (TreeWalker<VectorType>(nodes[idx], quad_tree)).getLeaves();
+            node_assignments[idx].reserve(num_leaves);
+            for (; leaf_iterator != leaf_iterator.end(); ++leaf_iterator)
+                node_assignments[idx].push_back(quad_tree.getAssignmentValue(leaf_iterator.getPosition()));
         }
 
         // Find best permutation
@@ -65,16 +77,18 @@ namespace ssm
             }
         } while (std::next_permutation(permutation.begin(), permutation.end()));
 
-        // Perform the actual swapping where needed
-        size_t swap_count = 0;
+        // Perform the actual exchanges where needed
+        size_t exchanges_count = 0;
         for (size_t idx = 0; idx < num_nodes; ++idx) {
             if (best_permutation[idx] != idx) {
-                quad_tree.setAssignment(nodes[idx], node_assignments[best_permutation[idx]]);
-                ++swap_count;
+                auto leaf_iterator = (TreeWalker<VectorType>(nodes[idx], quad_tree)).getLeaves();
+                for (size_t leaf_idx = 0; leaf_iterator != leaf_iterator.end(); ++leaf_iterator, ++leaf_idx)
+                    quad_tree.setAssignmentValue(leaf_iterator.getPosition(), node_assignments[best_permutation[idx]][leaf_idx]);
+                ++exchanges_count;
             }
         }
 
-        return swap_count;
+        return exchanges_count;
     }
 }
 

@@ -81,9 +81,9 @@ std::vector<size_t> createRandomAssignment(size_t size, size_t num_rows, size_t 
 int main(int argc, const char **argv)
 {
     // Runtime test parameters
-    size_t n_rows = 128;
-    size_t n_cols = 128;
-    size_t max_iterations = 10000;
+    size_t n_rows = 64;
+    size_t n_cols = 64;
+    size_t max_iterations = 1000000;
 
     size_t depth = std::ceil(std::log2(std::max(n_cols, n_rows))) + 1;
     auto data = generateRandomColorData(n_rows, n_cols);
@@ -97,7 +97,7 @@ int main(int argc, const char **argv)
         std::shared_ptr<V3<double>>
     )> distance_function = shared::euclideanDistance<V3<double>>;
     std::cout << "Start HND: " << shared::computeHierarchyNeighborhoodDistance(0, distance_function, quad_tree) << "\n\n";
-    ssm::sort(quad_tree, distance_function, max_iterations);
+    ssm::sort(quad_tree, distance_function, max_iterations, ssm::TargetType::NEIGHBOURHOOD);
     std::cout << "After sorting HND: " << shared::computeHierarchyNeighborhoodDistance(0, distance_function, quad_tree) << '\n';
 
     return 0;

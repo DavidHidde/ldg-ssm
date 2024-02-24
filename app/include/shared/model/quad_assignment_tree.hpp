@@ -50,7 +50,9 @@ namespace shared
 
         bool setValue(CellPosition position, VectorType &value);
 
-        bool setAssignment(CellPosition position, size_t &value);
+        size_t getAssignmentValue(CellPosition position);
+
+        bool setAssignmentValue(CellPosition position, size_t &value);
 
         std::pair<std::pair<size_t, size_t>, std::pair<size_t, size_t>> getBounds(CellPosition position);
 
@@ -193,6 +195,22 @@ namespace shared
     }
 
     /**
+     * Get the assignment value at a position in the tree. This is not safe for out of bounds values.
+     *
+     * @tparam VectorType
+     * @param position
+     * @return
+     */
+    template<typename VectorType>
+    size_t QuadAssignmentTree<VectorType>::getAssignmentValue(CellPosition position)
+    {
+        auto bounds = getBounds(position);
+        auto start_end = bounds.first;
+        size_t index = start_end.first + position.index;
+        return assignment[index];
+    }
+
+    /**
      * Set the assignment at a given position.
      *
      * @tparam VectorType
@@ -201,7 +219,7 @@ namespace shared
      * @return True if setting the value worked, false if not.
      */
     template<typename VectorType>
-    bool QuadAssignmentTree<VectorType>::setAssignment(CellPosition position, size_t &value)
+    bool QuadAssignmentTree<VectorType>::setAssignmentValue(CellPosition position, size_t &value)
     {
         auto bounds = getBounds(position);
         auto start_end = bounds.first;

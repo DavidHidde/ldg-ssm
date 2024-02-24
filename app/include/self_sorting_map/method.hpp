@@ -65,12 +65,14 @@ namespace ssm
      * @tparam VectorType
      * @param quad_tree
      * @param distance_function
+     * @param target_type
      */
     template<typename VectorType>
     void sort(
         shared::QuadAssignmentTree<VectorType> &quad_tree,
         std::function<double(std::shared_ptr<VectorType>, std::shared_ptr<VectorType>)> distance_function,
-        const size_t max_iterations
+        const size_t max_iterations,
+        const TargetType target_type
     )
     {
         using namespace shared;
@@ -97,8 +99,10 @@ namespace ssm
         for (; height > 0; --height) {
             do {
                 num_swaps = 0;
-                num_swaps += optimizePartitions(quad_tree, distance_function, TargetType::NEIGHBOURHOOD, height, 0, false);
-                num_swaps += optimizePartitions(quad_tree, distance_function, TargetType::NEIGHBOURHOOD, height, 0, true);
+                num_swaps += optimizePartitions(quad_tree, distance_function, target_type, height, 0, false);
+                num_swaps += optimizePartitions(quad_tree, distance_function, target_type, height, 0, true);
+                num_swaps += optimizePartitions(quad_tree, distance_function, target_type, height + 1, height, false);
+                num_swaps += optimizePartitions(quad_tree, distance_function, target_type, height + 1, height, true);
                 ++iterations;
             } while (iterations < max_iterations && num_swaps > 0);
             saveQuadTreeImages(quad_tree, "ssm-size(" + std::to_string(size_t(std::pow(2., height))) + ")");
