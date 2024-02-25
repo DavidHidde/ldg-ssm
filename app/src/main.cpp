@@ -80,6 +80,8 @@ std::vector<size_t> createRandomAssignment(size_t size, size_t num_rows, size_t 
 
 int main(int argc, const char **argv)
 {
+    clock_t start = clock();
+
     // Runtime test parameters
     size_t n_rows = 64;
     size_t n_cols = 64;
@@ -98,5 +100,9 @@ int main(int argc, const char **argv)
     )> distance_function = shared::euclideanDistance<V3<double>>;
     std::cout << "Start HND: " << shared::computeHierarchyNeighborhoodDistance(0, distance_function, quad_tree) << "\n\n";
     ssm::sort(quad_tree, distance_function, max_iterations, ssm::TargetType::HIERARCHY);
+
+    clock_t stop = clock();
+    double elapsed = (double) (stop - start) / CLOCKS_PER_SEC;
+    printf("\nTime elapsed: %.5f\n", elapsed);
     return 0;
 }

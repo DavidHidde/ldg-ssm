@@ -14,3 +14,5 @@ RUN apt-get update && apt install -y \
     gdb \
     clang \
     git
+
+WORKDIR /usr/app
