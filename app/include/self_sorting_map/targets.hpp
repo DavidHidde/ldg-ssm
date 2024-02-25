@@ -40,7 +40,7 @@ namespace ssm
         switch (target_type) {
             case TargetType::HIERARCHY: {
                 auto height_bounds = getHierarchyTargetHeightBounds(quad_tree, partition_height, is_shift);
-                num_targets += height_bounds.second - height_bounds.first;
+                num_targets += 1;
 
                 std::vector<std::shared_ptr<VectorType>> targets(num_targets * num_nodes);
                 loadHierarchyTargets(targets, 0, num_targets, height_bounds, nodes, quad_tree);
@@ -54,11 +54,11 @@ namespace ssm
             }
             case TargetType::HIERARCHY_NEIGHBOURHOOD: {
                 auto height_bounds = getHierarchyTargetHeightBounds(quad_tree, partition_height, is_shift);
-                num_targets += height_bounds.second - height_bounds.first + 1;
+                num_targets += 2;
 
                 std::vector<std::shared_ptr<VectorType>> targets(num_targets * num_nodes);
                 loadHierarchyTargets(targets, 0, num_targets, height_bounds, nodes, quad_tree);
-                loadNeighbourhoodTargets(targets, num_targets - 1, num_targets, partition_height, nodes, quad_tree);
+                loadNeighbourhoodTargets(targets, 1, num_targets, partition_height, nodes, quad_tree);
                 return { num_targets, targets };
             }
         }

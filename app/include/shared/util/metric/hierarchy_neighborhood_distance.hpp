@@ -21,6 +21,7 @@ namespace shared
     QuadAssignmentTree<double> generateCacheTree(QuadAssignmentTree<VectorType> &quad_tree)
     {
         std::vector<std::shared_ptr<double>> empty_scores(quad_tree.getData().size());
+#pragma omp parallel for
         for (size_t idx = 0; idx < quad_tree.getNumRows() * quad_tree.getNumCols(); ++idx)
             empty_scores[idx] = std::make_shared<double>(EMPTY_HND_SCORE);  // Explicitly create a new pointer for each element
 
@@ -51,41 +52,47 @@ namespace shared
     )
     {
         computeAggregates(quad_tree);
-        double sum = 0;
+        double sum = 0.;
         auto cache = generateCacheTree(quad_tree);
 
         // Compute all single scores
-        for (RowMajorIterator<double> iterator(height, cache); iterator != iterator.end(); ++iterator) {
-            auto value = computeHierarchyDistanceForCell(iterator.getPosition(), distance_function, quad_tree);
-            cache.setValue(iterator.getPosition(), value);
+        auto height_bounds = quad_tree.getBounds(CellPosition{ height, 0 });
+        auto height_array_bounds = height_bounds.first;
+        auto height_array_dims = height_bounds.second;
+#pragma omp parallel for
+        for (size_t idx = height_array_bounds.first; idx < height_array_bounds.second; ++idx)  {
+            CellPosition position{ height, idx };
+            auto value = computeHierarchyDistanceForCell(position, distance_function, quad_tree);
+            cache.setValue(position, value);
         }
 
         // Add all scores together (4-connectivity filter)
-        for (RowMajorIterator<double> iterator(height, cache); iterator != iterator.end(); ++iterator) {
-            auto position = iterator.getPosition();
+#pragma omp parallel for reduction(+:sum)
+        for (size_t idx = height_array_bounds.first; idx < height_array_bounds.second; ++idx)  {
+            CellPosition position{ height, idx };
             size_t x = position.index % quad_tree.getNumCols();
             size_t y = position.index / quad_tree.getNumCols();
 
             double neighbor_sum = 0.;
             size_t neighbour_count = 0;
             if (x > 0) {
-                neighbor_sum += *cache.getValue(CellPosition{ 0, position.index - 1 });
+                neighbor_sum += *cache.getValue(CellPosition{ height, position.index - 1 });
                 ++neighbour_count;
             }
-            if (x < cache.getNumCols() - 1) {
-                neighbor_sum += *cache.getValue(CellPosition{ 0, position.index + 1 });
+            if (x < height_array_dims.second - 1) {
+                neighbor_sum += *cache.getValue(CellPosition{ height, position.index + 1 });
                 ++neighbour_count;
             }
             if (y > 0) {
-                neighbor_sum += *cache.getValue(CellPosition{ 0, position.index - cache.getNumCols() });
+                neighbor_sum += *cache.getValue(CellPosition{ height, position.index - height_array_dims.second });
                 ++neighbour_count;
             }
-            if (y < cache.getNumRows() - 1) {
-                neighbor_sum += *cache.getValue(CellPosition{ 0, position.index + cache.getNumCols() });
+            if (y < height_array_dims.first - 1) {
+                neighbor_sum += *cache.getValue(CellPosition{ height, position.index + height_array_dims.second });
                 ++neighbour_count;
             }
 
-            sum += *iterator.getValue() + neighbor_sum / (neighbour_count > 0 ? double(neighbour_count) : 1.);
+            sum += *cache.getValue(position) + neighbor_sum / (neighbour_count > 0 ? double(neighbour_count) : 1.);
         }
 
         return sum;

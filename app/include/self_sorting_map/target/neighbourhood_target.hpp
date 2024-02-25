@@ -46,7 +46,7 @@ namespace ssm
             }
         }
 
-        return std::make_shared<VectorType>(target / count);
+        return std::make_shared<VectorType>(target / double(count));
     }
 
     /**

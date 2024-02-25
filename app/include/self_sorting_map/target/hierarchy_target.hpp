@@ -59,12 +59,17 @@ namespace ssm
 
         for (size_t idx = 0; idx < num_nodes; ++idx) {
             shared::TreeWalker<VectorType> walker{ nodes[idx], quad_tree };
+            size_t count = 0;
+            VectorType aggregate;
             for (size_t parent_idx = 1; parent_idx < max_height && walker.moveUp(); ++parent_idx) {
-                if (parent_idx >= min_height) {
-                    size_t new_idx = shared::rowMajorIndex(idx, parent_idx - min_height + col_offset, num_targets);
-                    targets[new_idx] = walker.getNodeValue();
+                if (parent_idx >= min_height && walker.getNodeValue() != nullptr) {
+                    ++count;
+                    aggregate += *walker.getNodeValue();
                 }
             }
+
+            size_t new_idx = shared::rowMajorIndex(idx, col_offset, num_targets);
+            targets[new_idx] = std::make_shared<VectorType>(aggregate  / double(count));
         }
     }
 }

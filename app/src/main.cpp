@@ -87,7 +87,7 @@ int main(int argc, const char **argv)
     size_t n_cols = 64;
     size_t max_iterations = 10000;
     double minimal_dist_change_percent = 0.000001;
-    ssm::TargetType target_type = ssm::TargetType::NEIGHBOURHOOD;
+    ssm::TargetType target_type = ssm::TargetType::HIERARCHY;
 
     // Data initialization
     size_t depth = std::ceil(std::log2(std::max(n_cols, n_rows))) + 1;

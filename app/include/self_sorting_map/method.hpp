@@ -81,8 +81,11 @@ namespace ssm
                 num_exchanges = 0;
                 num_exchanges += optimizePartitions(quad_tree, distance_function, target_type, height, 0, false);
                 num_exchanges += optimizePartitions(quad_tree, distance_function, target_type, height, 0, true);
-                num_exchanges += optimizePartitions(quad_tree, distance_function, target_type, height + 1, height, false);
-                num_exchanges += optimizePartitions(quad_tree, distance_function, target_type, height + 1, height, true);
+
+                if (height > 1) {
+                    num_exchanges += optimizePartitions(quad_tree, distance_function, target_type, height, height - 1, false);
+                    num_exchanges += optimizePartitions(quad_tree, distance_function, target_type, height, height - 1, true);
+                }
 
                 distance = new_distance;
                 new_distance = computeHierarchyNeighborhoodDistance(0, distance_function, quad_tree);

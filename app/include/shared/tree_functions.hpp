@@ -20,6 +20,7 @@ namespace shared
 
         // Compute the aggregates bottom-up
         for (size_t height = 1; height < quad_tree.getDepth(); ++height) {
+#pragma omp parallel for
             for (size_t idx = 0; idx < curr_num_rows * curr_num_cols; ++idx) {
                 CellPosition position{ height, idx };
                 TreeWalker<VectorType> walker(position, curr_num_rows, curr_num_cols, quad_tree);
