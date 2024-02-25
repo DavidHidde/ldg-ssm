@@ -3,6 +3,7 @@
 
 #include <functional>
 #include <algorithm>
+#include <iostream>
 #include "app/include/shared/model/quad_assignment_tree.hpp"
 #include "app/include/shared/util/tree_traversal/row_major_iterator.hpp"
 #include "app/include/shared/tree_functions.hpp"
@@ -12,6 +13,19 @@
 
 namespace ssm
 {
+    /**
+     * Check if the distance has changed enough within a certain threshold.
+     *
+     * @param old_distance
+     * @param new_distance
+     * @param threshold
+     * @return
+     */
+    bool distanceHasChanged(double old_distance, double new_distance, double threshold)
+    {
+        return std::abs(old_distance - new_distance) / old_distance > threshold;
+    }
+
     /**
      * Get the start height of the SSM algorithm, which starts when we have at least 4 partitions in each dimension.
      *
@@ -46,15 +60,20 @@ namespace ssm
         shared::QuadAssignmentTree<VectorType> &quad_tree,
         std::function<double(std::shared_ptr<VectorType>, std::shared_ptr<VectorType>)> distance_function,
         const size_t max_iterations,
+        const double distance_threshold,
         const TargetType target_type
     )
     {
         using namespace shared;
-        size_t height = getStartHeight(quad_tree);
+        double distance = computeHierarchyNeighborhoodDistance(0, distance_function, quad_tree);
+        double new_distance = distance;
+        std::cout << "Start HND: " << distance << "\n\n";
 
-        // Main loop - We use the height as an indicator of the partition size rather than calculating the partition size.
+        // Main loop
+        size_t height = getStartHeight(quad_tree);
         size_t iterations;
         size_t num_exchanges;
+        std::string reason;
         for (; height > 0; --height) {
             iterations = 0;
 
@@ -64,17 +83,28 @@ namespace ssm
                 num_exchanges += optimizePartitions(quad_tree, distance_function, target_type, height, 0, true);
                 num_exchanges += optimizePartitions(quad_tree, distance_function, target_type, height + 1, height, false);
                 num_exchanges += optimizePartitions(quad_tree, distance_function, target_type, height + 1, height, true);
+
+                distance = new_distance;
+                new_distance = computeHierarchyNeighborhoodDistance(0, distance_function, quad_tree);
                 ++iterations;
-            } while (iterations < max_iterations && num_exchanges > 0);
+            } while (iterations < max_iterations && num_exchanges > 0 && distanceHasChanged(distance, new_distance, distance_threshold));
 
             saveQuadTreeImages(quad_tree, "ssm-size(" + std::to_string(size_t(std::pow(2., height))) + ")");
-            size_t new_score = computeHierarchyNeighborhoodDistance(0, distance_function, quad_tree);
-            std::cout << "Finished height " << height << " in " << iterations << " iterations with score " << new_score << '\n';
+            if (iterations >= max_iterations) {
+                reason = " (max iterations reached)\n";
+            } else if (num_exchanges == 0) {
+                reason = " (no exchanges left)\n";
+            } else {
+                reason = " (distance change below threshold)\n";
+            }
+            std::cout << "Finished height " << height << " in " << iterations << " iterations with distance " << new_distance << reason;
         }
 
         // Fix aggregates in the end if we did perform swaps in the end.
         if (num_exchanges > 0)
             computeAggregates(quad_tree);
+
+        std::cout << "\nFinal HND: " << new_distance << '\n';
     }
 }
 
