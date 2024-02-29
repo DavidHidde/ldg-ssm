@@ -6,11 +6,7 @@
 
 namespace shared
 {
-    size_t ceilPowerOfTwo(size_t num);
-
     size_t rowMajorIndex(size_t row, size_t col, size_t num_cols);
-
-    long rowMajorIndexLong(long row, long col, long num_cols);
 
     size_t ceilDivideByFactor(size_t num, float factor);
 

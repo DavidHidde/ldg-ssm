@@ -2,21 +2,9 @@
 #define LDG_CORE_DISTANCE_FUNCTIONS_HPP
 
 #include "helper_volData/vec.h"
+#include "app/include/shared/util/vector_math.hpp"
 #include <memory>
 #include <cmath>
-
-/**
- * Get the magnitude of a vector
- *
- * @tparam VectorType
- * @param vector
- * @return
- */
-template<typename VectorType>
-double magnitude(VectorType vector)
-{
-    return std::sqrt(dot(vector, vector));
-}
 
 namespace shared
 {

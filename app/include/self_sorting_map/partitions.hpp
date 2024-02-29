@@ -16,7 +16,7 @@ namespace ssm
      * @tparam VectorType
      * @param quad_tree
      * @param distance_function
-     * @param target_type
+     * @param target_map
      * @param comparison_height
      * @param apply_shift
      * @param partition_len Length of the current partition.
@@ -29,10 +29,8 @@ namespace ssm
     size_t performPartitionExchanges(
         shared::QuadAssignmentTree<VectorType> &quad_tree,
         std::function<double(std::shared_ptr<VectorType>, std::shared_ptr<VectorType>)> distance_function,
-        TargetType target_type,
-        size_t partition_height,
+        std::vector<std::vector<std::shared_ptr<VectorType>>> &target_map,
         size_t comparison_height,
-        bool apply_shift,
         long partition_len,
         std::pair<long, long> &offset,
         std::pair<long, long> &iteration_dims,
@@ -89,8 +87,7 @@ namespace ssm
 
             // Now perform exchanges if we have nodes to compare
             if (nodes.size() > 1) {
-                auto target_data = getTargets(target_type, nodes, quad_tree, partition_height, apply_shift);
-                num_exchanges += findAndSwapBestPermutation(nodes, quad_tree, distance_function, target_data.first, target_data.second);
+                num_exchanges += findAndSwapBestPermutation(nodes, quad_tree, distance_function, target_map);
             }
         }
 
@@ -135,13 +132,12 @@ namespace ssm
         }
 
         computeAggregates(quad_tree);
+        auto target_map = getTargetMap(target_type, quad_tree, partition_height, comparison_height, apply_shift);
         return performPartitionExchanges(
             quad_tree,
             distance_function,
-            target_type,
-            partition_height,
+            target_map,
             comparison_height,
-            apply_shift,
             partition_len,
             offset,
             iteration_dims,

@@ -14,8 +14,7 @@ namespace ssm
      * @param nodes
      * @param quad_tree
      * @param distance_function
-     * @param num_targets
-     * @param targets
+     * @param target_map
      * @return The number of exchanges performed.
     */
     template<typename VectorType>
@@ -23,8 +22,7 @@ namespace ssm
         std::vector<shared::CellPosition> &nodes,
         shared::QuadAssignmentTree<VectorType> &quad_tree,
         std::function<double(std::shared_ptr<VectorType>, std::shared_ptr<VectorType>)> distance_function,
-        size_t num_targets,
-        std::vector<std::shared_ptr<VectorType>> &targets
+        std::vector<std::vector<std::shared_ptr<VectorType>>> &target_map
     )
     {
         using namespace shared;
@@ -62,10 +60,10 @@ namespace ssm
         do {
             double distance = 0.;
             for (size_t idx = 0; idx < num_nodes; ++idx) {
-                for (size_t parent_idx = 0; parent_idx < num_targets; ++parent_idx) {
+                for (auto &target : target_map[nodes[idx].index]) {
                     distance += distance_function(
                         node_data[permutation[idx]],
-                        targets[rowMajorIndex(idx, parent_idx, num_targets)]
+                        target
                     );
                 }
             }

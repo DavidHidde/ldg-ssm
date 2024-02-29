@@ -65,6 +65,9 @@ namespace ssm
     )
     {
         using namespace shared;
+        std::cout << "Fully sorted HND: " << computeHierarchyNeighborhoodDistance(0, distance_function, quad_tree) << "\n";
+        randomizeAssignment(quad_tree, 42);
+
         double distance = computeHierarchyNeighborhoodDistance(0, distance_function, quad_tree);
         double new_distance = distance;
         std::cout << "Start HND: " << distance << "\n\n";

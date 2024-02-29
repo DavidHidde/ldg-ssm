@@ -1,8 +1,5 @@
 #include <vector>
-#include <iostream>
 #include <memory>
-#include <algorithm>
-#include <random>
 #include "helper_volData/vec.h"
 #include "app/include/shared/util/math.hpp"
 #include "app/include/shared/model/quad_assignment_tree.hpp"
@@ -67,8 +64,7 @@ std::vector<size_t> createRandomAssignment(size_t size, size_t num_rows, size_t 
         for (size_t idx = offset; idx < end; ++idx) {
             assignment[idx] = idx;
         }
-        if (offset == 0)    // No reason to shuffle anything but leaves
-            std::shuffle(assignment.begin() + offset, assignment.begin() + end, std::mt19937());
+
         offset += num_cols * num_rows;
         num_cols = shared::ceilDivideByFactor(num_cols, 2.);
         num_rows = shared::ceilDivideByFactor(num_rows, 2.);
@@ -83,19 +79,17 @@ int main(int argc, const char **argv)
     clock_t start = clock();
 
     // Runtime test parameters
-    size_t n_rows = 64;
-    size_t n_cols = 64;
+    size_t n_rows = 1024;
+    size_t n_cols = 1024;
     size_t max_iterations = 10000;
     double minimal_dist_change_percent = 0.000001;
-    ssm::TargetType target_type = ssm::TargetType::HIERARCHY;
+    ssm::TargetType target_type = ssm::TargetType::NEIGHBOURHOOD;
 
     // Data initialization
     size_t depth = std::ceil(std::log2(std::max(n_cols, n_rows))) + 1;
     auto data = generateRandomColorData(n_rows, n_cols);
     auto assignment = createRandomAssignment(data.size(), n_rows, n_cols);
     shared::QuadAssignmentTree<V3<double>> quad_tree{ data, assignment, n_rows, n_cols, depth };
-    shared::computeAggregates(quad_tree);
-    shared::saveQuadTreeImages(quad_tree, "before");
 
     // Actual sorting
     std::function<double(

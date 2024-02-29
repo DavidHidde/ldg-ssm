@@ -13,56 +13,35 @@ namespace ssm
 {
 
     /**
-     * Get the sorting targets for a set of nodes with the algorithm at a certain height.
-     * This function handles all loading of targets.
+     * Calculate all targets per node for a given target type.
+     * We calculate everything at once to be able to efficiently reuse targets.
      *
      * @tparam VectorType
      * @param target_type
-     * @param nodes
      * @param quad_tree
      * @param partition_height
+     * @param comparison_height
      * @param is_shift
-     * @return  A tuple of the number targets per node and the row-major num_nodes x num_targets vector.
+     * @return  A num_rows x num_cols map at the comparison height where each index contains the targets for that node.
      */
     template<typename VectorType>
-    std::pair<size_t, std::vector<std::shared_ptr<VectorType>>> getTargets(
+    std::vector<std::vector<std::shared_ptr<VectorType>>> getTargetMap(
         TargetType target_type,
-        std::vector<shared::CellPosition> &nodes,
         shared::QuadAssignmentTree<VectorType> &quad_tree,
         size_t partition_height,
+        size_t comparison_height,
         bool is_shift
     )
     {
-        size_t num_targets = 0;
-        size_t num_nodes = nodes.size();
+        auto comparison_height_dims = quad_tree.getBounds(shared::CellPosition{ comparison_height, 0 }).second;
+        std::vector<std::vector<std::shared_ptr<VectorType>>> target_map(comparison_height_dims.first * comparison_height_dims.second);
 
-        // Get the number of targets based on the target type.
-        switch (target_type) {
-            case TargetType::HIERARCHY: {
-                auto height_bounds = getHierarchyTargetHeightBounds(quad_tree, partition_height, is_shift);
-                num_targets += 1;
+        if (target_type == TargetType::HIERARCHY || target_type == TargetType::HIERARCHY_NEIGHBOURHOOD)
+            loadHierarchyTargets(target_map, quad_tree, partition_height, comparison_height, is_shift);
+        if (target_type == TargetType::NEIGHBOURHOOD || target_type == TargetType::HIERARCHY_NEIGHBOURHOOD)
+            loadNeighbourhoodTargets(target_map, quad_tree, partition_height, comparison_height, is_shift);
 
-                std::vector<std::shared_ptr<VectorType>> targets(num_targets * num_nodes);
-                loadHierarchyTargets(targets, 0, num_targets, height_bounds, nodes, quad_tree);
-                return { num_targets, targets };
-            }
-            case TargetType::NEIGHBOURHOOD: {
-                num_targets += 1;
-                std::vector<std::shared_ptr<VectorType>> targets(num_targets * num_nodes);
-                loadNeighbourhoodTargets(targets, 0, num_targets, partition_height, nodes, quad_tree);
-                return { num_targets, targets };
-            }
-            case TargetType::HIERARCHY_NEIGHBOURHOOD: {
-                auto height_bounds = getHierarchyTargetHeightBounds(quad_tree, partition_height, is_shift);
-                num_targets += 2;
-
-                std::vector<std::shared_ptr<VectorType>> targets(num_targets * num_nodes);
-                loadHierarchyTargets(targets, 0, num_targets, height_bounds, nodes, quad_tree);
-                loadNeighbourhoodTargets(targets, 1, num_targets, partition_height, nodes, quad_tree);
-                return { num_targets, targets };
-            }
-        }
-        return { 0, std::vector<std::shared_ptr<VectorType>>() };
+        return target_map;
     }
 }
 
