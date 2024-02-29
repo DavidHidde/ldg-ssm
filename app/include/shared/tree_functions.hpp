@@ -47,7 +47,7 @@ namespace shared
     void randomizeAssignment(shared::QuadAssignmentTree<VectorType> &quad_tree, size_t seed)
     {
         auto &assignment = quad_tree.getAssignment();
-        std::shuffle(assignment.begin(), assignment.begin() + quad_tree.getNumRows() * quad_tree.getNumCols(), std::mt19937());
+        std::shuffle(assignment.begin(), assignment.begin() + quad_tree.getNumRows() * quad_tree.getNumCols(), std::mt19937(seed));
     }
 }
 

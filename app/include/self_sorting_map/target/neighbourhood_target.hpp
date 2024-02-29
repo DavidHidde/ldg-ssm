@@ -7,10 +7,12 @@
 
 namespace ssm
 {
+    size_t NUM_BLOCKS_PER_DIMENSION = 4;
+
     /**
      * Load the neighbourhood targets into a target array.
      * The neighbourhood target basically aggregates the aggregates in the neighbourhood of th partition at the partition height.
-     * This is very much just equivalent to convolution with an equally weighted 3x3 kernel, just ignoring nullptrs.
+     * This is very much just equivalent to convolution with an equally weighted NUM_BLOCKS_PER_DIMENSIONxNUM_BLOCKS_PER_DIMENSION kernel, just ignoring nullptrs.
      *
      * @tparam VectorType
      * @param target_map
@@ -37,13 +39,22 @@ namespace ssm
         std::vector<std::shared_ptr<VectorType>> values;
         values.reserve(9);
 
+        int shift = is_shift ? 0 : (NUM_BLOCKS_PER_DIMENSION - 1) % 2;
+        int blocks_offset = (NUM_BLOCKS_PER_DIMENSION - 1) / 2;
+
         // Aggregate parent targets and assign them to all relevant cells at the comparison height.
 #pragma omp parallel for private(values)
         for (size_t idx = 0; idx < num_elems; ++idx) {
-            size_t partition_x = idx % projected_dims.second;
-            size_t partition_y = idx / projected_dims.second;
-            for (size_t y = std::max(0, int(partition_y) - 1); y < std::min(projected_dims.first, partition_y + 1); ++y) {
-                for (size_t x = std::max(0, int(partition_x) - 1); x < std::min(projected_dims.first, partition_x + 1); ++x) {
+            int partition_x = idx % projected_dims.second;
+            int partition_y = idx / projected_dims.second;
+
+            size_t min_y = std::max(partition_y - blocks_offset - (partition_y % 2 == 0 ? 1 : 0) * shift, 0);
+            size_t max_y = std::min(size_t(partition_y + blocks_offset + (partition_y % 2) * shift), projected_dims.first - 1);
+            size_t min_x = std::max(partition_x - blocks_offset - (partition_x % 2 == 0 ? 1 : 0) * shift, 0);
+            size_t max_x = std::min(size_t(partition_x + blocks_offset + (partition_x % 2) * shift), projected_dims.second - 1);
+
+            for (size_t y = min_y; y <= max_y; ++y) {
+                for (size_t x = min_x; x <= max_x; ++x) {
                     values.push_back(quad_tree.getValue(CellPosition{ partition_height, rowMajorIndex(y, x, projected_dims.second) }));
                 }
             }

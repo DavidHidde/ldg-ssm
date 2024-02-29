@@ -106,10 +106,6 @@ namespace ssm
             std::cout << "Finished height " << height << " in " << iterations << " iterations with distance " << new_distance << reason;
         }
 
-        // Fix aggregates in the end if we did perform swaps in the end.
-        if (num_exchanges > 0)
-            computeAggregates(quad_tree);
-
         std::cout << "\nFinal HND: " << new_distance << '\n';
     }
 }
