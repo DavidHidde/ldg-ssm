@@ -100,7 +100,7 @@ namespace ssm
      * @tparam VectorType
      * @param quad_tree
      * @param distance_function
-     * @param target_type   Type for the target comparisons
+     * @param target_types   Types of targets for the target comparisons
      * @param partition_height  The height of the partitions being compared.
      * @param comparison_height The height at which the elements should be compared.
      * @param apply_shift   Whether the shift (odd-even) configuration should be used.
@@ -110,7 +110,7 @@ namespace ssm
     size_t optimizePartitions(
         shared::QuadAssignmentTree<VectorType> &quad_tree,
         std::function<double(std::shared_ptr<VectorType>, std::shared_ptr<VectorType>)> distance_function,
-        TargetType target_type,
+        std::vector<TargetType> const &target_types,
         size_t partition_height,
         size_t comparison_height,
         bool apply_shift
@@ -132,7 +132,7 @@ namespace ssm
         }
 
         computeAggregates(quad_tree);
-        auto target_map = getTargetMap(target_type, quad_tree, partition_height, comparison_height, apply_shift);
+        auto target_map = getTargetMap(target_types, quad_tree, partition_height, comparison_height, apply_shift);
         return performPartitionExchanges(
             quad_tree,
             distance_function,

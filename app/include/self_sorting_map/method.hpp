@@ -53,7 +53,7 @@ namespace ssm
      * @tparam VectorType
      * @param quad_tree
      * @param distance_function
-     * @param target_type
+     * @param target_types
      */
     template<typename VectorType>
     void sort(
@@ -61,7 +61,7 @@ namespace ssm
         std::function<double(std::shared_ptr<VectorType>, std::shared_ptr<VectorType>)> distance_function,
         const size_t max_iterations,
         const double distance_threshold,
-        const TargetType target_type
+        const std::vector<TargetType> target_types
     )
     {
         using namespace shared;
@@ -82,12 +82,12 @@ namespace ssm
 
             do {
                 num_exchanges = 0;
-                num_exchanges += optimizePartitions(quad_tree, distance_function, target_type, height, 0, false);
-                num_exchanges += optimizePartitions(quad_tree, distance_function, target_type, height, 0, true);
+                num_exchanges += optimizePartitions(quad_tree, distance_function, target_types, height, 0, false);
+                num_exchanges += optimizePartitions(quad_tree, distance_function, target_types, height, 0, true);
 
                 if (height > 1) {
-                    num_exchanges += optimizePartitions(quad_tree, distance_function, target_type, height, height - 1, false);
-                    num_exchanges += optimizePartitions(quad_tree, distance_function, target_type, height, height - 1, true);
+                    num_exchanges += optimizePartitions(quad_tree, distance_function, target_types, height, height - 1, false);
+                    num_exchanges += optimizePartitions(quad_tree, distance_function, target_types, height, height - 1, true);
                 }
 
                 distance = new_distance;

@@ -1,5 +1,5 @@
-#ifndef LDG_CORE_HIERARCHY_TARGET_HPP
-#define LDG_CORE_HIERARCHY_TARGET_HPP
+#ifndef LDG_CORE_AGGREGATE_HIERARCHY_TARGET_HPP
+#define LDG_CORE_AGGREGATE_HIERARCHY_TARGET_HPP
 
 #include <vector>
 #include <memory>
@@ -28,7 +28,7 @@ namespace ssm
     {
         return {
             partition_height,
-            is_shift ? quad_tree.getDepth() - 1 : partition_height + 1
+            partition_height + 1
         };
     }
 
@@ -44,7 +44,7 @@ namespace ssm
      * @param is_shift
      */
     template<typename VectorType>
-    void loadHierarchyTargets(
+    void loadAggregateHierarchyTargets(
         std::vector<std::vector<std::shared_ptr<VectorType>>> &target_map,
         shared::QuadAssignmentTree<VectorType> &quad_tree,
         size_t partition_height,
@@ -65,7 +65,6 @@ namespace ssm
         std::vector<std::shared_ptr<VectorType>> values;
         values.reserve(num_parents);
 
-        // Aggregate parent targets and assign them to all relevant cells at the comparison height.
 #pragma omp parallel for private(values)
         for (size_t idx = 0; idx < num_elems; ++idx) {
             TreeWalker<VectorType> walker{ CellPosition{ height_bounds.first, idx }, quad_tree };
@@ -78,9 +77,13 @@ namespace ssm
             // Copy to all relevant cells
             size_t partition_x = idx % projected_dims.second;
             size_t partition_y = idx / projected_dims.second;
-            for (size_t y = 0; y < partition_len; ++y) {
-                for (size_t x = 0; x < partition_len; ++x) {
-                    target_map[rowMajorIndex(partition_y * partition_len + y, partition_x * partition_len + x, comparison_height_dims.second)].push_back(target);
+            size_t min_y = partition_y * partition_len;
+            size_t max_y = std::min(min_y + partition_len, comparison_height_dims.first);
+            size_t min_x = partition_x * partition_len;
+            size_t max_x = std::min(min_x + partition_len, comparison_height_dims.second);
+            for (size_t y = min_y; y < max_y; ++y) {
+                for (size_t x = min_x; x < max_x; ++x) {
+                    target_map[rowMajorIndex(y, x, comparison_height_dims.second)].push_back(target);
                 }
             }
 
@@ -89,4 +92,4 @@ namespace ssm
     }
 }
 
-#endif //LDG_CORE_HIERARCHY_TARGET_HPP
+#endif //LDG_CORE_AGGREGATE_HIERARCHY_TARGET_HPP

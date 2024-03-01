@@ -8,9 +8,10 @@ namespace ssm
      */
     enum TargetType
     {
-        HIERARCHY,                  // Just the parents in the hierarchy
-        NEIGHBOURHOOD,              // Just the neighbourhood of parent aggregates
-        HIERARCHY_NEIGHBOURHOOD     // Both the hierarchy and neighborhood components
+        AGGREGATE_HIERARCHY,        // Aggregate parents in the hierarchy
+        HIGHEST_PARENT_HIERARCHY,   // Highest unique parent per partition
+        PARTITION_NEIGHBOURHOOD,    // Neighbourhood of parent aggregates
+        CELL_NEIGHBOURHOOD,         // Direct neighbourhood per cell.
     };
 }
 
