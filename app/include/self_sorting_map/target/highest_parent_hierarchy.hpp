@@ -78,13 +78,20 @@ namespace ssm
         auto comparison_height_dims = quad_tree.getBounds(CellPosition{ comparison_height, 0 }).second;
         size_t num_elems = projected_dims.first * projected_dims.second;
         size_t partition_len = size_t(std::pow(2, partition_height - comparison_height));
+        int odd_offset = is_shift ? 0 : 1;
         std::vector<size_t> max_height_buffer = getMaxHeightBuffer(partition_height, quad_tree, is_shift);
 
-//#pragma omp parallel for
+#pragma omp parallel for
         for (size_t idx = 0; idx < num_elems; ++idx) {
-            size_t partition_x = idx % projected_dims.second;
-            size_t partition_y = idx / projected_dims.second;
-            size_t max_parent_height = max_height_buffer[std::max(partition_x, partition_y)];
+            int partition_x = idx % projected_dims.second;
+            int partition_y = idx / projected_dims.second;
+            size_t max_parent_height = max_height_buffer[std::max(
+                std::min(   // Take the minimum dimension from the top-left partition.
+                    partition_x - (partition_x % 2) * odd_offset,
+                    partition_y - (partition_y % 2) * odd_offset
+                ),
+                0
+            )];
 
             TreeWalker<VectorType> walker{ CellPosition{ partition_height, idx }, quad_tree };
             for (size_t height = partition_height; height < max_parent_height; ++height) {
