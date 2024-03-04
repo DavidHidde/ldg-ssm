@@ -5,6 +5,7 @@
 #include "app/include/shared/model/quad_assignment_tree.hpp"
 #include "app/include/shared/util/distance_functions.hpp"
 #include "app/include/self_sorting_map/method.hpp"
+#include "app/include/shared/util/image.hpp"
 #include "app/include/shared/util/metric/hierarchy_neighborhood_distance.hpp"
 
 /**
@@ -82,7 +83,7 @@ int main(int argc, const char **argv)
     size_t n_cols = 1024;
     size_t max_iterations = 10000;
     double minimal_dist_change_percent = 0.000001;
-    std::vector<ssm::TargetType> target_types{ ssm::PARTITION_NEIGHBOURHOOD, ssm::HIGHEST_PARENT_HIERARCHY };
+    std::vector<ssm::TargetType> target_types{ ssm::PARTITION_NEIGHBOURHOOD };
 
     // Data initialization
     size_t depth = std::ceil(std::log2(std::max(n_cols, n_rows))) + 1;
@@ -90,12 +91,20 @@ int main(int argc, const char **argv)
     auto assignment = createRandomAssignment(data.size(), n_rows, n_cols);
     shared::QuadAssignmentTree<V3<double>> quad_tree{ data, assignment, n_rows, n_cols, depth };
 
-    // Actual sorting
+    // Functions
     std::function<double(
         std::shared_ptr<V3<double>>,
         std::shared_ptr<V3<double>>
     )> distance_function = shared::euclideanDistance<V3<double>>;
-    ssm::sort(quad_tree, distance_function, max_iterations, minimal_dist_change_percent, target_types);
+    std::function<void(
+        shared::QuadAssignmentTree<V3<double>> &,
+        std::string const
+    )> checkpoint_function = shared::saveQuadTreeRGBImages<V3<double>>;
+
+    // Actual sorting
+    std::cout << "Fully sorted HND: " << computeHierarchyNeighborhoodDistance(0, distance_function, quad_tree) << "\n";
+    randomizeAssignment(quad_tree, 42);
+    ssm::sort(quad_tree, distance_function, checkpoint_function, max_iterations, minimal_dist_change_percent, target_types);
 
     clock_t stop = clock();
     double elapsed = (double) (stop - start) / CLOCKS_PER_SEC;

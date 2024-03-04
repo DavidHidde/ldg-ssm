@@ -43,7 +43,7 @@ namespace shared
      * @param height
      */
     template<typename VectorType>
-    void saveQuadTreeImages(QuadAssignmentTree<VectorType> &quad_tree, std::string const base_filename)
+    void saveQuadTreeRGBImages(QuadAssignmentTree<VectorType> &quad_tree, std::string const base_filename)
     {
         for (size_t height = 0; height < quad_tree.getDepth(); ++height)
             saveImage(quad_tree, base_filename + "-(h" + std::to_string(height) + ")", height);

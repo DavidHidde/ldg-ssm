@@ -7,7 +7,6 @@
 #include "app/include/shared/model/quad_assignment_tree.hpp"
 #include "app/include/shared/util/tree_traversal/row_major_iterator.hpp"
 #include "app/include/shared/tree_functions.hpp"
-#include "app/include/shared/util/image.hpp"
 #include "targets.hpp"
 #include "partitions.hpp"
 
@@ -52,6 +51,7 @@ namespace ssm
      *
      * @tparam VectorType
      * @param quad_tree
+     * @param checkpoint_function
      * @param distance_function
      * @param target_types
      */
@@ -59,15 +59,13 @@ namespace ssm
     void sort(
         shared::QuadAssignmentTree<VectorType> &quad_tree,
         std::function<double(std::shared_ptr<VectorType>, std::shared_ptr<VectorType>)> distance_function,
+        std::function<void(shared::QuadAssignmentTree<VectorType> &, std::string const)> checkpoint_function,
         const size_t max_iterations,
         const double distance_threshold,
         const std::vector<TargetType> target_types
     )
     {
         using namespace shared;
-        std::cout << "Fully sorted HND: " << computeHierarchyNeighborhoodDistance(0, distance_function, quad_tree) << "\n";
-        randomizeAssignment(quad_tree, 42);
-
         double distance = computeHierarchyNeighborhoodDistance(0, distance_function, quad_tree);
         double new_distance = distance;
         std::cout << "Start HND: " << distance << "\n\n";
@@ -95,7 +93,7 @@ namespace ssm
                 ++iterations;
             } while (iterations < max_iterations && num_exchanges > 0 && distanceHasChanged(distance, new_distance, distance_threshold));
 
-            saveQuadTreeImages(quad_tree, "ssm-size(" + std::to_string(size_t(std::pow(2., height))) + ")");
+            checkpoint_function(quad_tree, "ssm-size(" + std::to_string(size_t(std::pow(2., height))) + ")");
             if (iterations >= max_iterations) {
                 reason = " (max iterations reached)\n";
             } else if (num_exchanges == 0) {
