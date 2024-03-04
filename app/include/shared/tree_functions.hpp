@@ -28,7 +28,7 @@ namespace shared
                 CellPosition position{ height, idx };
                 TreeWalker<VectorType> walker(position, curr_num_rows, curr_num_cols, quad_tree);
                 auto children = walker.getChildrenValues();
-                VectorType aggregated_value = aggregate(std::vector<std::shared_ptr<VectorType>>(children.begin(), children.end()));
+                VectorType aggregated_value = aggregate(std::vector<std::shared_ptr<VectorType>>(children.begin(), children.end()), quad_tree.getDataElementLen());
                 quad_tree.setValue(position, aggregated_value);
             }
 
@@ -76,6 +76,28 @@ namespace shared
         assignment[size - 1] = size - 1; // Fix last element
 
         return assignment;
+    }
+
+    /**
+     * Determine the size of the array required to fit a num_rows x num_cols quad tree
+     *
+     * @param num_rows
+     * @param num_cols
+     * @return
+     */
+    size_t determineRequiredArrayCapacity(size_t num_rows, size_t num_cols)
+    {
+        size_t num_elements = num_rows * num_cols;
+        size_t size = num_elements;
+        size_t new_num_cols = num_cols;
+        size_t new_num_rows = num_rows;
+        while (new_num_rows > 1 && new_num_cols > 1) {
+            new_num_cols = shared::ceilDivideByFactor(new_num_cols, 2.);
+            new_num_rows = shared::ceilDivideByFactor(new_num_rows, 2.);
+            size += new_num_cols * new_num_rows;
+        }
+
+        return size;
     }
 }
 

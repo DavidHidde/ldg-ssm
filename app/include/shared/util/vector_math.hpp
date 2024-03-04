@@ -14,13 +14,14 @@ namespace shared
      *
      * @tparam VectorType
      * @param vectors
+     * @param num_elements
      * @return
      */
     template<typename VectorType>
-    VectorType aggregate(std::vector<std::shared_ptr<VectorType>> &vectors)
+    VectorType aggregate(std::vector<std::shared_ptr<VectorType>> &vectors, size_t num_elements)
     {
         double count = 0.;
-        VectorType aggregate = VectorType::Zero();
+        VectorType aggregate = VectorType::Zero(num_elements);
 
         for (auto vector_ptr : vectors) {
             if (vector_ptr != nullptr) {
@@ -29,7 +30,7 @@ namespace shared
             }
         }
 
-        return aggregate / count;
+        return aggregate / std::max(1., count);
     }
 
     /**
@@ -38,14 +39,15 @@ namespace shared
      *
      * @tparam VectorType
      * @param vectors
+     * @param num_elements
      * @param weights A vector of weights per vector. Assumed to be the same length as vectors.
      * @return
      */
     template<typename VectorType>
-    VectorType aggregate(std::vector<std::shared_ptr<VectorType>> &vectors, std::vector<double> &weights)
+    VectorType aggregate(std::vector<std::shared_ptr<VectorType>> &vectors, size_t num_elements, std::vector<double> &weights)
     {
         double total_weight = 0.;
-        VectorType aggregate = VectorType::Zero();
+        VectorType aggregate = VectorType::Zero(num_elements);
 
         for (size_t idx = 0; idx < vectors.size(); ++idx) {
             if (vectors[idx] != nullptr) {
@@ -54,7 +56,7 @@ namespace shared
             }
         }
 
-        return aggregate / total_weight;
+        return aggregate / std::max(1., total_weight);
     }
 
     /**
@@ -63,13 +65,14 @@ namespace shared
      *
      * @tparam VectorType
      * @param vectors
+     * @param num_elements
      * @return
      */
     template<typename VectorType>
-    VectorType aggregate(std::vector<std::shared_ptr<VectorType>> &&vectors)
+    VectorType aggregate(std::vector<std::shared_ptr<VectorType>> &&vectors, size_t num_elements)
     {
         double count = 0.;
-        VectorType aggregate = VectorType::Zero();
+        VectorType aggregate = VectorType::Zero(num_elements);
 
         for (auto vector_ptr : vectors) {
             if (vector_ptr != nullptr) {
@@ -78,7 +81,7 @@ namespace shared
             }
         }
 
-        return aggregate / count;
+        return aggregate / std::max(1., count);
     }
 }
 

@@ -22,6 +22,7 @@ namespace shared
         size_t num_rows;
         size_t num_cols;
         size_t depth;
+        size_t data_element_len;
 
         std::vector<std::shared_ptr<VectorType>> data;
         std::vector<size_t> assignment;
@@ -33,14 +34,17 @@ namespace shared
             const std::vector<size_t> &assignment,
             size_t num_rows,
             size_t num_cols,
-            size_t depth
+            size_t depth,
+            size_t data_element_len
         );
 
-        size_t &getDepth();
+        size_t getDepth();
 
-        size_t &getNumRows();
+        size_t getNumRows();
 
-        size_t &getNumCols();
+        size_t getNumCols();
+
+        size_t getDataElementLen();
 
         std::vector<size_t> &getAssignment();
 
@@ -75,13 +79,15 @@ namespace shared
         const std::vector<size_t> &assignment,
         size_t num_rows,
         size_t num_cols,
-        size_t depth
+        size_t depth,
+        size_t data_element_len
     ):
         data(data),
         assignment(assignment),
         num_rows(num_rows),
         num_cols(num_cols),
         depth(depth),
+        data_element_len(data_element_len),
         bounds_cache()
     {
         // Generate the bounds cache
@@ -261,7 +267,7 @@ namespace shared
      * @return
      */
     template<typename DataType>
-    size_t &QuadAssignmentTree<DataType>::getNumCols()
+    size_t QuadAssignmentTree<DataType>::getNumCols()
     {
         return num_cols;
     }
@@ -271,7 +277,7 @@ namespace shared
      * @return
      */
     template<typename DataType>
-    size_t &QuadAssignmentTree<DataType>::getNumRows()
+    size_t QuadAssignmentTree<DataType>::getNumRows()
     {
         return num_rows;
     }
@@ -281,9 +287,19 @@ namespace shared
      * @return
      */
     template<typename DataType>
-    size_t &QuadAssignmentTree<DataType>::getDepth()
+    size_t QuadAssignmentTree<DataType>::getDepth()
     {
         return depth;
+    }
+
+    /**
+     * @tparam DataType
+     * @return
+     */
+    template<typename DataType>
+    size_t QuadAssignmentTree<DataType>::getDataElementLen()
+    {
+        return data_element_len;
     }
 }
 

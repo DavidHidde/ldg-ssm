@@ -55,7 +55,7 @@ namespace ssm
                         ));
                 }
             }
-            target_map[idx].push_back(std::make_shared<VectorType>(aggregate(values)));
+            target_map[idx].push_back(std::make_shared<VectorType>(aggregate(values, quad_tree.getDataElementLen())));
             values.clear();
         }
     }
