@@ -9,15 +9,15 @@ namespace shared
 {
     /**
      * A POD num_rows x num_cols grid assignment class, with the assignment stored as indices of a data set.
-     * @tparam DataType The data set data type.
+     * @tparam VectorType The data set data type.
      */
-    template<typename DataType>
+    template<typename VectorType>
     struct Assignment
     {
         const size_t num_rows;
         const size_t num_cols;
         std::vector<size_t> assigned_indices;  // Row-major assignment of indices of data.
-        std::shared_ptr<std::vector<DataType>> data;
+        std::shared_ptr<std::vector<VectorType>> data;
     };
 }
 

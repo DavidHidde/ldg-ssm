@@ -1,15 +1,11 @@
 #include <vector>
-#include <iostream>
 #include <memory>
-#include <algorithm>
-#include <random>
-#include <CImg.h>
 #include "helper_volData/vec.h"
 #include "app/include/shared/util/math.hpp"
 #include "app/include/shared/model/quad_assignment_tree.hpp"
 #include "app/include/shared/util/distance_functions.hpp"
-#include "app/include/shared/tree_functions.hpp"
 #include "app/include/self_sorting_map/method.hpp"
+#include "app/include/shared/util/image.hpp"
 #include "app/include/shared/util/metric/hierarchy_neighborhood_distance.hpp"
 
 /**
@@ -19,26 +15,31 @@
  * @param num_cols
  * @return
  */
-std::shared_ptr<std::vector<std::shared_ptr<V3<float>>>> generateRandomColorData(size_t num_rows, size_t num_cols)
+std::vector<std::shared_ptr<V3<double>>> generateRandomColorData(size_t num_rows, size_t num_cols)
 {
     // Generate quad tree structure space, initialized to an empty shared ptr
     size_t num_elements = num_rows * num_cols;
     size_t size = num_elements;
-    while (num_rows > 1 && num_cols > 1) {
-        num_cols = shared::ceilDivideByFactor(num_cols, 2.);
-        num_rows = shared::ceilDivideByFactor(num_rows, 2.);
-        size += num_cols * num_rows;
+    size_t new_num_cols = num_cols;
+    size_t new_num_rows = num_rows;
+    while (new_num_rows > 1 && new_num_cols > 1) {
+        new_num_cols = shared::ceilDivideByFactor(new_num_cols, 2.);
+        new_num_rows = shared::ceilDivideByFactor(new_num_rows, 2.);
+        size += new_num_cols * new_num_rows;
     }
-    auto data = std::make_shared<std::vector<std::shared_ptr<V3<float>>>>(size);
+    auto data = std::vector<std::shared_ptr<V3<double>>>(size, std::make_shared<V3<double>>(V3<double>{}));
 
     // Fill first cells with data
     for (size_t idx = 0; idx < size; ++idx) {
         if (idx < num_elements) {
-            float factor = (float(idx) / float(num_elements)) * 255.;
-            float rounded = std::round(factor);
-            (*data)[idx] = std::make_shared<V3<float>>(V3<float>{ rounded, rounded, rounded });
+            size_t x = idx % num_cols;
+            size_t y = idx / num_cols;
+            double r = x * (255. / (num_cols - 1));
+            double g = (x + y) * (255. / (num_cols + num_rows - 2));
+            double b = y * (255. / (num_rows - 1));
+            data[idx] = std::make_shared<V3<double>>(V3<double>{ std::round(r), std::round(g), std::round(b) });
         } else {
-            (*data)[idx] = std::make_shared<V3<float>>(V3<float>{});
+            data[idx] = std::make_shared<V3<double>>(V3<double>{});
         }
     }
 
@@ -52,65 +53,61 @@ std::shared_ptr<std::vector<std::shared_ptr<V3<float>>>> generateRandomColorData
  * @param num_cols
  * @return
  */
-std::shared_ptr<std::vector<size_t>> createRandomAssignment(size_t size, size_t num_rows, size_t num_cols)
+std::vector<size_t> createRandomAssignment(size_t size, size_t num_rows, size_t num_cols)
 {
-    auto assignment = std::make_shared<std::vector<size_t>>(size);
+    auto assignment = std::vector<size_t>(size);
 
     // Generate quad tree structure space, where every height starts at 0 again
     size_t offset = 0;
     while (num_rows > 1 && num_cols > 1) {
         size_t end = offset + num_cols * num_rows;
         for (size_t idx = offset; idx < end; ++idx) {
-            (*assignment)[idx] = idx;
+            assignment[idx] = idx;
         }
-        std::shuffle((*assignment).begin() + offset, (*assignment).begin() + end, std::mt19937());
+
         offset += num_cols * num_rows;
         num_cols = shared::ceilDivideByFactor(num_cols, 2.);
         num_rows = shared::ceilDivideByFactor(num_rows, 2.);
     }
-    (*assignment)[size - 1] = size - 1; // Fix last element
+    assignment[size - 1] = size - 1; // Fix last element
 
     return assignment;
 }
 
-void printImage(shared::QuadAssignmentTree<V3<float>> &quad_tree, std::string filename)
-{
-    using namespace cimg_library;
-    CImg<float> img(quad_tree.getNumCols(), quad_tree.getNumRows(), 3);
-    for (shared::RowMajorIterator<V3<float>> it(0, quad_tree); it != it.end(); ++it) {
-        auto position = it.getPosition();
-        size_t x = position.index % quad_tree.getNumCols();
-        size_t y = position.index / quad_tree.getNumCols();
-        auto value = *it.getValue();
-        img(x, y, 0) = value.x;
-        img(x, y, 1) = value.y;
-        img(x, y, 2) = value.z;
-    }
-    img.save_png((filename + ".png").c_str());
-}
-
 int main(int argc, const char **argv)
 {
-    // Runtime test parameters
-    size_t n_rows = 128;
-    size_t n_cols = 128;
-    size_t max_iterations = 1000;
+    clock_t start = clock();
 
+    // Runtime test parameters
+    size_t n_rows = 1024;
+    size_t n_cols = 1024;
+    size_t max_iterations = 10000;
+    double minimal_dist_change_percent = 0.000001;
+    std::vector<ssm::TargetType> target_types{ ssm::PARTITION_NEIGHBOURHOOD };
+
+    // Data initialization
     size_t depth = std::ceil(std::log2(std::max(n_cols, n_rows))) + 1;
     auto data = generateRandomColorData(n_rows, n_cols);
-    auto assignment = createRandomAssignment((*data).size(), n_rows, n_cols);
-    shared::QuadAssignmentTree<V3<float>> quad_tree{ data, assignment, n_rows, n_cols, depth };
-    printImage(quad_tree, "before");
+    auto assignment = createRandomAssignment(data.size(), n_rows, n_cols);
+    shared::QuadAssignmentTree<V3<double>> quad_tree{ data, assignment, n_rows, n_cols, depth };
 
-    std::function<float(
-        std::shared_ptr<V3<float>>,
-        std::shared_ptr<V3<float>>
-    )> distance_function = shared::euclideanDistance<V3<float>>;
-    std::cout << "Start HND: " << shared::computeHierarchyNeighborhoodDistance(0, distance_function, quad_tree) << "\n\n";
-    ssm::sort(quad_tree, distance_function, max_iterations);
+    // Functions
+    std::function<double(
+        std::shared_ptr<V3<double>>,
+        std::shared_ptr<V3<double>>
+    )> distance_function = shared::euclideanDistance<V3<double>>;
+    std::function<void(
+        shared::QuadAssignmentTree<V3<double>> &,
+        std::string const
+    )> checkpoint_function = shared::saveQuadTreeRGBImages<V3<double>>;
 
-    std::cout << "After sorting HND: " << shared::computeHierarchyNeighborhoodDistance(0, distance_function, quad_tree) << '\n';
-    printImage(quad_tree, "after");
+    // Actual sorting
+    std::cout << "Fully sorted HND: " << computeHierarchyNeighborhoodDistance(0, distance_function, quad_tree) << "\n";
+    randomizeAssignment(quad_tree, 42);
+    ssm::sort(quad_tree, distance_function, checkpoint_function, max_iterations, minimal_dist_change_percent, target_types);
 
+    clock_t stop = clock();
+    double elapsed = (double) (stop - start) / CLOCKS_PER_SEC;
+    printf("\nTime elapsed: %.5f\n", elapsed);
     return 0;
 }

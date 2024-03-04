@@ -14,22 +14,23 @@ namespace shared
     /**
      * Quad tree of the data. Uses a flat row-major data array for all heights of the tree, which should already exist.
      * Uses an assignment array to determine the grid assignment.
-     * @tparam DataType The data type of the grid.
+     * @tparam VectorType The data type of the grid.
      */
-    template<typename DataType>
+    template<typename VectorType>
     class QuadAssignmentTree
     {
         size_t num_rows;
         size_t num_cols;
         size_t depth;
 
-        std::shared_ptr<std::vector<std::shared_ptr<DataType>>> data;
-        std::shared_ptr<std::vector<size_t>> assignment;
+        std::vector<std::shared_ptr<VectorType>> data;
+        std::vector<size_t> assignment;
+        std::vector<std::pair<std::pair<size_t, size_t>, std::pair<size_t, size_t>>> bounds_cache;
 
     public:
         QuadAssignmentTree(
-            const std::shared_ptr<std::vector<std::shared_ptr<DataType>>> &data,
-            const std::shared_ptr<std::vector<size_t>> &assignment,
+            const std::vector<std::shared_ptr<VectorType>> &data,
+            const std::vector<size_t> &assignment,
             size_t num_rows,
             size_t num_cols,
             size_t depth
@@ -41,15 +42,17 @@ namespace shared
 
         size_t &getNumCols();
 
-        std::shared_ptr<std::vector<size_t>> getAssignment();
+        std::vector<size_t> &getAssignment();
 
-        std::shared_ptr<std::vector<std::shared_ptr<DataType>>> getData();
+        std::vector<std::shared_ptr<VectorType>> &getData();
 
-        std::shared_ptr<DataType> getValue(CellPosition position);
+        std::shared_ptr<VectorType> getValue(CellPosition position);
 
-        bool setValue(CellPosition position, DataType &value);
+        bool setValue(CellPosition position, VectorType &value);
 
-        bool setAssignment(CellPosition position, size_t &value);
+        size_t getAssignmentValue(CellPosition position);
+
+        bool setAssignmentValue(CellPosition position, size_t &value);
 
         std::pair<std::pair<size_t, size_t>, std::pair<size_t, size_t>> getBounds(CellPosition position);
 
@@ -60,16 +63,16 @@ namespace shared
      * Construct the quad tree from a data set. Assumes the data is already initialized using a [h0, h1, ...hn] structure.
      * The assignment is initialized to the index of the tree.
      *
-     * @tparam DataType
+     * @tparam VectorType
      * @param data
      * @param num_rows
      * @param num_cols
      * @param depth
      */
-    template<typename DataType>
-    QuadAssignmentTree<DataType>::QuadAssignmentTree(
-        const std::shared_ptr<std::vector<std::shared_ptr<DataType>>> &data,
-        const std::shared_ptr<std::vector<size_t>> &assignment,
+    template<typename VectorType>
+    QuadAssignmentTree<VectorType>::QuadAssignmentTree(
+        const std::vector<std::shared_ptr<VectorType>> &data,
+        const std::vector<size_t> &assignment,
         size_t num_rows,
         size_t num_cols,
         size_t depth
@@ -78,51 +81,53 @@ namespace shared
         assignment(assignment),
         num_rows(num_rows),
         num_cols(num_cols),
-        depth(depth)
+        depth(depth),
+        bounds_cache()
     {
-
+        // Generate the bounds cache
+        bounds_cache.reserve(depth);
+        size_t new_num_rows = num_rows;
+        size_t new_num_cols = num_cols;
+        size_t offset = 0;
+        for (size_t height = 0; height < depth; ++height) {
+            bounds_cache.push_back(std::pair<std::pair<size_t, size_t>, std::pair<size_t, size_t>> {
+                {
+                    offset,
+                    offset + new_num_rows * new_num_cols
+                },
+                {
+                    new_num_rows,
+                    new_num_cols
+                }
+            });
+            offset += new_num_cols * new_num_rows;
+            new_num_cols = ceilDivideByFactor(new_num_cols, 2.);
+            new_num_rows = ceilDivideByFactor(new_num_rows, 2.);
+        }
     }
 
     /**
      * Get the bounds of the data arrays for the given position.
      *
      * @param position
-     * @tparam DataType
+     * @tparam VectorType
      * @return <[start, end) of the data array at the given height, [num_rows, num_cols] for the given height>
      */
-    template<typename DataType>
-    std::pair<std::pair<size_t, size_t>, std::pair<size_t, size_t>> QuadAssignmentTree<DataType>::getBounds(CellPosition position)
+    template<typename VectorType>
+    std::pair<std::pair<size_t, size_t>, std::pair<size_t, size_t>> QuadAssignmentTree<VectorType>::getBounds(CellPosition position)
     {
-        size_t new_num_rows = num_rows;
-        size_t new_num_cols = num_cols;
-        size_t offset = 0;
-        for (size_t idx = 0; idx < position.height; ++idx) {
-            offset += new_num_cols * new_num_rows;
-            new_num_cols = ceilDivideByFactor(new_num_cols, 2.);
-            new_num_rows = ceilDivideByFactor(new_num_rows, 2.);
-        }
-
-        return {
-            {
-                offset,
-                offset + new_num_rows * new_num_cols
-            },
-            {
-                new_num_rows,
-                new_num_cols
-            }
-        };
+        return bounds_cache[position.height];
     }
 
     /**
      * Get the bounds of the leaf partition in the data arrays for the given position.
      *
      * @param position
-     * @tparam DataType
+     * @tparam VectorType
      * @return <[start, end) of the leaf partition at h0, [num_rows, num_cols] for the partition>
      */
-    template<typename DataType>
-    std::pair<std::pair<size_t, size_t>, std::pair<size_t, size_t>> QuadAssignmentTree<DataType>::getLeafBounds(CellPosition position)
+    template<typename VectorType>
+    std::pair<std::pair<size_t, size_t>, std::pair<size_t, size_t>> QuadAssignmentTree<VectorType>::getLeafBounds(CellPosition position)
     {
         float factor = std::pow(2., position.height);
         size_t height_num_cols = ceilDivideByFactor(num_cols, factor);
@@ -153,59 +158,75 @@ namespace shared
     /**
      * Get a value at a position in the tree. If it is out-of-bounds, returns nullptr.
      *
-     * @tparam DataType
+     * @tparam VectorType
      * @param position
      * @return
      */
-    template<typename DataType>
-    std::shared_ptr<DataType> QuadAssignmentTree<DataType>::getValue(CellPosition position)
+    template<typename VectorType>
+    std::shared_ptr<VectorType> QuadAssignmentTree<VectorType>::getValue(CellPosition position)
     {
         auto bounds = getBounds(position);
         auto start_end = bounds.first;
         size_t index = start_end.first + position.index;
-        return index < start_end.second ? (*data)[(*assignment)[index]] : nullptr;
+        return index < start_end.second ? data[assignment[index]] : nullptr;
     }
 
     /**
      * Set the value at a given position.
      *
-     * @tparam DataType
+     * @tparam VectorType
      * @param position
      * @param value
      * @return True if setting the value worked, false if not.
      */
-    template<typename DataType>
-    bool QuadAssignmentTree<DataType>::setValue(CellPosition position, DataType &value)
+    template<typename VectorType>
+    bool QuadAssignmentTree<VectorType>::setValue(CellPosition position, VectorType &value)
     {
         auto bounds = getBounds(position);
         auto start_end = bounds.first;
         size_t index = start_end.first + position.index;
 
         if (index < start_end.second) {
-            *(*data)[(*assignment)[index]] = std::move(value);
+            *data[assignment[index]] = std::move(value);
             return true;
         }
 
         return false;
+    }
+
+    /**
+     * Get the assignment value at a position in the tree. This is not safe for out of bounds values.
+     *
+     * @tparam VectorType
+     * @param position
+     * @return
+     */
+    template<typename VectorType>
+    size_t QuadAssignmentTree<VectorType>::getAssignmentValue(CellPosition position)
+    {
+        auto bounds = getBounds(position);
+        auto start_end = bounds.first;
+        size_t index = start_end.first + position.index;
+        return assignment[index];
     }
 
     /**
      * Set the assignment at a given position.
      *
-     * @tparam DataType
+     * @tparam VectorType
      * @param position
      * @value
      * @return True if setting the value worked, false if not.
      */
-    template<typename DataType>
-    bool QuadAssignmentTree<DataType>::setAssignment(CellPosition position, size_t &value)
+    template<typename VectorType>
+    bool QuadAssignmentTree<VectorType>::setAssignmentValue(CellPosition position, size_t &value)
     {
         auto bounds = getBounds(position);
         auto start_end = bounds.first;
         size_t index = start_end.first + position.index;
 
         if (index < start_end.second) {
-            (*assignment)[index] = value;
+            assignment[index] = value;
             return true;
         }
 
@@ -213,26 +234,26 @@ namespace shared
     }
 
     /**
-     * Get a new shared pointer for the current assignment.
+     * Get the current assignment.
      *
-     * @tparam DataType
+     * @tparam VectorType
      * @return
      */
-    template<typename DataType>
-    std::shared_ptr<std::vector<size_t>> QuadAssignmentTree<DataType>::getAssignment()
+    template<typename VectorType>
+    std::vector<size_t> &QuadAssignmentTree<VectorType>::getAssignment()
     {
-        return std::shared_ptr<std::vector<size_t>>(assignment);
+        return assignment;
     }
 
     /**
-     * Get a new shared pointer for the current data.
-     * @tparam DataType
+     * Get the current data.
+     * @tparam VectorType
      * @return
      */
-    template<typename DataType>
-    std::shared_ptr<std::vector<std::shared_ptr<DataType>>> QuadAssignmentTree<DataType>::getData()
+    template<typename VectorType>
+    std::vector<std::shared_ptr<VectorType>> &QuadAssignmentTree<VectorType>::getData()
     {
-        return std::shared_ptr<std::vector<std::shared_ptr<DataType>>>(data);
+        return data;
     }
 
     /**

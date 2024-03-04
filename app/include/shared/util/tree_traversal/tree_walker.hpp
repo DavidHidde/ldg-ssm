@@ -15,23 +15,23 @@ namespace shared
      * Class for walking up and down the quad tree (classic quad tree traversal).
      * The state considers a parent of 4 child nodes. For leaf nodes, the children are empty. For the root, the parent is.
      *
-     * @tparam DataType Type of the underlying data.
+     * @tparam VectorType Type of the underlying data.
      */
-    template<typename DataType>
+    template<typename VectorType>
     class TreeWalker
     {
         CellPosition node;  // The current node.
         size_t num_rows;    // Number of rows of the current height array.
         size_t num_cols;    // Number of columns of the current height array.
 
-        QuadAssignmentTree<DataType> &quad_tree;
+        QuadAssignmentTree<VectorType> &quad_tree;
 
     public:
-        TreeWalker(CellPosition position, QuadAssignmentTree<DataType> &quad_tree);
+        TreeWalker(CellPosition position, QuadAssignmentTree<VectorType> &quad_tree);
 
-        TreeWalker(CellPosition position, size_t num_rows, size_t num_cols, QuadAssignmentTree<DataType> &quad_tree);
+        TreeWalker(CellPosition position, size_t num_rows, size_t num_cols, QuadAssignmentTree<VectorType> &quad_tree);
 
-        TreeWalker<DataType> &operator=(shared::TreeWalker<DataType> rhs);
+        TreeWalker<VectorType> &operator=(shared::TreeWalker<VectorType> rhs);
 
         bool moveUp();
 
@@ -39,17 +39,17 @@ namespace shared
 
         void reposition(CellPosition position);
 
-        std::shared_ptr<DataType> getNodeValue();
+        std::shared_ptr<VectorType> getNodeValue();
 
-        std::shared_ptr<DataType> getParentValue();
+        std::shared_ptr<VectorType> getParentValue();
 
-        std::array<std::shared_ptr<DataType>, 4> getChildrenValues();
+        std::array<std::shared_ptr<VectorType>, 4> getChildrenValues();
 
         size_t getParentIndex();
 
         std::array<int, 4> getChildrenIndices();
 
-        RowMajorIterator<DataType> getLeaves();
+        RowMajorIterator<VectorType> getLeaves();
 
         size_t getNumRows() const;
 
@@ -59,13 +59,13 @@ namespace shared
     };
 
     /**
-     * @tparam DataType
+     * @tparam VectorType
      * @param index
      * @param height
      * @param quad_tree
      */
-    template<typename DataType>
-    TreeWalker<DataType>::TreeWalker(CellPosition position, QuadAssignmentTree<DataType> &quad_tree):
+    template<typename VectorType>
+    TreeWalker<VectorType>::TreeWalker(CellPosition position, QuadAssignmentTree<VectorType> &quad_tree):
         node(position),
         num_rows(ceilDivideByPowerTwo(quad_tree.getNumRows(), position.height)),
         num_cols(ceilDivideByPowerTwo(quad_tree.getNumCols(), position.height)),
@@ -74,18 +74,18 @@ namespace shared
     }
 
     /**
-     * @tparam DataType
+     * @tparam VectorType
      * @param position
      * @param num_rows
      * @param num_cols
      * @param quad_tree
      */
-    template<typename DataType>
-    TreeWalker<DataType>::TreeWalker(
+    template<typename VectorType>
+    TreeWalker<VectorType>::TreeWalker(
         CellPosition position,
         size_t num_rows,
         size_t num_cols,
-        QuadAssignmentTree<DataType> &quad_tree
+        QuadAssignmentTree<VectorType> &quad_tree
     ):
         node(position),
         num_rows(num_rows),
@@ -96,12 +96,12 @@ namespace shared
     /**
      * Copy another walker into this walker.
      *
-     * @tparam DataType
+     * @tparam VectorType
      * @param rhs
      * @return
      */
-    template<typename DataType>
-    TreeWalker<DataType> &TreeWalker<DataType>::operator=(TreeWalker<DataType> rhs)
+    template<typename VectorType>
+    TreeWalker<VectorType> &TreeWalker<VectorType>::operator=(TreeWalker<VectorType> rhs)
     {
         node = rhs.node;
         num_rows = rhs.num_rows;
@@ -113,11 +113,11 @@ namespace shared
     /**
      * Move up in the quad tree. Returns false if at the root.
      *
-     * @tparam DataType
+     * @tparam VectorType
      * @return True if the walker is now set at the parent, else false.
      */
-    template<typename DataType>
-    bool TreeWalker<DataType>::moveUp()
+    template<typename VectorType>
+    bool TreeWalker<VectorType>::moveUp()
     {
         if (node.height == quad_tree.getDepth() - 1) {
             return false;
@@ -134,11 +134,11 @@ namespace shared
      * Move down in the quad tree. Returns false if at a leaf.
      *
      * @param quadrant The quadrant of the child to move to.
-     * @tparam DataType
+     * @tparam VectorType
      * @return True if the walker is now set at one of the children, else false.
      */
-    template<typename DataType>
-    bool TreeWalker<DataType>::moveDown(Quadrant quadrant)
+    template<typename VectorType>
+    bool TreeWalker<VectorType>::moveDown(Quadrant quadrant)
     {
         if (node.height == 0) {
             return false;
@@ -178,13 +178,13 @@ namespace shared
     /**
      * Reposition the walker on a new place in the tree. It is your responsibility to make sure these are legal.
      *
-     * @tparam DataType
+     * @tparam VectorType
      * @param index
      * @param height
      * @return
      */
-    template<typename DataType>
-    void TreeWalker<DataType>::reposition(CellPosition position)
+    template<typename VectorType>
+    void TreeWalker<VectorType>::reposition(CellPosition position)
     {
         node.index = position.index;
         node.height = position.height;
@@ -196,11 +196,11 @@ namespace shared
     /**
      * Get the current node value. Returns nullptr if it's out of bounds
      *
-     * @tparam DataType
+     * @tparam VectorType
      * @return The data of the current node if it exists, else nullptr.
      */
-    template<typename DataType>
-    std::shared_ptr<DataType> TreeWalker<DataType>::getNodeValue()
+    template<typename VectorType>
+    std::shared_ptr<VectorType> TreeWalker<VectorType>::getNodeValue()
     {
         return quad_tree.getValue(node);
     }
@@ -208,11 +208,11 @@ namespace shared
     /**
      * Get the parent node if it exists.
      *
-     * @tparam DataType
+     * @tparam VectorType
      * @return The data of the parent node if it exists, else nullptr.
      */
-    template<typename DataType>
-    std::shared_ptr<DataType> TreeWalker<DataType>::getParentValue()
+    template<typename VectorType>
+    std::shared_ptr<VectorType> TreeWalker<VectorType>::getParentValue()
     {
         if (node.height == quad_tree.getDepth() - 1) {
             return nullptr;
@@ -225,11 +225,11 @@ namespace shared
     /**
      * Get the children of the nodes if they exist.
      *
-     * @tparam DataType
+     * @tparam VectorType
      * @return The data of the child nodes if they exist, else nullptr per child the child does not exist.
      */
-    template<typename DataType>
-    std::array<std::shared_ptr<DataType>, 4> TreeWalker<DataType>::getChildrenValues()
+    template<typename VectorType>
+    std::array<std::shared_ptr<VectorType>, 4> TreeWalker<VectorType>::getChildrenValues()
     {
         if (node.height == 0) {
             return { nullptr, nullptr, nullptr, nullptr };
@@ -247,13 +247,13 @@ namespace shared
     /**
      * Get the index of the parent of this node.
      *
-     * @tparam DataType
+     * @tparam VectorType
      * @return
      */
-    template<typename DataType>
-    size_t TreeWalker<DataType>::getParentIndex()
+    template<typename VectorType>
+    size_t TreeWalker<VectorType>::getParentIndex()
     {
-        return rowMajorIndex((node.index % num_cols) / 2, node.index / (2 * num_cols), ceilDivideByFactor(num_cols, 2.));
+        return rowMajorIndex(node.index / (2 * num_cols), (node.index % num_cols) / 2, ceilDivideByFactor(num_cols, 2.));
     }
 
     /**
@@ -261,11 +261,11 @@ namespace shared
      * Because the quad tree is build from the bottom up and hence does not always split up into 4, we need to check
      * and also return nullptr if a child does not exist.
      *
-     * @tparam DataType
+     * @tparam VectorType
      * @return Child indices of the node, in the order: [NW, NE, SW, SE]. If it does not exist, -1 is returned.
      */
-    template<typename DataType>
-    std::array<int, 4> TreeWalker<DataType>::getChildrenIndices()
+    template<typename VectorType>
+    std::array<int, 4> TreeWalker<VectorType>::getChildrenIndices()
     {
         float factor = std::pow(2, node.height - 1);
         int new_num_cols = ceilDivideByFactor(quad_tree.getNumCols(), factor);
@@ -286,11 +286,11 @@ namespace shared
     /**
      * Get an iterator over all leaves below this node.
      *
-     * @tparam DataType
+     * @tparam VectorType
      * @return
      */
-    template<typename DataType>
-    RowMajorIterator<DataType> TreeWalker<DataType>::getLeaves()
+    template<typename VectorType>
+    RowMajorIterator<VectorType> TreeWalker<VectorType>::getLeaves()
     {
         auto bounds = quad_tree.getLeafBounds(node);
         auto start_end = bounds.first;
@@ -311,31 +311,31 @@ namespace shared
     }
 
     /**
-     * @tparam DataType
+     * @tparam VectorType
      * @return
      */
-    template<typename DataType>
-    size_t TreeWalker<DataType>::getNumRows() const
+    template<typename VectorType>
+    size_t TreeWalker<VectorType>::getNumRows() const
     {
         return num_rows;
     }
 
     /**
-     * @tparam DataType
+     * @tparam VectorType
      * @return
      */
-    template<typename DataType>
-    size_t TreeWalker<DataType>::getNumCols() const
+    template<typename VectorType>
+    size_t TreeWalker<VectorType>::getNumCols() const
     {
         return num_cols;
     }
 
     /**
-     * @tparam DataType
+     * @tparam VectorType
      * @return
      */
-    template<typename DataType>
-    CellPosition &TreeWalker<DataType>::getNode()
+    template<typename VectorType>
+    CellPosition &TreeWalker<VectorType>::getNode()
     {
         return node;
     }

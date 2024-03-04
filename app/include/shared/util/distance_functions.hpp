@@ -2,34 +2,22 @@
 #define LDG_CORE_DISTANCE_FUNCTIONS_HPP
 
 #include "helper_volData/vec.h"
+#include "app/include/shared/util/vector_math.hpp"
 #include <memory>
 #include <cmath>
-
-/**
- * Get the magnitude of a vector
- *
- * @tparam DataType
- * @param vector
- * @return
- */
-template<typename DataType>
-float magnitude(DataType vector)
-{
-    return std::sqrt(dot(vector, vector));
-}
 
 namespace shared
 {
     /**
      * Take the euclidean distance between two data items.
      *
-     * @tparam DataType
+     * @tparam VectorType
      * @param lhs
      * @param rhs
      * @return 0 if the items are equal or if one of the items is nullptr.
      */
-    template<typename DataType>
-    float euclideanDistance(std::shared_ptr<DataType> const &lhs, std::shared_ptr<DataType> const &rhs)
+    template<typename VectorType>
+    double euclideanDistance(std::shared_ptr<VectorType> const &lhs, std::shared_ptr<VectorType> const &rhs)
     {
         if (lhs == nullptr || rhs == nullptr)
             return 0.;
@@ -40,13 +28,13 @@ namespace shared
     /**
      * Take the cosine distance between two items.
      *
-     * @tparam DataType
+     * @tparam VectorType
      * @param lhs
      * @param rhs
      * @return 0 if the items are equal or if one of the items is nullptr.
      */
-    template<typename DataType>
-    float cosineDistance(std::shared_ptr<DataType> const &lhs, std::shared_ptr<DataType> const &rhs)
+    template<typename VectorType>
+    double cosineDistance(std::shared_ptr<VectorType> const &lhs, std::shared_ptr<VectorType> const &rhs)
     {
         if (lhs == nullptr || rhs == nullptr)
             return 0.;
