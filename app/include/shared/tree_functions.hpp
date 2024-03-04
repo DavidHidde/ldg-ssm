@@ -49,6 +49,34 @@ namespace shared
         auto &assignment = quad_tree.getAssignment();
         std::shuffle(assignment.begin(), assignment.begin() + quad_tree.getNumRows() * quad_tree.getNumCols(), std::mt19937(seed));
     }
+
+    /**
+     * Create a direct assignment for given dimensions.
+     *
+     * @param num_rows
+     * @param num_cols
+     * @return
+     */
+    std::vector<size_t> createAssignment(size_t size, size_t num_rows, size_t num_cols)
+    {
+        auto assignment = std::vector<size_t>(size);
+
+        // Generate quad tree structure space, where every height starts at 0 again
+        size_t offset = 0;
+        while (num_rows > 1 && num_cols > 1) {
+            size_t end = offset + num_cols * num_rows;
+            for (size_t idx = offset; idx < end; ++idx) {
+                assignment[idx] = idx;
+            }
+
+            offset += num_cols * num_rows;
+            num_cols = shared::ceilDivideByFactor(num_cols, 2.);
+            num_rows = shared::ceilDivideByFactor(num_rows, 2.);
+        }
+        assignment[size - 1] = size - 1; // Fix last element
+
+        return assignment;
+    }
 }
 
 #endif //LDG_CORE_TREE_FUNCTIONS_HPP

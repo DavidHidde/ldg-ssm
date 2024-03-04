@@ -27,9 +27,9 @@ namespace shared
             size_t x = position.index % dimensions.second;
             size_t y = position.index / dimensions.second;
             auto value = *it.getValue();
-            img(x, y, 0, 0) = value.x;
-            img(x, y, 0, 1) = value.y;
-            img(x, y, 0, 2) = value.z;
+            img(x, y, 0, 0) = value(0);
+            img(x, y, 0, 1) = value(1);
+            img(x, y, 0, 2) = value(2);
         }
         img.save_png((filename + ".png").c_str());
     }

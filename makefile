@@ -29,10 +29,10 @@ compile:
 	docker run --rm $(app_dir_bind) $(container_name) cmake --build $(build_dir_container) -j10
 
 run:
-	docker run -it --rm $(app_dir_bind) $(container_name) sh -c "cd $(build_dir_container) && ./new_ldg"
+	docker run -it --rm $(app_dir_bind) $(data_dir_bind) $(container_name) sh -c "cd $(build_dir_container) && ./new_ldg"
 
 bash:
-	docker run -it --rm $(app_dir_bind) $(container_name) bash
+	docker run -it --rm $(app_dir_bind) $(data_dir_bind) $(container_name) bash
 
 test_script:
 	docker run -it --rm \

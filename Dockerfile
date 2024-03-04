@@ -7,6 +7,7 @@ RUN apt-get update && apt install -y \
     libomp-dev \
     libc++-dev \
     libc++abi-dev \
+    libeigen3-dev \
     cimg-dev \
     libx11-dev \
     bzip2 \
