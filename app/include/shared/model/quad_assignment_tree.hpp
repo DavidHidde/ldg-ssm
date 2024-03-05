@@ -22,6 +22,7 @@ namespace shared
         size_t num_rows;
         size_t num_cols;
         size_t depth;
+        size_t num_real_elements;
         size_t data_element_len;
 
         std::vector<std::shared_ptr<VectorType>> data;
@@ -35,6 +36,7 @@ namespace shared
             size_t num_rows,
             size_t num_cols,
             size_t depth,
+            size_t num_real_elements,
             size_t data_element_len
         );
 
@@ -43,6 +45,8 @@ namespace shared
         size_t getNumRows();
 
         size_t getNumCols();
+
+        size_t getNumRealElements();
 
         size_t getDataElementLen();
 
@@ -69,9 +73,12 @@ namespace shared
      *
      * @tparam VectorType
      * @param data
+     * @param assignment
      * @param num_rows
      * @param num_cols
      * @param depth
+     * @param num_real_elements
+     * @param data_element_len
      */
     template<typename VectorType>
     QuadAssignmentTree<VectorType>::QuadAssignmentTree(
@@ -80,6 +87,7 @@ namespace shared
         size_t num_rows,
         size_t num_cols,
         size_t depth,
+        size_t num_real_elements,
         size_t data_element_len
     ):
         data(data),
@@ -87,6 +95,7 @@ namespace shared
         num_rows(num_rows),
         num_cols(num_cols),
         depth(depth),
+        num_real_elements(num_real_elements),
         data_element_len(data_element_len),
         bounds_cache()
     {
@@ -290,6 +299,16 @@ namespace shared
     size_t QuadAssignmentTree<DataType>::getDepth()
     {
         return depth;
+    }
+
+    /**
+     * @tparam DataType
+     * @return
+     */
+    template<typename DataType>
+    size_t QuadAssignmentTree<DataType>::getNumRealElements()
+    {
+        return num_real_elements;
     }
 
     /**

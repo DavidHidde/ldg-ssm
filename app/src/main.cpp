@@ -8,6 +8,7 @@
 #include "app/include/shared/util/image.hpp"
 #include "app/include/shared/util/metric/hierarchy_neighborhood_distance.hpp"
 #include "app/include/adapter/data.hpp"
+#include "app/include/adapter/storage.hpp"
 
 /**
  * Generate some random RGB data in the range [0, 255], already in the quad tree structure.
@@ -53,9 +54,10 @@ int main(int argc, const char **argv)
     // Data initialization
     size_t depth = std::ceil(std::log2(std::max(n_cols, n_rows))) + 1;
 //    auto data = generateRandomColorData(n_rows, n_cols);
-    auto data = adapter::loadData("/usr/data/input/caltech1k_feat.config", n_rows, n_cols);
-    auto assignment = shared::createAssignment(data.size(), n_rows, n_cols);
-    shared::QuadAssignmentTree<Eigen::VectorXd> quad_tree{ data, assignment, n_rows, n_cols, depth, (*data[0]).size() };
+//    auto assignment = shared::createAssignment(data.size(), n_rows, n_cols);
+    auto [data, element_len, num_elements] = adapter::loadData("/usr/data/input/caltech_feat.config", n_rows, n_cols);
+    auto assignment = adapter::readCompressedAssignment("/usr/data/output/caltech/qtLeafAssignment.raw.bz2", n_rows, n_cols, num_elements);
+    shared::QuadAssignmentTree<Eigen::VectorXd> quad_tree{ data, assignment, n_rows, n_cols, depth, num_elements, element_len };
 
     // Functions
     std::function<double(
@@ -68,9 +70,9 @@ int main(int argc, const char **argv)
     )> checkpoint_function = shared::saveQuadTreeRGBImages<Eigen::VectorXd>;
 
     // Actual sorting
-//    std::cout << "Fully sorted HND: " << computeHierarchyNeighborhoodDistance(0, distance_function, quad_tree) << "\n";
-    randomizeAssignment(quad_tree, 42);
-    ssm::sort(quad_tree, distance_function, checkpoint_function, max_iterations, minimal_dist_change_percent, target_types);
+    std::cout << "Fully sorted HND: " << computeHierarchyNeighborhoodDistance(0, distance_function, quad_tree) << "\n";
+//    randomizeAssignment(quad_tree, 42);
+//    ssm::sort(quad_tree, distance_function, checkpoint_function, max_iterations, minimal_dist_change_percent, target_types);
 
     clock_t stop = clock();
     double elapsed = (double) (stop - start) / CLOCKS_PER_SEC;

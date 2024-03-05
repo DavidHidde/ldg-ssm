@@ -10,6 +10,8 @@
 #include "helper_imath.h"
 #include "helper_io.h"
 
+#include "app/include/supertiles/model/quad_tree.hpp"
+
 namespace supertiles
 {
     namespace place

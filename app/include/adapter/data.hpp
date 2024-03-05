@@ -8,7 +8,15 @@
 
 namespace adapter
 {
-    std::vector<std::shared_ptr<Eigen::VectorXd>> loadData(std::string const config_name, size_t num_rows, size_t num_cols)
+    /**
+     * Load data from a config file into a vector compatible with the QuadAssignmentTree. Note that all extra cells are set to nullptrs.
+     *
+     * @param config_name
+     * @param num_rows
+     * @param num_cols
+     * @return A tuple of (data, element_len, num_real_elements)
+     */
+    std::tuple<std::vector<std::shared_ptr<Eigen::VectorXd>>, size_t, size_t> loadData(std::string const config_name, size_t num_rows, size_t num_cols)
     {
         auto [data, dim] = supertiles::place::loadData<double>(config_name, std::numeric_limits<size_t>::max(), false);
         size_t data_num_elements = dim.z;
@@ -39,7 +47,11 @@ namespace adapter
             *iterator = std::make_shared<Eigen::VectorXd>(Eigen::VectorXd::Zero(element_len));
         }
 
-        return quad_tree_data;
+        return {
+            quad_tree_data,
+            element_len,
+            data_num_elements
+        };
     }
 }
 
