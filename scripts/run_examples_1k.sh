@@ -45,6 +45,6 @@ mkdir -p $out
 cmd_base="$executable -d $feat --outDir $out/ --distFuncType 2 --repAggregationType 2"
 echo "cmd_base: $cmd_base"
 
-$cmd_base  --termIterations $niter --noImgOut --writeGridAssignmentTXT ${out}/txtresult.txt
-#$cmd_base --loadAssignments ${out}/qtLeafAssignment.raw.bz2 --termTime 0 --imgOutOpts "png:0,level:0,level:1,level:2" -r $img
-#$cmd_base --loadAssignments ${out}/qtLeafAssignment.raw.bz2 --termTime 0 --imgOutOpts "png:0,disparity:0.67" -r $img
+$cmd_base  --termIterations $niter --noImgOut
+$cmd_base --loadAssignments ${out}/qtLeafAssignment.raw.bz2 --termTime 0 --imgOutOpts "png:0,level:0,level:1,level:2" -r $img
+$cmd_base --loadAssignments ${out}/qtLeafAssignment.raw.bz2 --termTime 0 --imgOutOpts "png:0,disparity:0.67" -r $img

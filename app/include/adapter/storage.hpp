@@ -13,14 +13,23 @@ namespace adapter
      *
      * @tparam VectorType
      * @param quad_tree
-     * @param filename
+     * @param file_name
      */
     template<typename VectorType>
-    void saveAndCompressAssignment(shared::QuadAssignmentTree<VectorType> &quad_tree, std::string const filename)
+    void saveAndCompressAssignment(shared::QuadAssignmentTree<VectorType> &quad_tree, std::string const file_name)
     {
-        std::vector<size_t> assignment(quad_tree.getAssignment());
+        size_t grid_side_len = std::pow(2, std::ceil(std::log2(std::max(quad_tree.getNumRows(), quad_tree.getNumCols()))));
+        std::vector<uint32_t> assignment(grid_side_len * grid_side_len, supertiles::place::voidTileIdx);
+        copyFromRowMajorToHierarchy(quad_tree.getAssignment(), assignment, quad_tree.getNumRows(), quad_tree.getNumCols());
 
-//        helper::bzip_compress(qtLeafAssignment, po.outDir + "/qtLeafAssignment.raw.bz2");
+        // Add void tiles where the data refers to nullptrs
+        for (uint32_t &value: assignment) {
+            if (value != supertiles::place::voidTileIdx && quad_tree.getValue(shared::CellPosition{ 0, value }) == nullptr) {
+                value = supertiles::place::voidTileIdx;
+            }
+        }
+
+        helper::bzip_compress(assignment, file_name + ".raw.bz2");
     }
 
     /**

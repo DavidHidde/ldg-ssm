@@ -43,36 +43,80 @@ std::vector<std::shared_ptr<Eigen::VectorXd>> generateRandomColorData(size_t num
 
 int main(int argc, const char **argv)
 {
+    bool use_synthetic_data = false;
     clock_t start = clock();
-    // Runtime test parameters
-    size_t n_rows = 80;
-    size_t n_cols = 128;
-    size_t max_iterations = 1000;
-    double minimal_dist_change_percent = 0.000001;
-    std::vector<ssm::TargetType> target_types{ ssm::PARTITION_NEIGHBOURHOOD };
 
-    // Data initialization
-    size_t depth = std::ceil(std::log2(std::max(n_cols, n_rows))) + 1;
-//    auto data = generateRandomColorData(n_rows, n_cols);
-//    auto assignment = shared::createAssignment(data.size(), n_rows, n_cols);
-    auto [data, element_len, num_elements] = adapter::loadData("/usr/data/input/caltech_feat.config", n_rows, n_cols);
-    auto assignment = adapter::readCompressedAssignment("/usr/data/output/caltech/qtLeafAssignment.raw.bz2", n_rows, n_cols, num_elements);
-    shared::QuadAssignmentTree<Eigen::VectorXd> quad_tree{ data, assignment, n_rows, n_cols, depth, num_elements, element_len };
+    // Forward declare all relevant variables.
+    size_t n_rows;
+    size_t n_cols;
+    size_t max_iterations;
+    double minimal_dist_change_percent;
+    std::vector<ssm::TargetType> target_types;
 
-    // Functions
+    std::vector<std::shared_ptr<Eigen::VectorXd>> data;
+    std::vector<size_t> assignment;
+
+    size_t element_len;
+    size_t num_elements;
+
     std::function<double(
         std::shared_ptr<Eigen::VectorXd>,
         std::shared_ptr<Eigen::VectorXd>
-    )> distance_function = shared::cosineDistance<Eigen::VectorXd>;
+    )> distance_function;
     std::function<void(
         shared::QuadAssignmentTree<Eigen::VectorXd> &,
         std::string const
-    )> checkpoint_function = shared::saveQuadTreeRGBImages<Eigen::VectorXd>;
+    )> checkpoint_function;
+
+    if (use_synthetic_data) {
+        n_rows = 80;
+        n_cols = 128;
+        max_iterations = 1000;
+        minimal_dist_change_percent = 0.000001;
+        target_types = std::vector<ssm::TargetType>{ ssm::PARTITION_NEIGHBOURHOOD };
+
+        element_len = 3;
+        num_elements = n_rows * n_cols;
+
+        data = generateRandomColorData(n_rows, n_cols);
+        assignment = shared::createAssignment(data.size(), n_rows, n_cols);
+
+        distance_function = shared::euclideanDistance<Eigen::VectorXd>;
+        checkpoint_function = shared::saveQuadTreeRGBImages<Eigen::VectorXd>;
+    } else {
+        n_rows = 32;
+        n_cols = 32;
+        max_iterations = 1000;
+        minimal_dist_change_percent = 0.000001;
+        target_types = std::vector<ssm::TargetType>{ ssm::PARTITION_NEIGHBOURHOOD };
+
+        auto [loaded_data, loaded_element_len, loaded_num_elements] = adapter::loadData(
+            "/usr/data/input/stock1k.config",
+            n_rows,
+            n_cols
+        );
+        data = loaded_data;
+        element_len = loaded_element_len;
+        num_elements = loaded_num_elements;
+        assignment = adapter::readCompressedAssignment(
+            "/usr/data/output/stock1k/qtLeafAssignment.raw.bz2",
+            n_rows,
+            n_cols,
+            num_elements
+        );
+
+        distance_function = shared::euclideanDistance<Eigen::VectorXd>;
+        checkpoint_function = adapter::saveAndCompressAssignment<Eigen::VectorXd>;
+    }
+
+    // Data initialization
+    size_t depth = std::ceil(std::log2(std::max(n_cols, n_rows))) + 1;
+    shared::QuadAssignmentTree<Eigen::VectorXd> quad_tree{ data, assignment, n_rows, n_cols, depth, num_elements, element_len };
 
     // Actual sorting
-    std::cout << "Fully sorted HND: " << computeHierarchyNeighborhoodDistance(0, distance_function, quad_tree) << "\n";
-//    randomizeAssignment(quad_tree, 42);
-//    ssm::sort(quad_tree, distance_function, checkpoint_function, max_iterations, minimal_dist_change_percent, target_types);
+    std::cout << "Pre-randomization HND: " << computeHierarchyNeighborhoodDistance(0, distance_function, quad_tree) << "\n";
+    randomizeAssignment(quad_tree, 42);
+    ssm::sort(quad_tree, distance_function, checkpoint_function, max_iterations, minimal_dist_change_percent, target_types);
 
     clock_t stop = clock();
     double elapsed = (double) (stop - start) / CLOCKS_PER_SEC;

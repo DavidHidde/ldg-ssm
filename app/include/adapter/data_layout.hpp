@@ -77,7 +77,7 @@ namespace adapter
     /**
      * Copy data from a hierarchical vector to a row-major vector.
      * Note that this overrides the data in destination and assumes destination can hold the data.
-     *
+     * We assume the destination to be initialized to void tiles to take the bounds into account.
      *
      * @tparam SourceDataType
      * @tparam DestinationDataType
@@ -94,8 +94,33 @@ namespace adapter
         size_t num_cols
     )
     {
-        for (auto it = source.begin(); it != source.end(); ++it) {
+        size_t depth = std::ceil(std::log2(std::max(num_rows, num_cols))) - 1;
+        size_t partition_length = std::pow(2, depth++);
+        std::vector<size_t> partition_lengths;
+        std::vector<size_t> partition_areas;
+        partition_lengths.reserve(depth);
+        partition_areas.reserve(depth);
+        for (size_t idx = 0; idx < depth; ++idx, partition_length /= 2) {
+            partition_lengths.push_back(partition_length);
+            partition_areas.push_back(partition_length * partition_length);
+        }
 
+        size_t num_elements = num_rows * num_cols;
+        for (size_t idx = 0; idx < num_elements; ++idx) {
+            size_t x = idx % num_cols;
+            size_t y = idx / num_cols;
+
+            size_t hierarchy_idx = 0;
+            for (size_t size_idx = 0; size_idx < depth; ++size_idx) {
+                size_t partition_x = x / partition_lengths[size_idx];
+                size_t partition_y = y / partition_lengths[size_idx];
+
+                hierarchy_idx += (partition_x + partition_y * 2) * partition_areas[size_idx];
+                x %= partition_lengths[size_idx];
+                y %= partition_lengths[size_idx];
+            }
+
+            destination[hierarchy_idx] = source[idx];
         }
     }
 }

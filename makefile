@@ -31,8 +31,15 @@ compile:
 run:
 	docker run -it --rm $(app_dir_bind) $(data_dir_bind) $(container_name) sh -c "cd $(build_dir_container) && ./new_ldg"
 
+run-visualize: compile run
+	docker run -it --rm \
+		$(app_dir_bind) \
+		$(data_dir_bind) \
+		$(scripts_dir_bind) \
+		$(container_name) bash /usr/scripts/run_visualize_ssm.sh $(data_dir_container)/input $(build_dir_container) $(data_dir_container)/output $(build_dir_container)/ldg_core
+
 bash:
-	docker run -it --rm $(app_dir_bind) $(data_dir_bind) $(container_name) bash
+	docker run -it --rm $(app_dir_bind) $(data_dir_bind) $(scripts_dir_bind) $(container_name) bash
 
 test_script:
 	docker run -it --rm \
