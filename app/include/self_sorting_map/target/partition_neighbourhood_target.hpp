@@ -57,7 +57,7 @@ namespace ssm
                     values.push_back(quad_tree.getValue(CellPosition{ partition_height, rowMajorIndex(y, x, projected_dims.second) }));
                 }
             }
-            auto target = std::make_shared<VectorType>(aggregate(values));
+            auto target = std::make_shared<VectorType>(aggregate(values, quad_tree.getDataElementLen()));
 
             // Copy to all relevant cells
             min_y = partition_y * partition_len;

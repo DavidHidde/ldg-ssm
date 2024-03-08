@@ -72,7 +72,7 @@ namespace ssm
                 values.push_back(walker.getNodeValue());
                 walker.moveUp();
             }
-            auto target = std::make_shared<VectorType>(aggregate(values));
+            auto target = std::make_shared<VectorType>(aggregate(values, quad_tree.getDataElementLen()));
 
             // Copy to all relevant cells
             size_t partition_x = idx % projected_dims.second;

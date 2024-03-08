@@ -22,7 +22,7 @@ namespace shared
         if (lhs == nullptr || rhs == nullptr)
             return 0.;
 
-        return magnitude(*lhs - *rhs);
+        return (*lhs - *rhs).norm();
     }
 
     /**
@@ -39,7 +39,7 @@ namespace shared
         if (lhs == nullptr || rhs == nullptr)
             return 0.;
 
-        return 1. - dot(*lhs, *rhs) / (magnitude(*lhs) * magnitude(*rhs));
+        return 1. - (*lhs).dot(*rhs) / ((*lhs).norm() * (*rhs).norm());
     }
 }
 

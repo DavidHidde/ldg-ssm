@@ -30,7 +30,9 @@ namespace shared
             quad_tree.getAssignment(),
             quad_tree.getNumRows(),
             quad_tree.getNumCols(),
-            quad_tree.getDepth()
+            quad_tree.getDepth(),
+            quad_tree.getNumRealElements(),
+            quad_tree.getDataElementLen()
         );
     }
 
