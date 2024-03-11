@@ -3,8 +3,8 @@
 
 #include <vector>
 #include <memory>
-#include "app/include/shared/model/cell_position.hpp"
-#include "app/include/shared/model/quad_assignment_tree.hpp"
+#include "app/include/ldg/model/cell_position.hpp"
+#include "app/include/ldg/model/quad_assignment_tree.hpp"
 #include "app/include/self_sorting_map/target/target_type.hpp"
 #include "app/include/self_sorting_map/target/aggregate_hierarchy_target.hpp"
 #include "app/include/self_sorting_map/target/partition_neighbourhood_target.hpp"
@@ -30,13 +30,13 @@ namespace ssm
     template<typename VectorType>
     std::vector<std::vector<std::shared_ptr<VectorType>>> getTargetMap(
         std::vector<TargetType> const &target_types,
-        shared::QuadAssignmentTree<VectorType> &quad_tree,
+        ldg::QuadAssignmentTree<VectorType> &quad_tree,
         size_t partition_height,
         size_t comparison_height,
         bool is_shift
     )
     {
-        auto comparison_height_dims = quad_tree.getBounds(shared::CellPosition{ comparison_height, 0 }).second;
+        auto comparison_height_dims = quad_tree.getBounds(ldg::CellPosition{ comparison_height, 0 }).second;
         std::vector<std::vector<std::shared_ptr<VectorType>>> target_map(comparison_height_dims.first * comparison_height_dims.second);
 
         for (TargetType target_type: target_types) {

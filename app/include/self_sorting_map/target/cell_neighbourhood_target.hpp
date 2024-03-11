@@ -2,8 +2,8 @@
 #define LDG_CORE_CELL_NEIGHBOURHOOD_TARGET_HPP
 
 #include <cmath>
-#include "app/include/shared/model/cell_position.hpp"
-#include "app/include/shared/model/quad_assignment_tree.hpp"
+#include "app/include/ldg/model/cell_position.hpp"
+#include "app/include/ldg/model/quad_assignment_tree.hpp"
 
 namespace ssm
 {
@@ -23,13 +23,13 @@ namespace ssm
     template<typename VectorType>
     void loadCellNeighbourhoodTargets(
         std::vector<std::vector<std::shared_ptr<VectorType>>> &target_map,
-        shared::QuadAssignmentTree<VectorType> &quad_tree,
-        size_t partition_height,
-        size_t comparison_height,
+        ldg::QuadAssignmentTree<VectorType> &quad_tree,
+        const size_t partition_height,
+        const size_t comparison_height,
         bool is_shift
     )
     {
-        using namespace shared;
+        using namespace ldg;
         auto comparison_height_dims = quad_tree.getBounds(CellPosition{ comparison_height, 0 }).second;
         size_t num_elems = comparison_height_dims.first * comparison_height_dims.second;
         int cells_before = (CELL_NUM_BLOCKS_PER_DIMENSION - 1) / 2;

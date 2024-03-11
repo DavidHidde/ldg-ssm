@@ -1,7 +1,7 @@
 #ifndef LDG_CORE_QUADRANT_HPP
 #define LDG_CORE_QUADRANT_HPP
 
-namespace shared
+namespace ldg
 {
     /**
      * Enum of all quadrants of a square.

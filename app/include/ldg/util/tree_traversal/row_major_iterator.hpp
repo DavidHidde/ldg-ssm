@@ -1,12 +1,12 @@
 #ifndef LDG_CORE_ROW_MAJOR_ITERATOR_HPP
 #define LDG_CORE_ROW_MAJOR_ITERATOR_HPP
 
-#include "app/include/shared/model/quad_assignment_tree.hpp"
-#include "app/include/shared/util/math.hpp"
+#include "app/include/ldg/model/quad_assignment_tree.hpp"
+#include "app/include/ldg/util/math.hpp"
 #include <cstddef>
 #include <memory>
 
-namespace shared
+namespace ldg
 {
     /**
      * Simple iterator for iterating over row-major arrays in the quad tree.
@@ -58,6 +58,7 @@ namespace shared
      *
      * @tparam VectorType
      * @param height
+     * @param quad_tree
      */
     template<typename VectorType>
     RowMajorIterator<VectorType>::RowMajorIterator(size_t height, QuadAssignmentTree<VectorType> &quad_tree):
@@ -86,9 +87,9 @@ namespace shared
      */
     template<typename VectorType>
     RowMajorIterator<VectorType>::RowMajorIterator(
-        CellPosition position,
+        const CellPosition position,
         QuadAssignmentTree<VectorType> &quad_tree,
-        size_t offset,
+        const size_t offset,
         size_t num_rows,
         size_t num_cols,
         size_t height_num_rows,
@@ -177,12 +178,11 @@ namespace shared
      * Two iterators are equal if they point towards the same data set index.
      *
      * @tparam VectorType
-     * @param lhs
      * @param rhs
      * @return
      */
     template<typename VectorType>
-    bool RowMajorIterator<VectorType>::operator==(const RowMajorIterator<VectorType> &rhs)
+    bool RowMajorIterator<VectorType>::operator==(const RowMajorIterator &rhs)
     {
         return node.index == rhs.node.index && node.height == rhs.node.height;
     }
@@ -191,12 +191,11 @@ namespace shared
      * Two iterators are not equal if they point towards a different data set index.
      *
      * @tparam VectorType
-     * @param lhs
      * @param rhs
      * @return
      */
     template<typename VectorType>
-    bool RowMajorIterator<VectorType>::operator!=(const RowMajorIterator<VectorType> &rhs)
+    bool RowMajorIterator<VectorType>::operator!=(const RowMajorIterator &rhs)
     {
         return node.index != rhs.node.index || node.height != rhs.node.height;
     }

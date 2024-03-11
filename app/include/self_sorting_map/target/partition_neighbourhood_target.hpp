@@ -1,8 +1,8 @@
 #ifndef LDG_CORE_PARTITION_NEIGHBOURHOOD_TARGET_HPP
 #define LDG_CORE_PARTITION_NEIGHBOURHOOD_TARGET_HPP
 
-#include "app/include/shared/model/cell_position.hpp"
-#include "app/include/shared/model/quad_assignment_tree.hpp"
+#include "app/include/ldg/model/cell_position.hpp"
+#include "app/include/ldg/model/quad_assignment_tree.hpp"
 
 namespace ssm
 {
@@ -23,13 +23,13 @@ namespace ssm
     template<typename VectorType>
     void loadPartitionNeighbourhoodTargets(
         std::vector<std::vector<std::shared_ptr<VectorType>>> &target_map,
-        shared::QuadAssignmentTree<VectorType> &quad_tree,
-        size_t partition_height,
-        size_t comparison_height,
+        ldg::QuadAssignmentTree<VectorType> &quad_tree,
+        const size_t partition_height,
+        const size_t comparison_height,
         bool is_shift
     )
     {
-        using namespace shared;
+        using namespace ldg;
         auto projected_dims = quad_tree.getBounds(CellPosition{ partition_height, 0 }).second;
         size_t num_elems = projected_dims.first * projected_dims.second;
 
@@ -47,9 +47,9 @@ namespace ssm
             int partition_y = idx / projected_dims.second;
 
             size_t min_y = std::max(partition_y - blocks_offset - (partition_y % 2 == 0 ? 1 : 0) * shift, 0);
-            size_t max_y = std::min(size_t(partition_y + blocks_offset + (partition_y % 2) * shift), projected_dims.first);
+            size_t max_y = std::min(static_cast<size_t>(partition_y + blocks_offset + (partition_y % 2) * shift), projected_dims.first);
             size_t min_x = std::max(partition_x - blocks_offset - (partition_x % 2 == 0 ? 1 : 0) * shift, 0);
-            size_t max_x = std::min(size_t(partition_x + blocks_offset + (partition_x % 2) * shift), projected_dims.second);
+            size_t max_x = std::min(static_cast<size_t>(partition_x + blocks_offset + (partition_x % 2) * shift), projected_dims.second);
 
             for (size_t y = min_y; y < max_y; ++y) {
                 for (size_t x = min_x; x < max_x; ++x) {

@@ -4,7 +4,7 @@
 #include <vector>
 #include <cstddef>
 #include <cmath>
-#include "app/include/shared/util/math.hpp"
+#include "app/include/ldg/util/math.hpp"
 
 /*
  * These functions handle layout conversions between two types of layouts:
@@ -69,7 +69,7 @@ namespace adapter
             }
 
             if (x < num_cols && y < num_rows) {
-                destination[shared::rowMajorIndex(y, x, num_cols)] = source[idx];
+                destination[ldg::rowMajorIndex(y, x, num_cols)] = source[idx];
             }
         }
     }

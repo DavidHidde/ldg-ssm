@@ -1,15 +1,15 @@
 #ifndef LDG_CORE_TREE_WALKER_HPP
 #define LDG_CORE_TREE_WALKER_HPP
 
-#include "app/include/shared/model/quad_assignment_tree.hpp"
-#include "app/include/shared/util/math.hpp"
+#include "app/include/ldg/model/quad_assignment_tree.hpp"
+#include "app/include/ldg/util/math.hpp"
 #include "row_major_iterator.hpp"
-#include "app/include/shared/model/quadrant.hpp"
+#include "app/include/ldg/model/quadrant.hpp"
 
 #include <array>
 #include <cmath>
 
-namespace shared
+namespace ldg
 {
     /**
      * Class for walking up and down the quad tree (classic quad tree traversal).
@@ -31,7 +31,7 @@ namespace shared
 
         TreeWalker(CellPosition position, size_t num_rows, size_t num_cols, QuadAssignmentTree<VectorType> &quad_tree);
 
-        TreeWalker<VectorType> &operator=(shared::TreeWalker<VectorType> rhs);
+        TreeWalker &operator=(TreeWalker rhs);
 
         bool moveUp();
 
@@ -45,7 +45,7 @@ namespace shared
 
         std::array<std::shared_ptr<VectorType>, 4> getChildrenValues();
 
-        size_t getParentIndex();
+        size_t getParentIndex() const;
 
         std::array<int, 4> getChildrenIndices();
 
@@ -60,8 +60,6 @@ namespace shared
 
     /**
      * @tparam VectorType
-     * @param index
-     * @param height
      * @param quad_tree
      */
     template<typename VectorType>
@@ -101,7 +99,7 @@ namespace shared
      * @return
      */
     template<typename VectorType>
-    TreeWalker<VectorType> &TreeWalker<VectorType>::operator=(TreeWalker<VectorType> rhs)
+    TreeWalker<VectorType> &TreeWalker<VectorType>::operator=(TreeWalker rhs)
     {
         node = rhs.node;
         num_rows = rhs.num_rows;
@@ -147,16 +145,16 @@ namespace shared
         auto child_indices = getChildrenIndices();
         int new_index = -1;
         switch (quadrant) {
-            case Quadrant::NORTH_WEST:
+            case NORTH_WEST:
                 new_index = child_indices[0];
                 break;
-            case Quadrant::NORTH_EAST:
+            case NORTH_EAST:
                 new_index = child_indices[1];
                 break;
-            case Quadrant::SOUTH_WEST:
+            case SOUTH_WEST:
                 new_index = child_indices[2];
                 break;
-            case Quadrant::SOUTH_EAST:
+            case SOUTH_EAST:
                 new_index = child_indices[3];
                 break;
         }
@@ -165,7 +163,7 @@ namespace shared
         if (new_index < 0)
             return false;
 
-        node.index = size_t(new_index);
+        node.index = static_cast<size_t>(new_index);
         --node.height;
         // Tree is build bottom-up, so we need to recalculate this.
         float factor = std::pow(2, node.height);
@@ -179,16 +177,15 @@ namespace shared
      * Reposition the walker on a new place in the tree. It is your responsibility to make sure these are legal.
      *
      * @tparam VectorType
-     * @param index
-     * @param height
+     * @param position
      * @return
      */
     template<typename VectorType>
-    void TreeWalker<VectorType>::reposition(CellPosition position)
+    void TreeWalker<VectorType>::reposition(const CellPosition position)
     {
         node.index = position.index;
         node.height = position.height;
-        float factor = std::pow(2, position.height);
+        const float factor = std::pow(2, position.height);
         num_rows = ceilDivideByFactor(quad_tree.getNumRows(), factor);
         num_cols = ceilDivideByFactor(quad_tree.getNumCols(), factor);
     }
@@ -251,7 +248,7 @@ namespace shared
      * @return
      */
     template<typename VectorType>
-    size_t TreeWalker<VectorType>::getParentIndex()
+    size_t TreeWalker<VectorType>::getParentIndex() const
     {
         return rowMajorIndex(node.index / (2 * num_cols), (node.index % num_cols) / 2, ceilDivideByFactor(num_cols, 2.));
     }
@@ -274,7 +271,7 @@ namespace shared
         int new_row = (node.index / num_cols) * 2;
         int new_col = (node.index % num_cols) * 2;
 
-        int index = int(rowMajorIndex(new_row, new_col, new_num_cols));
+        int index = static_cast<int>(rowMajorIndex(new_row, new_col, new_num_cols));
         return {
             index,                                                                                      // North-west
             new_col + 1 < new_num_cols ? index + 1 : -1,                                                // North-east
@@ -339,6 +336,6 @@ namespace shared
     {
         return node;
     }
-} // shared
+} // ldg
 
 #endif //LDG_CORE_TREE_WALKER_HPP

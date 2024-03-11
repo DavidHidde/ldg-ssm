@@ -3,10 +3,10 @@
 
 #include <functional>
 #include <map>
-#include "app/include/shared/model/quad_assignment_tree.hpp"
-#include "app/include/shared/util/tree_traversal/tree_walker.hpp"
+#include "app/include/ldg/model/quad_assignment_tree.hpp"
+#include "app/include/ldg/util/tree_traversal/tree_walker.hpp"
 
-namespace shared
+namespace ldg
 {
     /**
      * Compute the HND for a quad tree at a given height.
@@ -14,8 +14,7 @@ namespace shared
      * @tparam VectorType
      * @param height
      * @param distance_function
-     * @param source
-     * @param cache
+     * @param quad_tree
      * @return
      */
     template<typename VectorType>
@@ -27,10 +26,10 @@ namespace shared
     {
         computeAggregates(quad_tree);
         double sum = 0.;
-        size_t height_to_root = quad_tree.getDepth() - height;
+        const size_t height_to_root = quad_tree.getDepth() - height;
         auto [height_bounds, height_dims] = quad_tree.getBounds(CellPosition{ height, 0 });
-        size_t num_elems = height_dims.first * height_dims.second;
-        std::vector<double> height_distances(num_elems * height_to_root, 0.);
+        const size_t num_elems = height_dims.first * height_dims.second;
+        std::vector height_distances(num_elems * height_to_root, 0.);
         std::map<size_t, double> cache;
 
         // Add all scores together (4-connectivity filter)
@@ -43,33 +42,33 @@ namespace shared
             auto node_value = quad_tree.getValue(position);
             double neighbor_sum =
                 computeHierarchyDistanceForCell(
-                    CellPosition{ height, position.index - 1 },
+                    CellPosition{ height, rowMajorIndex(y, x - 1, height_bounds.second) },
                     node_value,
                     distance_function,
                     quad_tree,
                     cache
                 ) +
-                    computeHierarchyDistanceForCell(
-                        CellPosition{ height, position.index + 1 },
-                        node_value,
-                        distance_function,
-                        quad_tree,
-                        cache
-                    ) +
-                    computeHierarchyDistanceForCell(
-                        CellPosition{ height, position.index + 1 },
-                        node_value,
-                        distance_function,
-                        quad_tree,
-                        cache
-                    ) +
-                    computeHierarchyDistanceForCell(
-                        CellPosition{ height, position.index + height_dims.second },
-                        node_value,
-                        distance_function,
-                        quad_tree,
-                        cache
-                    );
+                computeHierarchyDistanceForCell(
+                    CellPosition{ height, rowMajorIndex(y, x + 1, height_bounds.second) },
+                    node_value,
+                    distance_function,
+                    quad_tree,
+                    cache
+                ) +
+                computeHierarchyDistanceForCell(
+                    CellPosition{ height, rowMajorIndex(y - 1, x, height_bounds.second) },
+                    node_value,
+                    distance_function,
+                    quad_tree,
+                    cache
+                ) +
+                computeHierarchyDistanceForCell(
+                    CellPosition{ height, rowMajorIndex(y + 1, x, height_bounds.second) },
+                    node_value,
+                    distance_function,
+                    quad_tree,
+                    cache
+                );
 
             sum += computeHierarchyDistanceForCell(position, node_value, distance_function, quad_tree, cache) + neighbor_sum / 4.;
             cache.clear();
@@ -105,8 +104,8 @@ namespace shared
 
         if (value != nullptr && position.index < num_rows * num_cols) { // Index is size_t, so negative will overflow to max value
             do {
-                auto position = walker.getNode();
-                size_t key = rowMajorIndex(position.height, position.index, quad_tree.getNumCols());
+                auto walker_position = walker.getNode();
+                size_t key = rowMajorIndex(walker_position.height, walker_position.index, quad_tree.getNumCols());
                 if (!cache.count(key)) {    // We haven't computed this yet
                     cache[key] = distance_function(value, walker.getNodeValue());
                 }

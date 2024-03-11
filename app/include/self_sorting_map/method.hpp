@@ -3,9 +3,9 @@
 
 #include <functional>
 #include <iostream>
-#include "app/include/shared/model/quad_assignment_tree.hpp"
-#include "app/include/shared/util/tree_traversal/row_major_iterator.hpp"
-#include "app/include/shared/tree_functions.hpp"
+#include "app/include/ldg/model/quad_assignment_tree.hpp"
+#include "app/include/ldg/util/tree_traversal/row_major_iterator.hpp"
+#include "app/include/ldg/tree_functions.hpp"
 #include "targets.hpp"
 #include "partitions.hpp"
 
@@ -19,7 +19,7 @@ namespace ssm
      * @param threshold
      * @return
      */
-    bool distanceHasChanged(double old_distance, double new_distance, double threshold)
+    inline bool distanceHasChanged(double old_distance, double new_distance, double threshold)
     {
         return std::abs(old_distance - new_distance) / old_distance > threshold;
     }
@@ -32,9 +32,9 @@ namespace ssm
      * @return
      */
     template<typename VectorType>
-    size_t getStartHeight(shared::QuadAssignmentTree<VectorType> &quad_tree)
+    size_t getStartHeight(ldg::QuadAssignmentTree<VectorType> &quad_tree)
     {
-        using namespace shared;
+        using namespace ldg;
         size_t height = quad_tree.getDepth() - 1;
         auto dims = quad_tree.getBounds(CellPosition{ height, 0 }).second;
         while (height > 0 && (dims.first < 4 || dims.second < 4)) {
@@ -50,32 +50,33 @@ namespace ssm
      *
      * @tparam VectorType
      * @param quad_tree
-     * @param checkpoint_function
      * @param distance_function
+     * @param checkpoint_function
+     * @param max_iterations
+     * @param distance_threshold
      * @param target_types
      */
     template<typename VectorType>
     void sort(
-        shared::QuadAssignmentTree<VectorType> &quad_tree,
+        ldg::QuadAssignmentTree<VectorType> &quad_tree,
         std::function<double(std::shared_ptr<VectorType>, std::shared_ptr<VectorType>)> distance_function,
-        std::function<void(shared::QuadAssignmentTree<VectorType> &, std::string const)> checkpoint_function,
+        std::function<void(ldg::QuadAssignmentTree<VectorType> &, std::string)> checkpoint_function,
         const size_t max_iterations,
         const double distance_threshold,
         const std::vector<TargetType> target_types
     )
     {
-        using namespace shared;
+        using namespace ldg;
         double distance = computeHierarchyNeighborhoodDistance(0, distance_function, quad_tree);
         double new_distance = distance;
         std::cout << "Start HND: " << distance << "\n\n";
 
         // Main loop
         size_t height = getStartHeight(quad_tree);
-        size_t iterations;
         size_t num_exchanges;
         std::string reason;
         for (; height > 0; --height) {
-            iterations = 0;
+            size_t iterations = 0;
 
             do {
                 num_exchanges = 0;

@@ -2,7 +2,7 @@
 #define LDG_CORE_EXCHANGES_HPP
 
 #include <functional>
-#include "app/include/shared/model/quad_assignment_tree.hpp"
+#include "app/include/ldg/model/quad_assignment_tree.hpp"
 
 namespace ssm
 {
@@ -19,13 +19,13 @@ namespace ssm
     */
     template<typename VectorType>
     size_t findAndSwapBestPermutation(
-        std::vector<shared::CellPosition> &nodes,
-        shared::QuadAssignmentTree<VectorType> &quad_tree,
+        std::vector<ldg::CellPosition> &nodes,
+        ldg::QuadAssignmentTree<VectorType> &quad_tree,
         std::function<double(std::shared_ptr<VectorType>, std::shared_ptr<VectorType>)> distance_function,
         std::vector<std::vector<std::shared_ptr<VectorType>>> &target_map
     )
     {
-        using namespace shared;
+        using namespace ldg;
         // Precheck if all partitions are of the same size, since this is a requirement for swapping.
         size_t num_nodes = nodes.size();
         size_t num_leaves = 0;
@@ -55,7 +55,7 @@ namespace ssm
         std::vector<size_t> best_permutation(num_nodes);
         for (size_t idx = 0; idx < num_nodes; ++idx)
             best_permutation[idx] = idx;
-        std::vector<size_t> permutation(best_permutation);
+        std::vector permutation(best_permutation);
 
         do {
             double distance = 0.;

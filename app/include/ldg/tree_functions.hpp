@@ -3,11 +3,11 @@
 
 #include <random>
 #include <algorithm>
-#include "app/include/shared/model/quad_assignment_tree.hpp"
-#include "app/include/shared/util/tree_traversal/tree_walker.hpp"
-#include "app/include/shared/util/vector_math.hpp"
+#include "app/include/ldg/model/quad_assignment_tree.hpp"
+#include "app/include/ldg/util/tree_traversal/tree_walker.hpp"
+#include "app/include/ldg/util/vector_math.hpp"
 
-namespace shared
+namespace ldg
 {
     /**
      * Compute and update the aggregates of the quad tree.
@@ -44,7 +44,7 @@ namespace shared
      * @tparam VectorType
      */
     template<typename VectorType>
-    void randomizeAssignment(shared::QuadAssignmentTree<VectorType> &quad_tree, size_t seed)
+    void randomizeAssignment(QuadAssignmentTree<VectorType> &quad_tree, size_t seed)
     {
         auto &assignment = quad_tree.getAssignment();
         std::shuffle(assignment.begin(), assignment.begin() + quad_tree.getNumRows() * quad_tree.getNumCols(), std::mt19937(seed));
@@ -57,7 +57,7 @@ namespace shared
      * @param num_cols
      * @return
      */
-    std::vector<size_t> createAssignment(size_t size, size_t num_rows, size_t num_cols)
+    inline std::vector<size_t> createAssignment(size_t size, size_t num_rows, size_t num_cols)
     {
         auto assignment = std::vector<size_t>(size);
 
@@ -70,8 +70,8 @@ namespace shared
             }
 
             offset += num_cols * num_rows;
-            num_cols = shared::ceilDivideByFactor(num_cols, 2.);
-            num_rows = shared::ceilDivideByFactor(num_rows, 2.);
+            num_cols = ceilDivideByFactor(num_cols, 2.);
+            num_rows = ceilDivideByFactor(num_rows, 2.);
         }
         assignment[size - 1] = size - 1; // Fix last element
 
@@ -85,15 +85,15 @@ namespace shared
      * @param num_cols
      * @return
      */
-    size_t determineRequiredArrayCapacity(size_t num_rows, size_t num_cols)
+    inline size_t determineRequiredArrayCapacity(size_t num_rows, size_t num_cols)
     {
         size_t num_elements = num_rows * num_cols;
         size_t size = num_elements;
         size_t new_num_cols = num_cols;
         size_t new_num_rows = num_rows;
         while (new_num_rows > 1 && new_num_cols > 1) {
-            new_num_cols = shared::ceilDivideByFactor(new_num_cols, 2.);
-            new_num_rows = shared::ceilDivideByFactor(new_num_rows, 2.);
+            new_num_cols = ceilDivideByFactor(new_num_cols, 2.);
+            new_num_rows = ceilDivideByFactor(new_num_rows, 2.);
             size += new_num_cols * new_num_rows;
         }
 

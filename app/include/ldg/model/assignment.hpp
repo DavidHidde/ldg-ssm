@@ -5,7 +5,7 @@
 #include <memory>
 #include <vector>
 
-namespace shared
+namespace ldg
 {
     /**
      * A POD num_rows x num_cols grid assignment class, with the assignment stored as indices of a data set.

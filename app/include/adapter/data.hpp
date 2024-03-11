@@ -4,7 +4,7 @@
 #include <iostream>
 #include <Eigen/Core>
 #include "app/include/supertiles/util/place/data.hpp"
-#include "app/include/shared/tree_functions.hpp"
+#include "app/include/ldg/tree_functions.hpp"
 
 namespace adapter
 {
@@ -32,13 +32,13 @@ namespace adapter
         }
 
         size_t element_len = dim.x * dim.y;
-        size_t required_capacity = shared::determineRequiredArrayCapacity(num_rows, num_cols);
+        size_t required_capacity = ldg::determineRequiredArrayCapacity(num_rows, num_cols);
         std::vector<std::shared_ptr<Eigen::VectorXd>> quad_tree_data(required_capacity);
         // The data array can be viewed as a data_num_elements x element_len matrix. We copy this into vectors.
         for (size_t row = 0; row < data_num_elements; ++row) {
             Eigen::VectorXd vector(element_len);
             for (size_t col = 0; col < element_len; ++col) {
-                vector(col) = data[shared::rowMajorIndex(row, col, element_len)];
+                vector(col) = data[ldg::rowMajorIndex(row, col, element_len)];
             }
             quad_tree_data[row] = std::make_shared<Eigen::VectorXd>(vector);
         }

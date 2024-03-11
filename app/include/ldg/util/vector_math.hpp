@@ -6,7 +6,7 @@
 #include <vector>
 #include <Eigen/Dense>
 
-namespace shared
+namespace ldg
 {
     /**
      * Aggregate multiple vectors into one, ignoring null pointers and dividing by the number of elements.

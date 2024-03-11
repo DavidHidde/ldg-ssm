@@ -2,7 +2,7 @@
 #define LDG_CORE_PARTITIONS_HPP
 
 #include <functional>
-#include "app/include/shared/model/quad_assignment_tree.hpp"
+#include "app/include/ldg/model/quad_assignment_tree.hpp"
 #include "app/include/self_sorting_map/target/target_type.hpp"
 #include "app/include/self_sorting_map/exchanges.hpp"
 
@@ -18,7 +18,6 @@ namespace ssm
      * @param distance_function
      * @param target_map
      * @param comparison_height
-     * @param apply_shift
      * @param partition_len Length of the current partition.
      * @param offset    Offset [rows, columns] for the calculated indices. This is used to project back to actual array indices
      * @param iteration_dims    The dimensions to be iterated over.
@@ -27,17 +26,17 @@ namespace ssm
      */
     template<typename VectorType>
     size_t performPartitionExchanges(
-        shared::QuadAssignmentTree<VectorType> &quad_tree,
+        ldg::QuadAssignmentTree<VectorType> &quad_tree,
         std::function<double(std::shared_ptr<VectorType>, std::shared_ptr<VectorType>)> distance_function,
         std::vector<std::vector<std::shared_ptr<VectorType>>> &target_map,
-        size_t comparison_height,
-        long partition_len,
+        const size_t comparison_height,
+        const long partition_len,
         std::pair<long, long> &offset,
         std::pair<long, long> &iteration_dims,
         std::pair<size_t, size_t> &comparison_height_dims
     )
     {
-        using namespace shared;
+        using namespace ldg;
         size_t num_exchanges = 0;
         std::vector<CellPosition> nodes;
         nodes.reserve(4);
@@ -108,7 +107,7 @@ namespace ssm
      */
     template<typename VectorType>
     size_t optimizePartitions(
-        shared::QuadAssignmentTree<VectorType> &quad_tree,
+        ldg::QuadAssignmentTree<VectorType> &quad_tree,
         std::function<double(std::shared_ptr<VectorType>, std::shared_ptr<VectorType>)> distance_function,
         std::vector<TargetType> const &target_types,
         size_t partition_height,
@@ -116,7 +115,7 @@ namespace ssm
         bool apply_shift
     )
     {
-        using namespace shared;
+        using namespace ldg;
 
         long partition_len = long(std::pow(2., partition_height - comparison_height));
         auto comparison_height_dims = quad_tree.getBounds(CellPosition{ comparison_height, 0 }).second;

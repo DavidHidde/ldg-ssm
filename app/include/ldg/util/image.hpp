@@ -3,10 +3,10 @@
 
 #include <string>
 #include "CImg.h"
-#include "app/include/shared/model/quad_assignment_tree.hpp"
-#include "app/include/shared/util/tree_traversal/row_major_iterator.hpp"
+#include "app/include/ldg/model/quad_assignment_tree.hpp"
+#include "app/include/ldg/util/tree_traversal/row_major_iterator.hpp"
 
-namespace shared
+namespace ldg
 {
     /**
      * Save an RGB image of the quad tree. We assume the data vector to at least be of length 3.
@@ -21,7 +21,7 @@ namespace shared
     {
         using namespace cimg_library;
         auto dimensions = quad_tree.getBounds(CellPosition{ height, 0 }).second;    // num_rows, num_cols
-        CImg<float> img(dimensions.second, dimensions.first, 1, 3);
+        CImg img(dimensions.second, dimensions.first, 1, 3);
         for (RowMajorIterator<VectorType> it(height, quad_tree); it != it.end(); ++it) {
             auto position = it.getPosition();
             size_t x = position.index % dimensions.second;

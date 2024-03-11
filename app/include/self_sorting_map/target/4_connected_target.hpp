@@ -3,7 +3,7 @@
 
 #include <vector>
 #include <memory>
-#include "app/include/shared/model/quad_assignment_tree.hpp"
+#include "app/include/ldg/model/quad_assignment_tree.hpp"
 
 namespace ssm
 {
@@ -24,13 +24,13 @@ namespace ssm
     void load4ConnectedTarget(
         FunctionType target_function,
         std::vector<std::vector<std::shared_ptr<VectorType>>> &target_map,
-        shared::QuadAssignmentTree<VectorType> &quad_tree,
+        ldg::QuadAssignmentTree<VectorType> &quad_tree,
         size_t partition_height,
         size_t comparison_height,
         bool is_shift
     )
     {
-        using namespace shared;
+        using namespace ldg;
         std::vector<std::vector<std::shared_ptr<VectorType>>> temporary_targets(target_map.size());
         target_function(temporary_targets, quad_tree, partition_height, comparison_height, is_shift);
 

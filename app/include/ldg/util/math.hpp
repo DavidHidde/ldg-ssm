@@ -4,7 +4,7 @@
 #include <cstddef>
 #include <cmath>
 
-namespace shared
+namespace ldg
 {
     /**
      * Get the ceiling power of 2 for a size_t equivalent to "ceil(log2(num))".
@@ -56,7 +56,7 @@ namespace shared
      */
     inline size_t ceilDivideByFactor(size_t num, float factor)
     {
-        return size_t(std::ceil(float(num) / factor));
+        return static_cast<size_t>(std::ceil(static_cast<float>(num) / factor));
     }
 
     /**

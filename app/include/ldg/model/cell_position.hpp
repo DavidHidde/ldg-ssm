@@ -3,7 +3,7 @@
 
 #include <cstddef>
 
-namespace shared
+namespace ldg
 {
     /**
      * Simple POD to indicate the position of a cell in the quad tree.
