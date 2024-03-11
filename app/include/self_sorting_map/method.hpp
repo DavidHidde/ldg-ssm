@@ -93,7 +93,7 @@ namespace ssm
                 ++iterations;
             } while (iterations < max_iterations && num_exchanges > 0 && distanceHasChanged(distance, new_distance, distance_threshold));
 
-            checkpoint_function(quad_tree, "ssm-size(" + std::to_string(size_t(std::pow(2., height))) + ")");
+            checkpoint_function(quad_tree, "height-" + std::to_string(height) + "-final");
             if (iterations >= max_iterations) {
                 reason = " (max iterations reached)\n";
             } else if (num_exchanges == 0) {

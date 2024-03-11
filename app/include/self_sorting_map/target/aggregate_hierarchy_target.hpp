@@ -12,16 +12,11 @@ namespace ssm
     /**
      * Get the minimum and maximum height for calculating the hierarchy targets.
      *
-     * @tparam VectorType
-     * @param nodes
-     * @param quad_tree
      * @param partition_height
      * @param is_shift
      * @return
      */
-    template<typename VectorType>
     std::pair<size_t, size_t> getHierarchyTargetHeightBounds(
-        shared::QuadAssignmentTree<VectorType> &quad_tree,
         size_t partition_height,
         bool is_shift
     )
@@ -53,7 +48,7 @@ namespace ssm
     )
     {
         using namespace shared;
-        auto height_bounds = getHierarchyTargetHeightBounds(quad_tree, partition_height, is_shift);
+        auto height_bounds = getHierarchyTargetHeightBounds(partition_height, is_shift);
         size_t num_parents = height_bounds.second - height_bounds.first;
 
         // We iterate over the dims of the first parent, since this marks the partition with the same parents and therefore targets.

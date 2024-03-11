@@ -10,6 +10,7 @@
 #include "app/include/self_sorting_map/target/partition_neighbourhood_target.hpp"
 #include "app/include/self_sorting_map/target/cell_neighbourhood_target.hpp"
 #include "app/include/self_sorting_map/target/highest_parent_hierarchy.hpp"
+#include "app/include/self_sorting_map/target/4_connected_target.hpp"
 
 namespace ssm
 {
@@ -50,6 +51,26 @@ namespace ssm
                     break;
                 case CELL_NEIGHBOURHOOD:
                     loadCellNeighbourhoodTargets(target_map, quad_tree, partition_height, comparison_height, is_shift);
+                    break;
+                case AGGREGATE_HIERARCHY_4C:
+                    load4ConnectedTarget(
+                        loadAggregateHierarchyTargets<VectorType>,
+                        target_map,
+                        quad_tree,
+                        partition_height,
+                        comparison_height,
+                        is_shift
+                    );
+                    break;
+                case HIGHEST_PARENT_HIERARCHY_4C:
+                    load4ConnectedTarget(
+                        loadHighestParentHierarchyTargets<VectorType>,
+                        target_map,
+                        quad_tree,
+                        partition_height,
+                        comparison_height,
+                        is_shift
+                    );
                     break;
             }
         }
