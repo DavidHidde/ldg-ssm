@@ -4,7 +4,6 @@
 #include <functional>
 #include <map>
 #include "app/include/shared/model/quad_assignment_tree.hpp"
-#include "app/include/shared/util/tree_traversal/row_major_iterator.hpp"
 #include "app/include/shared/util/tree_traversal/tree_walker.hpp"
 
 namespace shared

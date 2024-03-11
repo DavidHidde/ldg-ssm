@@ -3,7 +3,6 @@
 
 #include "app/include/shared/model/quad_assignment_tree.hpp"
 #include "app/include/shared/util/math.hpp"
-#include <vector>
 #include <cstddef>
 #include <memory>
 

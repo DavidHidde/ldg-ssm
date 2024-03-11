@@ -2,7 +2,6 @@
 #define LDG_CORE_METHOD_HPP
 
 #include <functional>
-#include <algorithm>
 #include <iostream>
 #include "app/include/shared/model/quad_assignment_tree.hpp"
 #include "app/include/shared/util/tree_traversal/row_major_iterator.hpp"

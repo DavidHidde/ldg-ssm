@@ -1,7 +1,6 @@
 #ifndef LDG_CORE_4_CONNECTED_TARGET_HPP
 #define LDG_CORE_4_CONNECTED_TARGET_HPP
 
-#include <functional>
 #include <vector>
 #include <memory>
 #include "app/include/shared/model/quad_assignment_tree.hpp"
