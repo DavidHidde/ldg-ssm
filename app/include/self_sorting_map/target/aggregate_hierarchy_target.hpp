@@ -28,7 +28,7 @@ namespace ssm
     {
         return {
             partition_height,
-            partition_height + 1
+            is_shift ? partition_height + 2 : partition_height + 1
         };
     }
 

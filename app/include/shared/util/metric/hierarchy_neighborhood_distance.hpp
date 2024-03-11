@@ -2,40 +2,13 @@
 #define LDG_CORE_HIERARCHY_NEIGHBORHOOD_DISTANCE_HPP
 
 #include <functional>
+#include <map>
 #include "app/include/shared/model/quad_assignment_tree.hpp"
 #include "app/include/shared/util/tree_traversal/row_major_iterator.hpp"
 #include "app/include/shared/util/tree_traversal/tree_walker.hpp"
 
 namespace shared
 {
-    const double EMPTY_HND_SCORE = -1.;
-
-    /**
-     * Generate the same sized caching tree used for the HND. All values are set to empty initially.
-     *
-     * @tparam VectorType
-     * @param source
-     * @return
-     */
-    template<typename VectorType>
-    QuadAssignmentTree<double> generateCacheTree(QuadAssignmentTree<VectorType> &quad_tree)
-    {
-        std::vector<std::shared_ptr<double>> empty_scores(quad_tree.getData().size());
-#pragma omp parallel for
-        for (size_t idx = 0; idx < quad_tree.getNumRows() * quad_tree.getNumCols(); ++idx)
-            empty_scores[idx] = std::make_shared<double>(EMPTY_HND_SCORE);  // Explicitly create a new pointer for each element
-
-        return QuadAssignmentTree<double>(
-            empty_scores,
-            quad_tree.getAssignment(),
-            quad_tree.getNumRows(),
-            quad_tree.getNumCols(),
-            quad_tree.getDepth(),
-            quad_tree.getNumRealElements(),
-            quad_tree.getDataElementLen()
-        );
-    }
-
     /**
      * Compute the HND for a quad tree at a given height.
      *
@@ -55,46 +28,52 @@ namespace shared
     {
         computeAggregates(quad_tree);
         double sum = 0.;
-        auto cache = generateCacheTree(quad_tree);
-
-        // Compute all single scores
-        auto height_bounds = quad_tree.getBounds(CellPosition{ height, 0 });
-        auto height_array_bounds = height_bounds.first;
-        auto height_array_dims = height_bounds.second;
-#pragma omp parallel for
-        for (size_t idx = height_array_bounds.first; idx < height_array_bounds.second; ++idx)  {
-            CellPosition position{ height, idx };
-            auto value = computeHierarchyDistanceForCell(position, distance_function, quad_tree);
-            cache.setValue(position, value);
-        }
+        size_t height_to_root = quad_tree.getDepth() - height;
+        auto [height_bounds, height_dims] = quad_tree.getBounds(CellPosition{ height, 0 });
+        size_t num_elems = height_dims.first * height_dims.second;
+        std::vector<double> height_distances(num_elems * height_to_root, 0.);
+        std::map<size_t, double> cache;
 
         // Add all scores together (4-connectivity filter)
-#pragma omp parallel for reduction(+:sum)
-        for (size_t idx = height_array_bounds.first; idx < height_array_bounds.second; ++idx)  {
+#pragma omp parallel for reduction(+:sum) private(cache)
+        for (size_t idx = 0; idx < num_elems; ++idx) {
             CellPosition position{ height, idx };
-            size_t x = position.index % quad_tree.getNumCols();
-            size_t y = position.index / quad_tree.getNumCols();
+            size_t x = position.index % height_bounds.second;
+            size_t y = position.index / height_bounds.second;
 
-            double neighbor_sum = 0.;
-            size_t neighbour_count = 0;
-            if (x > 0) {
-                neighbor_sum += *cache.getValue(CellPosition{ height, position.index - 1 });
-                ++neighbour_count;
-            }
-            if (x < height_array_dims.second - 1) {
-                neighbor_sum += *cache.getValue(CellPosition{ height, position.index + 1 });
-                ++neighbour_count;
-            }
-            if (y > 0) {
-                neighbor_sum += *cache.getValue(CellPosition{ height, position.index - height_array_dims.second });
-                ++neighbour_count;
-            }
-            if (y < height_array_dims.first - 1) {
-                neighbor_sum += *cache.getValue(CellPosition{ height, position.index + height_array_dims.second });
-                ++neighbour_count;
-            }
+            auto node_value = quad_tree.getValue(position);
+            double neighbor_sum =
+                computeHierarchyDistanceForCell(
+                    CellPosition{ height, position.index - 1 },
+                    node_value,
+                    distance_function,
+                    quad_tree,
+                    cache
+                ) +
+                    computeHierarchyDistanceForCell(
+                        CellPosition{ height, position.index + 1 },
+                        node_value,
+                        distance_function,
+                        quad_tree,
+                        cache
+                    ) +
+                    computeHierarchyDistanceForCell(
+                        CellPosition{ height, position.index + 1 },
+                        node_value,
+                        distance_function,
+                        quad_tree,
+                        cache
+                    ) +
+                    computeHierarchyDistanceForCell(
+                        CellPosition{ height, position.index + height_dims.second },
+                        node_value,
+                        distance_function,
+                        quad_tree,
+                        cache
+                    );
 
-            sum += *cache.getValue(position) + neighbor_sum / (neighbour_count > 0 ? double(neighbour_count) : 1.);
+            sum += computeHierarchyDistanceForCell(position, node_value, distance_function, quad_tree, cache) + neighbor_sum / 4.;
+            cache.clear();
         }
 
         return sum;
@@ -105,24 +84,34 @@ namespace shared
      *
      * @tparam VectorType
      * @param position
+     * @param value
      * @param distance_function
-     * @param source
+     * @param quad_tree
+     * @param cache Cache of already computed distances between value and parents.
      * @return
      */
     template<typename VectorType>
     double computeHierarchyDistanceForCell(
-        CellPosition &position,
+        CellPosition position,
+        std::shared_ptr<VectorType> &value,
         std::function<double(std::shared_ptr<VectorType>, std::shared_ptr<VectorType>)> distance_function,
-        QuadAssignmentTree<VectorType> &source
+        QuadAssignmentTree<VectorType> &quad_tree,
+        std::map<size_t, double> &cache
     )
     {
-        TreeWalker<VectorType> walker(position, source);
-        auto node = walker.getNodeValue();
+        TreeWalker<VectorType> walker(position, quad_tree);
+        walker.moveUp();    // Move to the first parent
         double sum = 0;
+        auto [num_rows, num_cols] = quad_tree.getBounds(position).second;
 
-        if (node != nullptr) {
+        if (value != nullptr && position.index < num_rows * num_cols) { // Index is size_t, so negative will overflow to max value
             do {
-                sum += distance_function(node, walker.getParentValue());
+                auto position = walker.getNode();
+                size_t key = rowMajorIndex(position.height, position.index, quad_tree.getNumCols());
+                if (!cache.count(key)) {    // We haven't computed this yet
+                    cache[key] = distance_function(value, walker.getNodeValue());
+                }
+                sum += cache[key];
             } while (walker.moveUp());
         }
 
