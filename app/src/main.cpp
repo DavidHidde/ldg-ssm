@@ -44,7 +44,7 @@ std::vector<std::shared_ptr<Eigen::VectorXd>> generateRandomColorData(size_t num
 
 int main(int argc, const char **argv)
 {
-    bool use_synthetic_data = true;
+    bool use_synthetic_data = false;
     clock_t start = clock();
 
     // Forward declare all relevant variables.
@@ -85,27 +85,25 @@ int main(int argc, const char **argv)
         distance_function = ldg::euclideanDistance<Eigen::VectorXd>;
         checkpoint_function = ldg::saveQuadTreeRGBImages<Eigen::VectorXd>;
     } else {
-        n_rows = 32;
-        n_cols = 32;
         max_iterations = 100;
         minimal_dist_change_percent = 0.000001;
         target_types = std::vector{ ssm::PARTITION_NEIGHBOURHOOD };
 
-        auto [loaded_data, loaded_element_len, loaded_num_elements] = adapter::loadData(
-            "/usr/data/input/caltech1k_feat.config",
-            n_rows,
-            n_cols
+        auto [loaded_data, dims, loaded_element_len, loaded_num_elements] = adapter::loadData(
+            "/usr/data/input/stock1.config"
         );
+        n_rows = dims.first;
+        n_cols = dims.second;
         data = loaded_data;
         element_len = loaded_element_len;
         num_elements = loaded_num_elements;
         assignment = adapter::readCompressedAssignment(
-            "/usr/data/output/caltech1k/qtLeafAssignment.raw.bz2",
+            "/usr/data/output/stock1/qtLeafAssignment.raw.bz2",
             n_rows,
             n_cols,
             num_elements
         );
-//        assignment = ldg::createAssignment(data.size(), n_rows, n_cols);
+        // assignment = ldg::createAssignment(data.size(), n_rows, n_cols);
 
         distance_function = ldg::cosineDistance<Eigen::VectorXd>;
         checkpoint_function = adapter::saveAndCompressAssignment<Eigen::VectorXd>;
@@ -114,11 +112,13 @@ int main(int argc, const char **argv)
     // Data initialization
     size_t depth = std::ceil(std::log2(std::max(n_cols, n_rows))) + 1;
     ldg::QuadAssignmentTree<Eigen::VectorXd> quad_tree{ data, assignment, n_rows, n_cols, depth, num_elements, element_len };
+    ldg::assertUniqueAssignment(quad_tree);
 
     // Actual sorting
     std::cout << "Pre-randomization HND: " << ldg::computeHierarchyNeighborhoodDistance(0, distance_function, quad_tree) << "\n";
     ldg::randomizeAssignment(quad_tree, 42);
     ssm::sort(quad_tree, distance_function, checkpoint_function, max_iterations, minimal_dist_change_percent, target_types);
+    ldg::assertUniqueAssignment(quad_tree);
 
     clock_t stop = clock();
     double elapsed = (double) (stop - start) / CLOCKS_PER_SEC;

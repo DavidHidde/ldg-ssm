@@ -7,8 +7,27 @@
 #include "app/include/ldg/util/tree_traversal/tree_walker.hpp"
 #include "app/include/ldg/util/vector_math.hpp"
 
+#include <cassert>
+
 namespace ldg
 {
+    /**
+     * Assert that the elements in the grid only appear once.
+     *
+     * @tparam VectorType
+     * @param quad_tree
+     */
+    template<typename VectorType>
+    void assertUniqueAssignment(QuadAssignmentTree<VectorType> &quad_tree)
+    {
+        auto assignment_copy(quad_tree.getAssignment());
+        std::sort(assignment_copy.begin(), assignment_copy.end());
+        for (size_t idx = 0; idx < assignment_copy.size(); ++idx) {
+            auto copy = assignment_copy[idx];
+            assert(idx == assignment_copy[idx] && "Failed asserting the completeness of the assignment!");
+        }
+    }
+
     /**
      * Compute and update the aggregates of the quad tree.
      * For this we assume we can perform basic arithmetic functions on VectorType.

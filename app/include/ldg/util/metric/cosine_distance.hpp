@@ -19,7 +19,8 @@ namespace ldg
         if (lhs == nullptr || rhs == nullptr)
             return 0.;
 
-        return 1. - (*lhs).dot(*rhs) / ((*lhs).norm() * (*rhs).norm());
+        double norm = (*lhs).norm() * (*rhs).norm();
+        return norm == 0. ? 0. : 1. - (*lhs).dot(*rhs) / norm;  // Completely empty vectors are likely aggregates of void cells, so set to 0
     }
 }
 
