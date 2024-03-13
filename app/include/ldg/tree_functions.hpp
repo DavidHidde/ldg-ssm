@@ -42,7 +42,7 @@ namespace ldg
 
         // Compute the aggregates bottom-up
         for (size_t height = 1; height < quad_tree.getDepth(); ++height) {
-#pragma omp parallel for
+#pragma omp parallel for schedule(static)
             for (size_t idx = 0; idx < curr_num_rows * curr_num_cols; ++idx) {
                 CellPosition position{ height, idx };
                 TreeWalker<VectorType> walker(position, curr_num_rows, curr_num_cols, quad_tree);

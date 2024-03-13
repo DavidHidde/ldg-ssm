@@ -50,7 +50,7 @@ namespace ssm
         long projected_num_cols = iteration_num_cols / 2 + (iteration_num_cols % (2 * partition_len)) % partition_len;
         long num_elems = projected_num_rows * projected_num_cols;
 
-#pragma omp parallel for private(nodes) reduction(+:num_exchanges)
+#pragma omp parallel for private(nodes) reduction(+:num_exchanges) schedule(static)
         for (long idx = 0; idx < num_elems; ++idx) {
             long projected_x = idx % projected_num_cols;
             long projected_y = idx / projected_num_cols;

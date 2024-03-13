@@ -35,7 +35,7 @@ namespace ssm
         size_t num_elems = projected_dims.first * projected_dims.second;
         size_t partition_len = size_t(std::pow(2, partition_height - comparison_height));
 
-#pragma omp parallel for
+#pragma omp parallel for schedule(static)
         for (size_t idx = 0; idx < num_elems; ++idx) {
             int partition_x = idx % projected_dims.second;
             int partition_y = idx / projected_dims.second;

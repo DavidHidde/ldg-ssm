@@ -60,7 +60,7 @@ namespace ssm
         std::vector<std::shared_ptr<VectorType>> values;
         values.reserve(num_parents);
 
-#pragma omp parallel for private(values)
+#pragma omp parallel for private(values) schedule(static)
         for (size_t idx = 0; idx < num_elems; ++idx) {
             TreeWalker<VectorType> walker{ CellPosition{ min_height, idx }, quad_tree };
             for (size_t parent_idx = 0; parent_idx < num_parents; ++parent_idx) {

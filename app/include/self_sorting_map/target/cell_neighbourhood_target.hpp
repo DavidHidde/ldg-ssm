@@ -37,7 +37,7 @@ namespace ssm
         std::vector<std::shared_ptr<VectorType>> values;
         values.reserve(CELL_NUM_BLOCKS_PER_DIMENSION * CELL_NUM_BLOCKS_PER_DIMENSION);
 
-#pragma omp parallel for private(values)
+#pragma omp parallel for private(values) schedule(static)
         for (size_t idx = 0; idx < num_elems; ++idx) {
             int cell_x = idx % comparison_height_dims.second;
             int cell_y = idx / comparison_height_dims.second;

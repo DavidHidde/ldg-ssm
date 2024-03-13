@@ -41,7 +41,7 @@ namespace ssm
         int shift = is_shift ? 0 : (PARTITION_NUM_BLOCKS_PER_DIMENSION - 1) % 2;
         int blocks_offset = (PARTITION_NUM_BLOCKS_PER_DIMENSION - 1) / 2;
 
-#pragma omp parallel for private(values)
+#pragma omp parallel for private(values) schedule(static)
         for (size_t idx = 0; idx < num_elems; ++idx) {
             int partition_x = idx % projected_dims.second;
             int partition_y = idx / projected_dims.second;

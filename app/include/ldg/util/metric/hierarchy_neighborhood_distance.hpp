@@ -33,7 +33,7 @@ namespace ldg
         std::map<size_t, double> cache;
 
         // Add all scores together (4-connectivity filter)
-#pragma omp parallel for reduction(+:sum) private(cache)
+#pragma omp parallel for reduction(+:sum) private(cache) schedule(static)
         for (size_t idx = 0; idx < num_elems; ++idx) {
             CellPosition position{ height, idx };
             size_t x = position.index % height_bounds.second;

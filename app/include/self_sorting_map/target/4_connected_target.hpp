@@ -39,7 +39,7 @@ namespace ssm
 
         auto [num_rows, num_cols] = quad_tree.getBounds(CellPosition{ comparison_height, 0 }).second;
         size_t num_elems = num_rows * num_cols;
-#pragma omp parallel for private(values)
+#pragma omp parallel for private(values) schedule(static)
         for (size_t idx = 0; idx < num_elems; ++idx) {
             size_t x = idx % num_cols;
             size_t y = idx / num_cols;
