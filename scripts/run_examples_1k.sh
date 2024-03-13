@@ -4,7 +4,7 @@ output_dir=$2
 executable=$3
 
 # just runs a specified number of iterations (default low number for testing, does not yield refined grid)
-niter=16
+max_n_same=100
 
 #
 # STOCK1K
@@ -16,7 +16,7 @@ mkdir -p $out
 cmd_base="$executable -d $feat --outDir $out/ --distFuncType 1 --repAggregationType 4"
 echo "cmd_base: $cmd_base"
 
-$cmd_base  --termIterations $niter --noImgOut
+$cmd_base --termSame $max_n_same --noImgOut
 $cmd_base --loadAssignments ${out}/qtLeafAssignment.raw.bz2 --termTime 0 --imgOutOpts "png:0,level:0,level:1,level:2"
 $cmd_base --loadAssignments ${out}/qtLeafAssignment.raw.bz2 --termTime 0 --imgOutOpts "png:0,disparity:0.67"
 
@@ -30,7 +30,7 @@ mkdir -p $out
 cmd_base="$executable -d $feat --outDir $out/ --distFuncType 1 --repAggregationType 3"
 echo "cmd_base: $cmd_base"
 
-$cmd_base  --termIterations $niter --noImgOut
+$cmd_base --termSame $max_n_same --noImgOut
 $cmd_base --loadAssignments ${out}/qtLeafAssignment.raw.bz2 --termTime 0 --imgOutOpts "png:0,level:0,level:1,level:2"
 $cmd_base --loadAssignments ${out}/qtLeafAssignment.raw.bz2 --termTime 0 --imgOutOpts "png:0,disparity:0.67"
 
@@ -45,6 +45,6 @@ mkdir -p $out
 cmd_base="$executable -d $feat --outDir $out/ --distFuncType 2 --repAggregationType 2"
 echo "cmd_base: $cmd_base"
 
-$cmd_base  --termIterations $niter --noImgOut
+$cmd_base --termSame $max_n_same --noImgOut
 $cmd_base --loadAssignments ${out}/qtLeafAssignment.raw.bz2 --termTime 0 --imgOutOpts "png:0,level:0,level:1,level:2" -r $img
 $cmd_base --loadAssignments ${out}/qtLeafAssignment.raw.bz2 --termTime 0 --imgOutOpts "png:0,disparity:0.67" -r $img

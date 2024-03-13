@@ -72,28 +72,13 @@ namespace ldg
     /**
      * Create a direct assignment for given dimensions.
      *
-     * @param num_rows
-     * @param num_cols
+     * @param size
      * @return
      */
-    inline std::vector<size_t> createAssignment(size_t size, size_t num_rows, size_t num_cols)
+    inline std::vector<size_t> createAssignment(const size_t size)
     {
         auto assignment = std::vector<size_t>(size);
-
-        // Generate quad tree structure space, where every height starts at 0 again
-        size_t offset = 0;
-        while (num_rows > 1 && num_cols > 1) {
-            size_t end = offset + num_cols * num_rows;
-            for (size_t idx = offset; idx < end; ++idx) {
-                assignment[idx] = idx;
-            }
-
-            offset += num_cols * num_rows;
-            num_cols = ceilDivideByFactor(num_cols, 2.);
-            num_rows = ceilDivideByFactor(num_rows, 2.);
-        }
-        assignment[size - 1] = size - 1; // Fix last element
-
+        std::iota(assignment.begin(), assignment.end(), 0);
         return assignment;
     }
 
@@ -110,7 +95,7 @@ namespace ldg
         size_t size = num_elements;
         size_t new_num_cols = num_cols;
         size_t new_num_rows = num_rows;
-        while (new_num_rows > 1 && new_num_cols > 1) {
+        while (new_num_rows > 1 || new_num_cols > 1) {
             new_num_cols = ceilDivideByFactor(new_num_cols, 2.);
             new_num_rows = ceilDivideByFactor(new_num_rows, 2.);
             size += new_num_cols * new_num_rows;

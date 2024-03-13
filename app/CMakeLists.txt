@@ -19,6 +19,15 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(helper)
 
+FetchContent_Declare(
+        cxxopts
+        GIT_REPOSITORY https://github.com/jarro2783/cxxopts.git
+        GIT_TAG v3.2.0
+        CONFIGURE_COMMAND ""
+        BUILD_COMMAND ""
+)
+FetchContent_MakeAvailable(cxxopts)
+
 # There are several things to unpack here. one is both the name of the executable file generated, and the name of the CMake target created (you'll hear a lot more about targets soon, I promise). The source file list comes next, and you can list as many as you'd like. CMake is smart, and will only compile source file extensions. The headers will be, for most intents and purposes, ignored; the only reason to list them is to get them to show up in IDEs. Targets show up as folders in many IDEs. More about the general build system and targets is available at buildsystem.
 
 add_executable(ldg_core src/supertiles/ldg_core.cpp)
@@ -50,6 +59,9 @@ add_library(helper INTERFACE)
 target_include_directories(helper INTERFACE ${helper_SOURCE_DIR})
 target_link_libraries(ldg_core PUBLIC helper)
 target_link_libraries(new_ldg PUBLIC helper)
+
+target_include_directories(cxxopts INTERFACE ${cxxopts_SOURCE_DIR})
+target_link_libraries(new_ldg PUBLIC cxxopts)
 
 find_package(BZip2 REQUIRED)
 include_directories(${BZIP2_INCLUDE_DIRS})

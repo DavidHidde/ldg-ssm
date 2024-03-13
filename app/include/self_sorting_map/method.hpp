@@ -52,24 +52,29 @@ namespace ssm
      * @param quad_tree
      * @param distance_function
      * @param checkpoint_function
+     * @param iterations_between_checkpoint
      * @param max_iterations
      * @param distance_threshold
      * @param target_types
+     * @param output_dir
+     * @param use_partition_swaps
      */
     template<typename VectorType>
     void sort(
         ldg::QuadAssignmentTree<VectorType> &quad_tree,
         std::function<double(std::shared_ptr<VectorType>, std::shared_ptr<VectorType>)> distance_function,
         std::function<void(ldg::QuadAssignmentTree<VectorType> &, std::string)> checkpoint_function,
+        const size_t iterations_between_checkpoint,
         const size_t max_iterations,
         const double distance_threshold,
-        const std::vector<TargetType> target_types
+        const std::vector<TargetType> target_types,
+        std::string const &output_dir,
+        const bool use_partition_swaps
     )
     {
         using namespace ldg;
         double distance = computeHierarchyNeighborhoodDistance(0, distance_function, quad_tree);
         double new_distance = distance;
-        std::cout << "Start HND: " << distance << "\n\n";
 
         // Main loop
         size_t height = getStartHeight(quad_tree);
@@ -79,11 +84,15 @@ namespace ssm
             size_t iterations = 0;
 
             do {
+                if (iterations_between_checkpoint > 0 && iterations % iterations_between_checkpoint == 0) {
+                    checkpoint_function(quad_tree, output_dir + "height-" + std::to_string(height) + "-it(" + std::to_string(iterations) + ')');
+                }
+
                 num_exchanges = 0;
                 num_exchanges += optimizePartitions(quad_tree, distance_function, target_types, height, 0, false);
                 num_exchanges += optimizePartitions(quad_tree, distance_function, target_types, height, 0, true);
 
-                if (height > 1) {
+                if (use_partition_swaps && height > 1) {
                     num_exchanges += optimizePartitions(quad_tree, distance_function, target_types, height, height - 1, false);
                     num_exchanges += optimizePartitions(quad_tree, distance_function, target_types, height, height - 1, true);
                 }
@@ -93,18 +102,16 @@ namespace ssm
                 ++iterations;
             } while (iterations < max_iterations && num_exchanges > 0 && distanceHasChanged(distance, new_distance, distance_threshold));
 
-            checkpoint_function(quad_tree, "height-" + std::to_string(height) + "-final");
+            checkpoint_function(quad_tree, output_dir + "height-" + std::to_string(height) + "-final");
             if (iterations >= max_iterations) {
-                reason = " (max iterations reached)\n";
+                reason = " (max iterations reached)";
             } else if (num_exchanges == 0) {
-                reason = " (no exchanges left)\n";
+                reason = " (no exchanges left)";
             } else {
-                reason = " (distance change below threshold)\n";
+                reason = " (distance change below threshold)";
             }
-            std::cout << "Finished height " << height << " in " << iterations << " iterations with distance " << new_distance << reason;
+            std::cout << "Finished height " << height << " in " << iterations << " iterations with distance " << new_distance << reason << std::endl;
         }
-
-        std::cout << "\nFinal HND: " << new_distance << '\n';
     }
 }
 

@@ -2,6 +2,7 @@ FROM gcc:12.3
 
 RUN apt-get update && apt install -y \
     ssh \
+    valgrind \
     build-essential \
     libcairo2-dev \
     libomp-dev \

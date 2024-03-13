@@ -39,8 +39,6 @@ namespace ldg
      *
      * @tparam VectorType
      * @param quad_tree
-     * @param filename
-     * @param height
      */
     template<typename VectorType>
     void saveQuadTreeRGBImages(QuadAssignmentTree<VectorType> &quad_tree, std::string const base_filename)
