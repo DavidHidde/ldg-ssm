@@ -64,6 +64,7 @@ namespace program
 
         // Main loop where we perform the sorting.
         clock_t start = clock();
+        std::filesystem::create_directories(output_dir);
         Logger logger(start, output_dir);
         logger.setUsingPartitionSwaps(sort_options.use_partition_swaps).setNumRows(quad_tree.getNumRows()).setNumCols(quad_tree.getNumCols());
         for (size_t idx = 0; idx < schedule.number_of_passes; ++idx) {

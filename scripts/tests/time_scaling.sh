@@ -1,0 +1,50 @@
+#!/bin/bash
+executable=$1 # First arg: The executable location
+output_dir=$2 # Second arg: The output directory
+
+base="$executable --debug --seed 1 --log_only"
+
+echo "########### Aggregate Hierarchy ###########"
+$base --rows 32 --columns 32 --targets 0 --output "$output_dir/aggregate_hierarchy/32_32/"
+echo "---"
+$base --rows 64 --columns 64 --targets 0 --output "$output_dir/aggregate_hierarchy/64_64/"
+echo "---"
+$base --rows 128 --columns 128 --targets 0 --output "$output_dir/aggregate_hierarchy/128_128/"
+echo "---"
+$base --rows 256 --columns 256 --targets 0 --output "$output_dir/aggregate_hierarchy/256_256/"
+
+echo "########### Highest parent ###########"
+$base --rows 32 --columns 32 --targets 1 --output "$output_dir/highest_parent/32_32/"
+echo "---"
+$base --rows 64 --columns 64 --targets 1 --output "$output_dir/highest_parent/64_64/"
+echo "---"
+$base --rows 128 --columns 128 --targets 1 --output "$output_dir/highest_parent/128_128/"
+echo "---"
+$base --rows 256 --columns 256 --targets 1 --output "$output_dir/highest_parent/256_256/"
+
+echo "########### Aggregate Hierarchy 4c ###########"
+$base --rows 32 --columns 32 --targets 2 --output "$output_dir/aggregate_hierarchy_4c/32_32/"
+echo "---"
+$base --rows 64 --columns 64 --targets 2 --output "$output_dir/aggregate_hierarchy_4c/64_64/"
+echo "---"
+$base --rows 128 --columns 128 --targets 2 --output "$output_dir/aggregate_hierarchy_4c/128_128/"
+echo "---"
+$base --rows 256 --columns 256 --targets 2 --output "$output_dir/aggregate_hierarchy_4c/256_256/"
+
+echo "########### Highest parent 4c ###########"
+$base --rows 32 --columns 32 --targets 3 --output "$output_dir/highest_parent_4c/32_32/"
+echo "---"
+$base --rows 64 --columns 64 --targets 3 --output "$output_dir/highest_parent_4c/64_64/"
+echo "---"
+$base --rows 128 --columns 128 --targets 3 --output "$output_dir/highest_parent_4c/128_128/"
+echo "---"
+$base --rows 256 --columns 256 --targets 3 --output "$output_dir/highest_parent_4c/256_256/"
+
+echo "########### Partition neighbourhood ###########"
+$base --rows 32 --columns 32 --targets 4 --output "$output_dir/partition_neighbourhood/32_32/"
+echo "---"
+$base --rows 64 --columns 64 --targets 4 --output "$output_dir/partition_neighbourhood/64_64/"
+echo "---"
+$base --rows 128 --columns 128 --targets 4 --output "$output_dir/partition_neighbourhood/128_128/"
+echo "---"
+$base --rows 256 --columns 256 --targets 4 --output "$output_dir/partition_neighbourhood/256_256/"
