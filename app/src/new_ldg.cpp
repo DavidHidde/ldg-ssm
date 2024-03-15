@@ -6,15 +6,23 @@
 #include "app/include/ldg/model/quad_assignment_tree.hpp"
 #include "app/include/self_sorting_map/method.hpp"
 #include "app/include/ldg/util/image.hpp"
-#include "app/include/ldg/util/metric/hierarchy_neighborhood_distance.hpp"
 #include "app/include/adapter/data.hpp"
 #include "app/include/adapter/storage.hpp"
-#include "app/include/ldg/util/metric/cosine_distance.hpp"
 #include "app/include/ldg/util/metric/distance_function_types.hpp"
-#include "app/include/ldg/util/metric/euclidean_distance.hpp"
 #include "app/include/program/run.hpp"
 #include "app/include/program/schedule.hpp"
 #include "app/include/program/sort_options.hpp"
+
+/**
+ * Dummy Checkpoint function that just returns. Can be used if only the logs are of interest.
+ *
+ * @tparam VectorType
+ * @param quad_tree
+ * @param output_dir
+ */
+template<typename VectorType>
+void dummyFunction(ldg::QuadAssignmentTree<VectorType> &quad_tree, std::string output_dir)
+{}
 
 /**
  * Generate some random RGB data in the range [0, 255], already in the quad tree structure.
@@ -146,7 +154,7 @@ program::SortOptions<VectorType> loadSortOptionsFromInput(cxxopts::ParseResult c
         result["partition_swaps"].as<bool>(),
         targets,
         ldg::mapFunctionTypeToFunction<VectorType>(static_cast<ldg::DistanceFunctionType>(result["distance_function"].as<size_t>())),
-        result["debug"].as<bool>() ? ldg::saveQuadTreeRGBImages<VectorType> : adapter::saveAndCompressAssignment<VectorType>
+        result["log_only"].as<bool>() ? dummyFunction<VectorType> : result["debug"].as<bool>() ? ldg::saveQuadTreeRGBImages<VectorType> : adapter::saveAndCompressAssignment<VectorType>
     };
 }
 
@@ -177,6 +185,7 @@ int main(int argc, const char **argv)
         ("partition_swaps", "Enable partition swaps.", cxxopts::value<bool>()->default_value("true")->implicit_value("true"))
         ("randomize", "Randomize the assignment at the start.", cxxopts::value<bool>()->default_value("true")->implicit_value("true"))
         ("debug", "Enable debugging (use synthetic data).", cxxopts::value<bool>()->default_value("false")->implicit_value("true"))
+        ("log_only", "Disable saving the assignment in compressed or image form.", cxxopts::value<bool>()->default_value("false")->implicit_value("true"))
         ("combine_targets", "Combine targets into a single target. If false, one target will be used per pass, with the last target repeating until the end.", cxxopts::value<bool>()->default_value("false")->implicit_value("true"))
         ("distance_function", "Distance function to use. Options are: Euclidean distance: 0, Cosine Similarity: 1", cxxopts::value<size_t>()->default_value("0"))
         ("targets", "Targets of the SSM. Options are: Aggregate Hierarchy: 0, Highest Parent: 1, Aggregate Hierarchy (4 connected): 2, Highest Parent (4 connected): 3, Partition Neighbourhood: 4, Cell Neighbourhood: 5", cxxopts::value<std::vector<size_t>>()->default_value("4"));

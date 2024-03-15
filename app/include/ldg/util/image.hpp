@@ -2,6 +2,7 @@
 #define LDG_CORE_IMAGE_HPP
 
 #include <string>
+#define cimg_use_png
 #include "CImg.h"
 #include "app/include/ldg/model/quad_assignment_tree.hpp"
 #include "app/include/ldg/util/tree_traversal/row_major_iterator.hpp"

@@ -8,6 +8,7 @@
 #include "app/include/ldg/tree_functions.hpp"
 #include "targets.hpp"
 #include "partitions.hpp"
+#include "app/include/program/logger.hpp"
 
 namespace ssm
 {
@@ -58,6 +59,7 @@ namespace ssm
      * @param target_types
      * @param output_dir
      * @param use_partition_swaps
+     * @param logger
      */
     template<typename VectorType>
     void sort(
@@ -69,7 +71,8 @@ namespace ssm
         const double distance_threshold,
         const std::vector<TargetType> target_types,
         std::string const &output_dir,
-        const bool use_partition_swaps
+        const bool use_partition_swaps,
+        program::Logger &logger
     )
     {
         using namespace ldg;
@@ -84,10 +87,6 @@ namespace ssm
             size_t iterations = 0;
 
             do {
-                if (iterations_between_checkpoint > 0 && iterations % iterations_between_checkpoint == 0) {
-                    checkpoint_function(quad_tree, output_dir + "height-" + std::to_string(height) + "-it(" + std::to_string(iterations) + ')');
-                }
-
                 num_exchanges = 0;
                 num_exchanges += optimizePartitions(quad_tree, distance_function, target_types, height, 0, false);
                 num_exchanges += optimizePartitions(quad_tree, distance_function, target_types, height, 0, true);
@@ -99,10 +98,16 @@ namespace ssm
 
                 distance = new_distance;
                 new_distance = computeHierarchyNeighborhoodDistance(0, distance_function, quad_tree);
+
+                if (iterations_between_checkpoint > 0 && iterations % iterations_between_checkpoint == 0) {
+                    checkpoint_function(quad_tree, output_dir + "height-" + std::to_string(height) + "-it(" + std::to_string(iterations) + ')');
+                    logger.write(height, iterations, new_distance, num_exchanges);
+                }
                 ++iterations;
             } while (iterations < max_iterations && num_exchanges > 0 && distanceHasChanged(distance, new_distance, distance_threshold));
 
             checkpoint_function(quad_tree, output_dir + "height-" + std::to_string(height) + "-final");
+            logger.write(height, iterations, new_distance, num_exchanges);
             if (iterations >= max_iterations) {
                 reason = " (max iterations reached)";
             } else if (num_exchanges == 0) {

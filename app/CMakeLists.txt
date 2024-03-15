@@ -107,23 +107,8 @@ set(EIGEN_BUILD_DOC OFF)
 FetchContent_MakeAvailable(eigen)
 target_link_libraries(new_ldg PUBLIC Eigen3::Eigen)
 
-# Cairo
-FetchContent_Declare(
-    cairo
-    GIT_REPOSITORY https://gitlab.freedesktop.org/cairo/cairo.git
-    GIT_TAG 1.18.0
-    CONFIGURE_COMMAND ""
-    BUILD_COMMAND ""
-)
-FetchContent_MakeAvailable(cairo)
-
-add_library(cairo INTERFACE)
-target_include_directories(cairo INTERFACE ${cairo_SOURCE_DIR})
-target_link_libraries(ldg_core PUBLIC cairo)
-target_link_libraries(new_ldg PUBLIC cairo)
-
 # the `pkg_check_modules` function is created with this call
-find_package(PkgConfig REQUIRED) 
+find_package(PkgConfig REQUIRED)
 
 # these calls create special `PkgConfig::<MODULE>` variables
 pkg_check_modules(MY_PKG REQUIRED IMPORTED_TARGET cairo)

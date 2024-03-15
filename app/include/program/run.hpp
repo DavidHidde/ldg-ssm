@@ -1,6 +1,7 @@
 #ifndef RUN_HPP
 #define RUN_HPP
 
+#include "logger.hpp"
 #include "schedule.hpp"
 #include "sort_options.hpp"
 #include "app/include/ldg/tree_functions.hpp"
@@ -63,11 +64,26 @@ namespace program
 
         // Main loop where we perform the sorting.
         clock_t start = clock();
+        Logger logger(start, output_dir);
+        logger.setUsingPartitionSwaps(sort_options.use_partition_swaps).setNumRows(quad_tree.getNumRows()).setNumCols(quad_tree.getNumCols());
         for (size_t idx = 0; idx < schedule.number_of_passes; ++idx) {
             std::cout << "--- Pass " << idx + 1 << " ---" << std::endl;
+            logger.setNumPass(idx).setMaxIterations(max_iterations).setDistanceThreshold(distance_threshold).setTargets(target_schedule[idx]);
             std::string pass_output_dir = output_dir + "pass" + std::to_string(idx + 1) + std::filesystem::__cxx11::path::preferred_separator;
             std::filesystem::create_directories(pass_output_dir);
-            ssm::sort(quad_tree, sort_options.distance_function, sort_options.checkpoint_function, schedule.iterations_per_checkpoint, max_iterations, distance_threshold, target_schedule[idx], pass_output_dir, sort_options.use_partition_swaps);
+
+            ssm::sort(
+                quad_tree,
+                sort_options.distance_function,
+                sort_options.checkpoint_function,
+                schedule.iterations_per_checkpoint,
+                max_iterations,
+                distance_threshold,
+                target_schedule[idx],
+                pass_output_dir,
+                sort_options.use_partition_swaps,
+                logger
+            );
 
             distance_threshold *= schedule.threshold_change_factor;
             max_iterations = std::ceil(static_cast<double>(max_iterations) * schedule.iterations_change_factor);
@@ -75,8 +91,9 @@ namespace program
         }
 
         ldg::assertUniqueAssignment(quad_tree);
+        logger.close();
         std::cout << "Final HND: " << ldg::computeHierarchyNeighborhoodDistance(0, sort_options.distance_function, quad_tree) << std::endl;
-        printf("\nTime elapsed: %.5f\n", static_cast<double>(clock() - start) / CLOCKS_PER_SEC);
+        printf("Time elapsed: %.5f\n\n", static_cast<double>(clock() - start) / CLOCKS_PER_SEC);
     }
 }
 
