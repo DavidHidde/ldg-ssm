@@ -32,7 +32,7 @@ namespace program
 
         std::vector<std::vector<ssm::TargetType>> target_schedule;
         for (size_t idx = 0; idx < schedule.number_of_passes; ++idx) {
-            target_schedule.push_back({ sort_options.target_types[std::min(idx, sort_options.target_types.size() - 1)] });
+            target_schedule.push_back({sort_options.target_types[std::min(idx, sort_options.target_types.size() - 1)]});
         }
         return target_schedule;
     }
@@ -63,7 +63,7 @@ namespace program
         auto target_schedule = createTargetSchedule(schedule, sort_options);
 
         // Main loop where we perform the sorting.
-        clock_t start = clock();
+        const double start = omp_get_wtime();
         std::filesystem::create_directories(output_dir);
         Logger logger(start, output_dir);
         logger.setUsingPartitionSwaps(sort_options.use_partition_swaps).setNumRows(quad_tree.getNumRows()).setNumCols(quad_tree.getNumCols());
@@ -94,7 +94,7 @@ namespace program
         ldg::assertUniqueAssignment(quad_tree);
         logger.close();
         std::cout << "Final HND: " << ldg::computeHierarchyNeighborhoodDistance(0, sort_options.distance_function, quad_tree) << std::endl;
-        printf("Time elapsed: %.5f\n\n", static_cast<double>(clock() - start) / CLOCKS_PER_SEC);
+        printf("Time elapsed: %.5f\n\n", omp_get_wtime() - start);
     }
 }
 

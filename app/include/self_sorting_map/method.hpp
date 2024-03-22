@@ -14,6 +14,7 @@ namespace ssm
 {
     /**
      * Check if the distance has changed enough within a certain threshold.
+     * If the threshold is 0 or lower, we ignore this computation.
      *
      * @param old_distance
      * @param new_distance
@@ -22,7 +23,7 @@ namespace ssm
      */
     inline bool distanceHasChanged(double old_distance, double new_distance, double threshold)
     {
-        return std::abs(old_distance - new_distance) / old_distance > threshold;
+        return threshold <= 0 || std::abs(old_distance - new_distance) / old_distance > threshold;
     }
 
     /**

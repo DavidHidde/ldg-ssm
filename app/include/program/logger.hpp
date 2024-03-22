@@ -30,7 +30,7 @@ namespace program
         };
         const char csv_separator = ';';
 
-        clock_t start_time;
+        double start_time;
         std::ofstream output_file_stream;
 
         // Internal counters and caches that should only change per pass
@@ -43,7 +43,7 @@ namespace program
         std::string targets = "";
 
     public:
-        explicit Logger(const clock_t &start_time, std::string const &output_dir);
+        explicit Logger(double start_time, std::string const &output_dir);
 
         void write(
             size_t height,
@@ -76,7 +76,7 @@ namespace program
      * @param start_time
      * @param output_dir
      */
-    inline Logger::Logger(clock_t const &start_time, std::string const &output_dir):
+    inline Logger::Logger(const double start_time, std::string const &output_dir):
         start_time(start_time)
     {
         output_file_stream.open(output_dir + "log.csv");
@@ -93,10 +93,10 @@ namespace program
      * @param distance
      * @param num_exchanges
      */
-    inline void Logger::write(size_t height, size_t iteration, double distance, size_t num_exchanges)
+    inline void Logger::write(const size_t height, const size_t iteration, double distance, const size_t num_exchanges)
     {
         output_file_stream <<
-            static_cast<double>(clock() - start_time) / CLOCKS_PER_SEC << csv_separator <<
+            omp_get_wtime() - start_time << csv_separator <<
             num_pass << csv_separator <<
             height << csv_separator <<
             iteration << csv_separator <<

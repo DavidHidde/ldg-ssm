@@ -2,7 +2,7 @@
 executable=$1 # First arg: The executable location
 output_dir=$2 # Second arg: The output directory
 
-base="$executable --debug --rows 1024 --columns 1024 --targets 4 --seed 1 --log_only"
+base="$executable --debug --rows 256 --columns 256 --targets 4 --seed 1 --log_only"
 
 echo "## 1 ##"
 $base --cores 1 --output "$output_dir/1/"

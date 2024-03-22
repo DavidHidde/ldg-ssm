@@ -41,6 +41,7 @@ std::vector<std::shared_ptr<VectorType>> generateUniformRGBData(size_t num_rows,
     auto data = std::vector<std::shared_ptr<Eigen::VectorXd>>(size, std::make_shared<Eigen::VectorXd>(Eigen::Vector3d::Zero(3)));
 
     // Fill first cells with data
+#pragma omp parallel for schedule(static)
     for (size_t idx = 0; idx < size; ++idx) {
         if (idx < num_elements) {
             size_t x = idx % num_cols;
@@ -174,9 +175,9 @@ int main(int argc, const char **argv)
         ("output", "Path to the output directory.", cxxopts::value<std::string>()->default_value("./"))
         ("cores", "Number of cores to use for parallel operations.", cxxopts::value<size_t>())
         ("passes", "Number of passes.", cxxopts::value<size_t>()->default_value("1"))
-        ("max_iterations", "Number of maximum iterations for convergence.", cxxopts::value<size_t>()->default_value("1000"))
+        ("max_iterations", "Number of maximum iterations for convergence.", cxxopts::value<size_t>()->default_value("100"))
         ("iterations_per_checkpoint", "Number of iterations between checkpoints.", cxxopts::value<size_t>()->default_value("0"))
-        ("min_distance_change", "Minimum distance change for convergence.", cxxopts::value<double>()->default_value("0.0000001"))
+        ("min_distance_change", "Minimum distance change for convergence.", cxxopts::value<double>()->default_value("0.00001"))
         ("distance_change_factor", "Minimum distance change for convergence.", cxxopts::value<double>()->default_value("1"))
         ("iterations_change_factor", "Minimum distance change for convergence.", cxxopts::value<double>()->default_value("1"))
         ("rows", "Number of rows of the grid.", cxxopts::value<size_t>()->default_value("0"))
