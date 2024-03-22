@@ -9,7 +9,7 @@ base="$executable $dataset_flags --seed 1 --passes 5"
 
 target_names=( "aggregate_hierarchy" "highest_parent" "aggregate_hierarchy_4c" "highest_parent_4c" "partition_neighbourhood" )
 
-base_iterations=( 1000 100 50 25)
+base_iterations=( 1000 100 50 25 5)
 base_thresholds=( "0.001" "0.0001" "0.0001" "0.00001" "0.000001" "0")
 iterations_changes=( "0.1" "0.5" "0.75" "2")
 threshold_changes=( "0.1" "0.5" "2" "10" )
