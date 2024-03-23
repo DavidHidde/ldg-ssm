@@ -5,7 +5,7 @@ output_dir=$1 # Second arg: The output directory
 shift
 dataset_flags="$@" # All remaining flags are the data set specification. For real data, this is the config and input. For debug, this is the debug flag and dimensions.
 
-base="$executable $dataset_flags --seed 1 --passes 5"
+base="$executable $dataset_flags --log_only --seed 1 --passes 5"
 
 target_names=( "aggregate_hierarchy" "highest_parent" "aggregate_hierarchy_4c" "highest_parent_4c" "partition_neighbourhood" )
 
