@@ -13,7 +13,7 @@ for target_idx in {0..4}; do
   for side_len in "${side_lens[@]}"; do
     for repetition in {0..4}; do
       current_output_dir="$output_dir/${target_names[$target_idx]}/$side_len/$repetition/"
-      $base --targets "$target_idx" --output "$current_output_dir"
+      $base --targets "$target_idx" --rows "$side_len" --columns "$side_len" --output "$current_output_dir"
     done
   done
 done
