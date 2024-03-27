@@ -4,47 +4,14 @@ output_dir=$2 # Second arg: The output directory
 
 base="$executable --debug --rows 256 --columns 256"
 
-echo "########### Aggregate Hierarchy ###########"
-$base --targets 0 --seed 1 --output "$output_dir/aggregate_hierarchy/1/"
-echo "---"
-$base --targets 0 --seed 23 --output "$output_dir/aggregate_hierarchy/23/"
-echo "---"
-$base --targets 0 --seed 456 --output "$output_dir/aggregate_hierarchy/456/"
-echo "---"
-$base --targets 0 --seed 7890 --output "$output_dir/aggregate_hierarchy/7890/"
+target_names=( "aggregate_hierarchy" "highest_parent" "aggregate_hierarchy_4c" "highest_parent_4c" "partition_neighbourhood" )
+seeds=( 1 5 23 75 456 666 3492 7890 90000 123456 )
 
-echo "########### Highest parent ###########"
-$base --targets 1 --seed 1 --output "$output_dir/highest_parent/1/"
-echo "---"
-$base --targets 1 --seed 23 --output "$output_dir/highest_parent/23/"
-echo "---"
-$base --targets 1 --seed 456 --output "$output_dir/highest_parent/456/"
-echo "---"
-$base --targets 1 --seed 7890 --output "$output_dir/highest_parent/7890/"
-
-echo "########### Aggregate Hierarchy 4c ###########"
-$base --targets 2 --seed 1 --output "$output_dir/aggregate_hierarchy_4c/1/"
-echo "---"
-$base --targets 2 --seed 23 --output "$output_dir/aggregate_hierarchy_4c/23/"
-echo "---"
-$base --targets 2 --seed 456 --output "$output_dir/aggregate_hierarchy_4c/456/"
-echo "---"
-$base --targets 2 --seed 7890 --output "$output_dir/aggregate_hierarchy_4c/7890/"
-
-echo "########### Highest parent 4c ###########"
-$base --targets 3 --seed 1 --output "$output_dir/highest_parent_4c/1/"
-echo "---"
-$base --targets 3 --seed 23 --output "$output_dir/highest_parent_4c/23/"
-echo "---"
-$base --targets 3 --seed 456 --output "$output_dir/highest_parent_4c/456/"
-echo "---"
-$base --targets 3 --seed 7890 --output "$output_dir/highest_parent_4c/7890/"
-
-echo "########### Partition neighbourhood ###########"
-$base --targets 4 --seed 1 --output "$output_dir/partition_neighbourhood/1/"
-echo "---"
-$base --targets 4 --seed 23 --output "$output_dir/partition_neighbourhood/23/"
-echo "---"
-$base --targets 4 --seed 456 --output "$output_dir/partition_neighbourhood/456/"
-echo "---"
-$base --targets 4 --seed 7890 --output "$output_dir/partition_neighbourhood/7890/"
+# Iterate over all possible combinations
+for target_idx in {0..4}; do
+  echo "########### ${target_names[$target_idx]} ###########"
+  for seed in "${seeds[@]}"; do
+    current_output_dir="$output_dir/${target_names[$target_idx]}/$seed/"
+    $base --targets "$target_idx" --seed "$seed" --output "$current_output_dir"
+  done
+done
