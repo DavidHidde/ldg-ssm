@@ -7,7 +7,8 @@ dataset_flags="$@" # All remaining flags are the data set specification. For rea
 
 base="$executable $dataset_flags --log_only --seed 1 --passes 5"
 
-target_names=( "aggregate_hierarchy" "highest_parent" "aggregate_hierarchy_4c" "partition_neighbourhood" )
+target_names=( "aggregate_hierarchy" "highest_parent" "aggregate_hierarchy_4c" "highest_parent_4c" "partition_neighbourhood" )
+target_values=( "0" "1" "2" "4")
 
 base_iterations=( 1000 100 50 5)
 base_thresholds=( "0.001" "0.0001" "0.00001" "0.000001" "0")
@@ -15,7 +16,7 @@ iterations_changes=( "0.1" "0.5" "1" "1.5" "2")
 threshold_changes=( "0.1" "0.5" "1" "2" "10" )
 
 # Iterate over all possible combinations
-for target_idx in {0..4}; do
+for target_idx in "${target_values[@]}"; do
   echo "########### ${target_names[$target_idx]} ###########"
   for iterations in "${base_iterations[@]}"; do
     for threshold in "${base_thresholds[@]}"; do
