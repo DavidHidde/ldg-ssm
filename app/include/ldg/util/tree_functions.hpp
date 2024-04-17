@@ -5,7 +5,7 @@
 #include <algorithm>
 #include "app/include/ldg/model/quad_assignment_tree.hpp"
 #include "app/include/ldg/util/tree_traversal/tree_walker.hpp"
-#include "app/include/ldg/util/vector_math.hpp"
+#include "app/include/ldg/util/math.hpp"
 
 #include <cassert>
 

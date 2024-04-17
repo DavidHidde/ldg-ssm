@@ -4,7 +4,7 @@
 #include "logger.hpp"
 #include "schedule.hpp"
 #include "sort_options.hpp"
-#include "app/include/ldg/tree_functions.hpp"
+#include "app/include/ldg/util/tree_functions.hpp"
 #include "app/include/ldg/model/quad_assignment_tree.hpp"
 #include "app/include/ldg/util/metric/hierarchy_neighborhood_distance.hpp"
 #include "app/include/self_sorting_map/method.hpp"
@@ -45,10 +45,10 @@ namespace program
      * @param quad_tree
      * @param schedule
      * @param sort_options
-     * @param output_dir
+     * @param export_settings
      */
     template<typename VectorType>
-    void run(ldg::QuadAssignmentTree<VectorType> &quad_tree, Schedule &schedule, SortOptions<VectorType> &sort_options, const std::string output_dir)
+    void run(ldg::QuadAssignmentTree<VectorType> &quad_tree, Schedule &schedule, SortOptions<VectorType> &sort_options, ExportSettings &export_settings)
     {
         ldg::assertUniqueAssignment(quad_tree);
         std::cout << "Initial HND: " << ldg::computeHierarchyNeighborhoodDistance(0, sort_options.distance_function, quad_tree) << std::endl;
@@ -64,26 +64,27 @@ namespace program
 
         // Main loop where we perform the sorting.
         const double start = omp_get_wtime();
-        std::filesystem::create_directories(output_dir);
-        Logger logger(start, output_dir);
+        std::string base_output_dir = export_settings.output_dir;
+        std::filesystem::create_directories(base_output_dir);
+        Logger logger(start, base_output_dir);
         logger.setUsingPartitionSwaps(sort_options.use_partition_swaps).setNumRows(quad_tree.getNumRows()).setNumCols(quad_tree.getNumCols());
         for (size_t idx = 0; idx < schedule.number_of_passes; ++idx) {
             std::cout << "--- Pass " << idx + 1 << " ---" << std::endl;
             logger.setNumPass(idx).setMaxIterations(max_iterations).setDistanceThreshold(distance_threshold).setTargets(target_schedule[idx]);
-            std::string pass_output_dir = output_dir + "pass" + std::to_string(idx + 1) + std::filesystem::__cxx11::path::preferred_separator;
+            std::string pass_output_dir = base_output_dir + "pass" + std::to_string(idx + 1) + std::filesystem::__cxx11::path::preferred_separator;
             std::filesystem::create_directories(pass_output_dir);
+            export_settings.output_dir = pass_output_dir;
 
             ssm::sort(
                 quad_tree,
                 sort_options.distance_function,
-                sort_options.checkpoint_function,
                 schedule.iterations_per_checkpoint,
                 max_iterations,
                 distance_threshold,
                 target_schedule[idx],
-                pass_output_dir,
                 sort_options.use_partition_swaps,
-                logger
+                logger,
+                export_settings
             );
 
             distance_threshold *= schedule.threshold_change_factor;

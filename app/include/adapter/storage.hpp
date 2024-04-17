@@ -5,9 +5,29 @@
 #include "app/include/ldg/model/quad_assignment_tree.hpp"
 #include "app/include/supertiles/util/place/data.hpp"
 #include "data_layout.hpp"
+#include "app/include/ldg/util/tree_functions.hpp"
 
 namespace adapter
 {
+    /**
+     * Save an iterable to a .raw.bz2 file.
+     *
+     * @tparam VectorType
+     * @tparam Iterable
+     * @param quad_tree
+     * @param iterable
+     * @param file_name
+     */
+    template<typename VectorType, typename Iterable>
+    void saveAndCompressIterable(ldg::QuadAssignmentTree<VectorType> &quad_tree, Iterable iterable, std::string const file_name)
+    {
+        size_t grid_side_len = std::pow(2, std::ceil(std::log2(std::max(quad_tree.getNumRows(), quad_tree.getNumCols()))));
+        Iterable iterable_copy(grid_side_len * grid_side_len, supertiles::place::voidTileIdx);
+        copyFromRowMajorToHierarchy(iterable, iterable_copy, quad_tree.getNumRows(), quad_tree.getNumCols());
+
+        helper::bzip_compress(iterable_copy, file_name + ".raw.bz2");
+    }
+
     /**
      * Save an assignment to a .raw.bz2 file.
      *

@@ -2,20 +2,20 @@
 
 cmake_minimum_required(VERSION 3.14)
 
-project(new_ldg VERSION 0.1
-  DESCRIPTION "Improved Level-of-Detail Grids"
+project(ldg_ssm VERSION 0.1
+  DESCRIPTION "Level-of-Detail Self sorting map Grids"
   LANGUAGES CXX)
 
 # There are several things to unpack here. one is both the name of the executable file generated, and the name of the CMake target created (you'll hear a lot more about targets soon, I promise). The source file list comes next, and you can list as many as you'd like. CMake is smart, and will only compile source file extensions. The headers will be, for most intents and purposes, ignored; the only reason to list them is to get them to show up in IDEs. Targets show up as folders in many IDEs. More about the general build system and targets is available at buildsystem.
 add_executable(ldg_core src/supertiles/ldg_core.cpp)
-add_executable(new_ldg src/new_ldg.cpp)
+add_executable(ldg_ssm src/ldg_ssm.cpp)
 
 # PUBLIC doesn't mean much for an executable; for a library it lets CMake know that any targets that link to this target must also need that include directory.
 target_include_directories(ldg_core PUBLIC ..)
-target_include_directories(new_ldg PUBLIC ..)
+target_include_directories(ldg_ssm PUBLIC ..)
 
 target_compile_features(ldg_core PUBLIC cxx_std_17)
-target_compile_features(new_ldg PUBLIC cxx_std_17)
+target_compile_features(ldg_ssm PUBLIC cxx_std_17)
 
 include(FetchContent)
 
@@ -36,9 +36,9 @@ FetchContent_MakeAvailable(helper)
 add_library(helper INTERFACE)
 target_include_directories(helper INTERFACE ${helper_SOURCE_DIR})
 target_link_libraries(ldg_core PUBLIC helper)
-target_link_libraries(new_ldg PUBLIC helper)
+target_link_libraries(ldg_ssm PUBLIC helper)
 
-#CXXOpts
+# CXXOpts
 FetchContent_Declare(
     cxxopts
     GIT_REPOSITORY https://github.com/jarro2783/cxxopts.git
@@ -49,7 +49,12 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(cxxopts)
 
 target_include_directories(cxxopts INTERFACE ${cxxopts_SOURCE_DIR})
-target_link_libraries(new_ldg PUBLIC cxxopts)
+target_link_libraries(ldg_ssm PUBLIC cxxopts)
+
+# JSON
+FetchContent_Declare(json URL https://github.com/nlohmann/json/releases/download/v3.11.3/json.tar.xz)
+FetchContent_MakeAvailable(json)
+target_link_libraries(ldg_ssm PRIVATE nlohmann_json::nlohmann_json)
 
 # CImg
 FetchContent_Declare(
@@ -64,13 +69,13 @@ FetchContent_MakeAvailable(cimg)
 add_library(cimg INTERFACE)
 target_include_directories(cimg INTERFACE ${cimg_SOURCE_DIR})
 target_link_libraries(ldg_core PUBLIC cimg)
-target_link_libraries(new_ldg PUBLIC cimg)
+target_link_libraries(ldg_ssm PUBLIC cimg)
 
 # OpenMP
 find_package(OpenMP)
 if(OpenMP_CXX_FOUND)
     target_link_libraries(ldg_core PUBLIC OpenMP::OpenMP_CXX)
-    target_link_libraries(new_ldg PUBLIC OpenMP::OpenMP_CXX)
+    target_link_libraries(ldg_ssm PUBLIC OpenMP::OpenMP_CXX)
 else()
     target_compile_definitions(ldg_core PUBLIC NO_OMP=1)
 endif()
@@ -79,17 +84,17 @@ endif()
 find_package(PNG REQUIRED)
 include_directories(${PNG_INCLUDE_DIR})
 target_link_libraries(ldg_core PUBLIC ${PNG_LIBRARY})
-target_link_libraries(new_ldg PUBLIC ${PNG_LIBRARY})
+target_link_libraries(ldg_ssm PUBLIC ${PNG_LIBRARY})
 
 # BZip2
 find_package(BZip2 REQUIRED)
 include_directories(${BZIP2_INCLUDE_DIRS})
 target_link_libraries(ldg_core PUBLIC ${BZIP2_LIBRARIES})
-target_link_libraries(new_ldg PUBLIC ${BZIP2_LIBRARIES})
+target_link_libraries(ldg_ssm PUBLIC ${BZIP2_LIBRARIES})
 
 # X11 - This specifically helps for containers
 find_package(X11 REQUIRED)
-target_link_libraries(new_ldg PUBLIC X11)
+target_link_libraries(ldg_ssm PUBLIC X11)
 
 # Eigen
 FetchContent_Declare(
@@ -105,7 +110,7 @@ set(EIGEN_MPL2_ONLY ON)
 set(EIGEN_BUILD_PKGCONFIG OFF)
 set(EIGEN_BUILD_DOC OFF)
 FetchContent_MakeAvailable(eigen)
-target_link_libraries(new_ldg PUBLIC Eigen3::Eigen)
+target_link_libraries(ldg_ssm PUBLIC Eigen3::Eigen)
 
 # the `pkg_check_modules` function is created with this call
 find_package(PkgConfig REQUIRED)
@@ -114,7 +119,7 @@ find_package(PkgConfig REQUIRED)
 pkg_check_modules(MY_PKG REQUIRED IMPORTED_TARGET cairo)
 
 target_link_libraries(ldg_core PUBLIC PkgConfig::MY_PKG)
-target_link_libraries(new_ldg PUBLIC PkgConfig::MY_PKG)
+target_link_libraries(ldg_ssm PUBLIC PkgConfig::MY_PKG)
 
 # Detect if the "port" command is valid on this system; if so, return full path
 EXECUTE_PROCESS(COMMAND which port RESULT_VARIABLE DETECT_MACPORTS OUTPUT_VARIABLE MACPORTS_PREFIX ERROR_QUIET OUTPUT_STRIP_TRAILING_WHITESPACE)

@@ -21,9 +21,7 @@ namespace program
         size_t randomization_seed;
         bool use_partition_swaps;
         std::vector<ssm::TargetType> target_types;
-
         std::function<double(std::shared_ptr<VectorType>, std::shared_ptr<VectorType>)> distance_function;
-        std::function<void(ldg::QuadAssignmentTree<VectorType> &, std::string)> checkpoint_function;
     };
 }
 

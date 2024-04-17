@@ -3,28 +3,10 @@
 
 #include <cstddef>
 #include <cmath>
+#include <Eigen/Dense>
 
 namespace ldg
 {
-    /**
-     * Get the ceiling power of 2 for a size_t equivalent to "ceil(log2(num))".
-     *
-     * @param num
-     * @return
-     */
-    inline size_t ceilPowerOfTwo(size_t num)
-    {
-        --num;
-
-        num |= num >> 1;
-        num |= num >> 2;
-        num |= num >> 4;
-        num |= num >> 8;
-        num |= num >> 16;
-
-        return num + 1;
-    }
-
     /**
      * @param row
      * @param col
@@ -32,17 +14,6 @@ namespace ldg
      * @return
      */
     inline size_t rowMajorIndex(size_t row, size_t col, size_t num_cols)
-    {
-        return col + row * num_cols;
-    }
-
-    /**
-     * @param row
-     * @param col
-     * @param num_cols
-     * @return
-     */
-    inline long rowMajorIndexLong(long row, long col, long num_cols)
     {
         return col + row * num_cols;
     }
@@ -69,6 +40,56 @@ namespace ldg
     inline size_t ceilDivideByPowerTwo(size_t num, size_t power)
     {
         return ceilDivideByFactor(num, std::pow(2., power));
+    }
+
+    /**
+     * Aggregate multiple vectors into one, ignoring null pointers and dividing by the number of elements.
+     * Note that we assume that the default constructor of the template type initializes to 0.
+     *
+     * @tparam VectorType
+     * @param vectors
+     * @param num_elements
+     * @return
+     */
+    template<typename VectorType>
+    VectorType aggregate(std::vector<std::shared_ptr<VectorType>> &vectors, size_t num_elements)
+    {
+        double count = 0.;
+        VectorType aggregate = VectorType::Zero(num_elements);
+
+        for (auto vector_ptr : vectors) {
+            if (vector_ptr != nullptr) {
+                aggregate += *vector_ptr;
+                ++count;
+            }
+        }
+
+        return aggregate / std::max(1., count);
+    }
+
+    /**
+     * Aggregate multiple vectors into one, ignoring null pointers and dividing by the number of elements.
+     * Note that we assume that the default constructor of the template type initializes to 0.
+     *
+     * @tparam VectorType
+     * @param vectors
+     * @param num_elements
+     * @return
+     */
+    template<typename VectorType>
+    VectorType aggregate(std::vector<std::shared_ptr<VectorType>> &&vectors, size_t num_elements)
+    {
+        double count = 0.;
+        VectorType aggregate = VectorType::Zero(num_elements);
+
+        for (auto vector_ptr : vectors) {
+            if (vector_ptr != nullptr) {
+                aggregate += *vector_ptr;
+                ++count;
+            }
+        }
+
+        return aggregate / std::max(1., count);
     }
 }
 

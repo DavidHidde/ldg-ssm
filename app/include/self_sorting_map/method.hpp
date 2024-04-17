@@ -5,10 +5,11 @@
 #include <iostream>
 #include "app/include/ldg/model/quad_assignment_tree.hpp"
 #include "app/include/ldg/util/tree_traversal/row_major_iterator.hpp"
-#include "app/include/ldg/tree_functions.hpp"
+#include "app/include/ldg/util/tree_functions.hpp"
 #include "targets.hpp"
 #include "partitions.hpp"
 #include "app/include/program/logger.hpp"
+#include "app/include/program/export/export.hpp"
 
 namespace ssm
 {
@@ -53,27 +54,25 @@ namespace ssm
      * @tparam VectorType
      * @param quad_tree
      * @param distance_function
-     * @param checkpoint_function
      * @param iterations_between_checkpoint
      * @param max_iterations
      * @param distance_threshold
      * @param target_types
-     * @param output_dir
      * @param use_partition_swaps
      * @param logger
+     * @param export_settings
      */
     template<typename VectorType>
     void sort(
         ldg::QuadAssignmentTree<VectorType> &quad_tree,
         std::function<double(std::shared_ptr<VectorType>, std::shared_ptr<VectorType>)> distance_function,
-        std::function<void(ldg::QuadAssignmentTree<VectorType> &, std::string)> checkpoint_function,
         const size_t iterations_between_checkpoint,
         const size_t max_iterations,
         const double distance_threshold,
         const std::vector<TargetType> target_types,
-        std::string const &output_dir,
         const bool use_partition_swaps,
-        program::Logger &logger
+        program::Logger &logger,
+        program::ExportSettings &export_settings
     )
     {
         using namespace ldg;
@@ -101,13 +100,15 @@ namespace ssm
                 new_distance = computeHierarchyNeighborhoodDistance(0, distance_function, quad_tree);
 
                 if (iterations_between_checkpoint > 0 && iterations % iterations_between_checkpoint == 0) {
-                    checkpoint_function(quad_tree, output_dir + "height-" + std::to_string(height) + "-it(" + std::to_string(iterations) + ')');
+                    export_settings.file_name = "height-" + std::to_string(height) + "-it(" + std::to_string(iterations) + ')';
+                    program::exportQuadTree(quad_tree, distance_function, export_settings);
                     logger.write(height, iterations, new_distance, num_exchanges);
                 }
                 ++iterations;
             } while (iterations < max_iterations && num_exchanges > 0 && distanceHasChanged(distance, new_distance, distance_threshold));
 
-            checkpoint_function(quad_tree, output_dir + "height-" + std::to_string(height) + "-final");
+            export_settings.file_name = "height-" + std::to_string(height) + "-final";
+            program::exportQuadTree(quad_tree, distance_function, export_settings);
             logger.write(height, iterations, new_distance, num_exchanges);
             if (iterations >= max_iterations) {
                 reason = " (max iterations reached)";
