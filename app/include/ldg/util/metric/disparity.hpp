@@ -28,6 +28,7 @@ namespace ldg
 
         // Normalize
         double root_value = disparities[disparities.size() - 1];
+#pragma omp parallel for schedule(static)
         for (size_t idx = 0; idx < num_nodes; ++idx) {
             disparities[idx] /= root_value;
         }

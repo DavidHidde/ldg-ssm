@@ -171,8 +171,8 @@ namespace program
             result["visualization_config"].as<std::string>(),
             result["log_only"].as<bool>(),
             result["debug"].as<bool>(),
-            !result["visualization_config"].as<std::string>().empty() > 0 && result["export"].as<bool>(),
-            result["export"].as<bool>()
+            !result["log_only"].as<bool>() && result["export"].as<bool>(),
+            !result["log_only"].as<bool>() && result["visualization_config"].as<std::string>().empty() && result["export"].as<bool>(),
         };
     }
 };

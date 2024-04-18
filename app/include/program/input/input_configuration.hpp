@@ -15,7 +15,7 @@ using JSON = nlohmann::json;
 namespace program
 {
     /**
-     * ExportConfiguration of input data, which can be loaded from a JSON file.
+     * Configuration of input data, which can be loaded from a JSON file.
      */
     struct InputConfiguration
     {

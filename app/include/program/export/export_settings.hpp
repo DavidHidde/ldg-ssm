@@ -2,7 +2,7 @@
 #define NEW_LDG_EXPORT_SETTINGS_HPP
 
 #include <string>
-#include "export_configuration.hpp"
+#include "visualization_configuration.hpp"
 
 namespace program
 {
@@ -18,8 +18,8 @@ namespace program
 
         bool log_only = false; // Don't export.
         bool debug = false; // Debug mode prints images across all heights for RGB configurations.
-        bool export_data = false;
-        bool export_disparity = false;
+        bool export_visualization = false;
+        bool export_data = false;   // In case we need to generate the images belonging to the data representations ourselves.
     };
 } // program
 

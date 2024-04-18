@@ -3,6 +3,7 @@
 
 #include <string>
 #include <functional>
+#include <set>
 #include "app/include/ldg/model/quad_assignment_tree.hpp"
 #include "export_settings.hpp"
 #include "app/include/program/export/image.hpp"
@@ -13,6 +14,61 @@
 namespace program
 {
     /**
+     * Export the assignment for the visualization. This assignment also includes the parents of the base grid.
+     * If the visualization data is provided, then we need to map the parents to the closest child.
+     *
+     * @tparam VectorType
+     * @param output_dir
+     * @param file_name
+     * @param has_existing_visualization
+     * @param quad_tree
+     * @param distance_function
+     * @return Relative path to the generated assignment
+     */
+    template<typename VectorType>
+    std::string exportVisualizationAssignment(
+        std::string output_dir,
+        std::string file_name,
+        bool has_existing_visualization,
+        ldg::QuadAssignmentTree<VectorType> &quad_tree,
+        std::function<double(std::shared_ptr<VectorType>, std::shared_ptr<VectorType>)> distance_function
+    ) {
+        std::vector<int> assignment_copy(quad_tree.getAssignment().begin(), quad_tree.getAssignment().end());
+
+        if (has_existing_visualization) {
+            // Replace all parents with the child that is closest to them
+            std::vector<double> min_distances(assignment_copy.size(), std::numeric_limits<double>().infinity());
+            for (size_t idx = 0; idx < quad_tree.getNumRows() * quad_tree.getNumCols(); ++idx) {
+                ldg::TreeWalker walker({ 0, idx }, quad_tree);
+                auto base_value = walker.getNodeValue();
+                std::set<int> previous_values;  // Use a set to avoid not replacing overwritten parents
+                while (base_value != nullptr && walker.moveUp()) {
+                    double distance = distance_function(base_value, walker.getNodeValue());
+                    auto [array_range, dims] = quad_tree.getBounds(walker.getNode());
+                    size_t parent_idx = array_range.first + walker.getNode().index;
+                    if (previous_values.count(assignment_copy[parent_idx]) > 0 || distance < min_distances[parent_idx]) {
+                        previous_values.insert(assignment_copy[parent_idx]);
+                        min_distances[parent_idx] = distance;
+                        assignment_copy[parent_idx] = assignment_copy[idx];
+                    } else {
+                        break;
+                    }
+                }
+            }
+        }
+
+        // Set all void cells to -1.
+        for (size_t idx = 0; idx < assignment_copy.size(); ++idx) {
+            if (quad_tree.getData()[assignment_copy[idx]] == nullptr)
+                assignment_copy[idx] = -1;
+        }
+
+        std::string assignment_file_name = file_name + "-visualization-assignment";
+        helper::bzip_compress(assignment_copy, output_dir + assignment_file_name + ".raw.bz2");
+        return assignment_file_name + ".raw.bz2";
+    }
+
+    /**
      * Calculate the disparities, compress and save them and create and save an input config that points to it.
      *
      * @tparam VectorType
@@ -20,10 +76,10 @@ namespace program
      * @param file_name
      * @param quad_tree
      * @param distance_function
-     * @return
+     * @return Relative path to the generated config
      */
     template<typename VectorType>
-    std::string createDisparityInputConfiguration(
+    std::string exportDisparity(
         std::string output_dir,
         std::string file_name,
         ldg::QuadAssignmentTree<VectorType> &quad_tree,
@@ -31,7 +87,7 @@ namespace program
     ) {
         std::string disparity_file_name = file_name + "-disparity";
         auto disparities = computeDisparity(quad_tree, distance_function);
-        adapter::saveAndCompressIterable(quad_tree, disparities, output_dir + disparity_file_name);
+        helper::bzip_compress(disparities, output_dir + disparity_file_name + ".raw.bz2");
 
         InputConfiguration disparity_configuration;
         disparity_configuration.type = InputType::DATA;
@@ -66,18 +122,19 @@ namespace program
             return saveQuadTreeRGBImages<VectorType>(quad_tree, settings.output_dir + settings.file_name);
         }
 
-        ExportConfiguration export_configuration;
-        export_configuration.visualization_config_path = settings.visualization_config_path;
         std::string assignment_file_name = settings.file_name + "-assignment";
-        export_configuration.assignment_path = assignment_file_name + ".raw.bz2";
         adapter::saveAndCompressAssignment<VectorType>(quad_tree, settings.output_dir + assignment_file_name);
 
         if (settings.export_data) {
             std::string data_file_name = settings.output_dir + settings.file_name + "-data";
-            // Save the data in some way, converting it to images and then compressing it.
+            // TODO: Save the data in some way, converting it to images and then compressing it.
         }
-        if (settings.export_disparity) {
-            export_configuration.disparity_config_path = createDisparityInputConfiguration(settings.output_dir, settings.file_name, quad_tree, distance_function);
+        if (settings.export_visualization) {
+            VisualizationConfiguration export_configuration;
+            export_configuration.visualization_config_path = settings.visualization_config_path;
+            export_configuration.assignment_path = exportVisualizationAssignment(settings.output_dir, settings.file_name, !settings.export_data, quad_tree, distance_function);
+            export_configuration.disparity_config_path = exportDisparity(settings.output_dir, settings.file_name, quad_tree, distance_function);
+
             // At this point we have set everything so we perform the export
             export_configuration.toJSONFile(settings.output_dir + settings.file_name + "-config");
         }
