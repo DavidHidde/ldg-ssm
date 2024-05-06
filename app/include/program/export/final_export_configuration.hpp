@@ -14,7 +14,7 @@ namespace program
     /**
      * Simple configuration for export which points to an assignment, its disparity and its visualization
      */
-    struct VisualizationConfiguration
+    struct FinalExportConfiguration
     {
         std::string assignment_path;
         std::string disparity_config_path;
@@ -32,7 +32,7 @@ namespace program
      * Save the config in a JSON file. Will append .json to the filename.
      * @param file_name
      */
-    void VisualizationConfiguration::toJSONFile(std::string file_name)
+    void FinalExportConfiguration::toJSONFile(std::string file_name)
     {
         JSON json;
         json[KEYWORD_ASSIGNMENT] = assignment_path;

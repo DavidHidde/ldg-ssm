@@ -23,7 +23,7 @@ namespace ldg
         size_t num_cols;
         size_t depth;
         size_t num_real_elements;
-        size_t data_element_len;
+        std::array<size_t, 3> data_dims;
 
         std::vector<std::shared_ptr<VectorType>> data;
         std::vector<size_t> assignment;
@@ -37,7 +37,7 @@ namespace ldg
             size_t num_cols,
             size_t depth,
             size_t num_real_elements,
-            size_t data_element_len
+            std::array<size_t, 3> data_dims
         );
 
         size_t getDepth() const;
@@ -47,6 +47,8 @@ namespace ldg
         size_t getNumCols() const;
 
         size_t getNumRealElements() const;
+
+        std::array<size_t, 3> getDataDims() const;
 
         size_t getDataElementLen() const;
 
@@ -88,7 +90,7 @@ namespace ldg
         size_t num_cols,
         size_t depth,
         size_t num_real_elements,
-        size_t data_element_len
+        std::array<size_t, 3> data_dims
     ):
         data(data),
         assignment(assignment),
@@ -96,7 +98,7 @@ namespace ldg
         num_cols(num_cols),
         depth(depth),
         num_real_elements(num_real_elements),
-        data_element_len(data_element_len)
+        data_dims(data_dims)
     {
         // Generate the bounds cache
         bounds_cache.reserve(depth);
@@ -313,9 +315,19 @@ namespace ldg
      * @return
      */
     template<typename DataType>
+    std::array<size_t, 3> QuadAssignmentTree<DataType>::getDataDims() const
+    {
+        return data_dims;
+    }
+
+    /**
+     * @tparam DataType
+     * @return
+     */
+    template<typename DataType>
     size_t QuadAssignmentTree<DataType>::getDataElementLen() const
     {
-        return data_element_len;
+        return data_dims[0] * data_dims[1] * data_dims[2];
     }
 }
 

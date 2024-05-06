@@ -8,7 +8,7 @@
 namespace adapter
 {
     /**
-     * Load data from a config file into a vector compatible with the QuadAssignmentTree. Note that all extra cells are set to nullptrs.
+     * Load data from a legacy config file into a vector compatible with the QuadAssignmentTree. Note that all extra cells are set to nullptrs.
      *
      * @tparam VectorType
      * @param config

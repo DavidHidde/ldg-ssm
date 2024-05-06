@@ -42,13 +42,13 @@ namespace program
            // Export parameters
            ("log_only", "Disable saving the result in any other way than a log.", cxxopts::value<bool>()->default_value("false")->implicit_value("true"))
            ("export", "Export the assignment, disparities and data if visualization data is not specified. The export can be used with the LDG-SSM interface.", cxxopts::value<bool>()->default_value("true")->implicit_value("true"))
-           ("visualization_config", "Path to the config for the data that visually represents the data model.", cxxopts::value<std::string>())
+           ("visualization_config", "Path to the config for the data that visually represents the data model.", cxxopts::value<std::string>()->default_value(""))
        ;
 
         cxxopts::ParseResult result;
         try { result = options.parse(argc, argv); } catch (const cxxopts::exceptions::exception &exception) {
             std::cerr << "ldg_ssm: " << exception.what() << std::endl;
-            std::cerr << "usage: ldg_ssm [options] <input_file> ..." << std::endl;
+            std::cerr << "Usage: ldg_ssm [options] <input_file> ..." << std::endl;
             exit(EXIT_FAILURE);
         }
 

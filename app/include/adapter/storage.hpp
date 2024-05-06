@@ -10,7 +10,7 @@
 namespace adapter
 {
     /**
-     * Save an assignment to a .raw.bz2 file.
+     * Save an assignment to a legacy .raw.bz2 file.
      *
      * @tparam VectorType
      * @param quad_tree
@@ -34,7 +34,7 @@ namespace adapter
     }
 
     /**
-     * Read an assignment from a .raw.bz2 file.
+     * Read an assignment from a legacy .raw.bz2 file.
      *
      * @param filename
      * @param num_rows

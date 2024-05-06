@@ -2,7 +2,7 @@
 #define NEW_LDG_EXPORT_SETTINGS_HPP
 
 #include <string>
-#include "visualization_configuration.hpp"
+#include "final_export_configuration.hpp"
 
 namespace program
 {

@@ -14,6 +14,49 @@
 namespace program
 {
     /**
+     * Export the raw data as a .raw file with a JSON configuration.
+     * TODO: compress the assignment such that void cells are not exported.
+     *
+     * @tparam VectorType
+     * @param output_dir
+     * @param file_name
+     * @param has_existing_visualization
+     * @param quad_tree
+     * @return
+     */
+    template<typename VectorType>
+    std::string exportRawData(
+        std::string output_dir,
+        std::string file_name,
+        ldg::QuadAssignmentTree<VectorType> &quad_tree
+    ) {
+        std::string data_file_name = file_name + "-visualization-data";
+
+        // Copy and save the data. We skip void cells.
+        size_t element_len = quad_tree.getDataElementLen();
+        size_t num_elements = quad_tree.getData().size();
+        std::vector<double> data_copy(num_elements * element_len, 0.);  // Save as doubles regardless of the type.
+        for (size_t idx = 0; idx < num_elements; ++idx) {
+            auto &data_ptr = quad_tree.getData()[idx];
+            if (data_ptr != nullptr) {
+                std::copy((*data_ptr).begin(), (*data_ptr).end(), data_copy.begin() + idx * element_len); // Assumes type is an Eigen Vector type
+            }
+        }
+        helper::bzip_compress(data_copy, output_dir + data_file_name + ".raw.bz2");
+
+        // Create the input config for the data
+        InputConfiguration visualization_input_config;
+        visualization_input_config.grid_dims = { quad_tree.getNumRows(), quad_tree.getNumRows() };
+        visualization_input_config.type = InputType::VISUALIZATION;
+        visualization_input_config.data_dims = quad_tree.getDataDims();
+        visualization_input_config.num_elements  = quad_tree.getData().size();
+        visualization_input_config.data_path = data_file_name + ".raw.bz2";
+
+        visualization_input_config.toJSONFile(output_dir + data_file_name);
+        return data_file_name + ".json";
+    }
+
+    /**
      * Export the assignment for the visualization. This assignment also includes the parents of the base grid.
      * If the visualization data is provided, then we need to map the parents to the closest child.
      *
@@ -89,6 +132,7 @@ namespace program
         auto disparities = computeDisparity(quad_tree, distance_function);
         helper::bzip_compress(disparities, output_dir + disparity_file_name + ".raw.bz2");
 
+        // Create the input config for the saved disparity values
         InputConfiguration disparity_configuration;
         disparity_configuration.type = InputType::DATA;
         disparity_configuration.num_elements = disparities.size();
@@ -126,11 +170,10 @@ namespace program
         adapter::saveAndCompressAssignment<VectorType>(quad_tree, settings.output_dir + assignment_file_name);
 
         if (settings.export_data) {
-            std::string data_file_name = settings.output_dir + settings.file_name + "-data";
-            // TODO: Save the data in some way, converting it to images and then compressing it.
+            settings.visualization_config_path = exportRawData(settings.output_dir, settings.file_name, quad_tree);
         }
         if (settings.export_visualization) {
-            VisualizationConfiguration export_configuration;
+            FinalExportConfiguration export_configuration;
             export_configuration.visualization_config_path = settings.visualization_config_path;
             export_configuration.assignment_path = exportVisualizationAssignment(settings.output_dir, settings.file_name, !settings.export_data, quad_tree, distance_function);
             export_configuration.disparity_config_path = exportDisparity(settings.output_dir, settings.file_name, quad_tree, distance_function);

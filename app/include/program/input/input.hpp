@@ -59,7 +59,7 @@ namespace program
      * @return
      */
     template<typename VectorType>
-    std::tuple<std::vector<std::shared_ptr<VectorType>>, std::vector<size_t>, std::pair<size_t, size_t>, size_t, size_t, size_t> loadDataFromInput(cxxopts::ParseResult const &result)
+    std::tuple<std::vector<std::shared_ptr<VectorType>>, std::vector<size_t>, std::pair<size_t, size_t>, size_t, size_t, std::array<size_t, 3>> loadDataFromInput(cxxopts::ParseResult const &result)
     {
         // Debug mode: generate uniform synthetic RGB data
         if (result["debug"].as<bool>()) {
@@ -73,7 +73,7 @@ namespace program
                 {num_rows, num_cols},
                 std::ceil(std::log2(std::max(num_rows, num_cols))) + 1,
                 num_rows * num_cols,
-                3
+                { 3, 1, 1 }
             };
         }
 
@@ -103,7 +103,7 @@ namespace program
             input_config.grid_dims,
             std::ceil(std::log2(std::max(num_rows, num_cols))) + 1,
             input_config.num_elements,
-            input_config.data_dims[0] * input_config.data_dims[1] * input_config.data_dims[2]
+            input_config.data_dims
         };
     }
 
