@@ -47,8 +47,12 @@ namespace ldg
                 CellPosition position{ height, idx };
                 TreeWalker<VectorType> walker(position, curr_num_rows, curr_num_cols, quad_tree);
                 auto children = walker.getChildrenValues();
-                VectorType aggregated_value = aggregate(std::vector<std::shared_ptr<VectorType>>(children.begin(), children.end()), quad_tree.getDataElementLen());
-                quad_tree.setValue(position, aggregated_value);
+                if (children[0] == nullptr && children[1] == nullptr && children[2] == nullptr && children[3] == nullptr) {
+                    quad_tree.setValue(position, nullptr);
+                } else {
+                    VectorType aggregated_value = aggregate(std::vector<std::shared_ptr<VectorType>>(children.begin(), children.end()), quad_tree.getDataElementLen());
+                    quad_tree.setValue(position, &aggregated_value);
+                }
             }
 
             curr_num_rows = ceilDivideByFactor(curr_num_rows, 2.);

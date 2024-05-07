@@ -58,7 +58,7 @@ namespace ldg
 
         std::shared_ptr<VectorType> getValue(CellPosition position);
 
-        bool setValue(CellPosition position, VectorType &value);
+        bool setValue(CellPosition position, VectorType *value);
 
         size_t getAssignmentValue(CellPosition position);
 
@@ -196,14 +196,20 @@ namespace ldg
      * @return True if setting the value worked, false if not.
      */
     template<typename VectorType>
-    bool QuadAssignmentTree<VectorType>::setValue(CellPosition position, VectorType &value)
+    bool QuadAssignmentTree<VectorType>::setValue(CellPosition position, VectorType *value)
     {
         auto bounds = getBounds(position);
         auto start_end = bounds.first;
         size_t index = start_end.first + position.index;
 
         if (index < start_end.second) {
-            *data[assignment[index]] = std::move(value);
+            if (value == nullptr) {
+                data[assignment[index]] = nullptr;
+            } else if (data[assignment[index]] == nullptr) {
+                data[assignment[index]] = std::make_shared<VectorType>(*value);
+            } else {
+                *data[assignment[index]] = std::move(*value);
+            }
             return true;
         }
 
