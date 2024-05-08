@@ -83,17 +83,30 @@ namespace ssm
         size_t height = getStartHeight(quad_tree);
         size_t num_exchanges;
         std::string reason;
+
+        bool extra_pass = quad_tree.getNumRows() != quad_tree.getNumCols();
+        std::pair<size_t, size_t> normal_pass_pairings{ 2, 2 };
+        std::pair<size_t, size_t> extra_pass_pairings{
+            quad_tree.getNumRows() < quad_tree.getNumCols() ? 2 : 1,
+            quad_tree.getNumCols() < quad_tree.getNumRows() ? 2 : 1
+        };
+
         for (; height > 0; --height) {
             size_t iterations = 0;
 
             do {
                 num_exchanges = 0;
-                num_exchanges += optimizePartitions(quad_tree, distance_function, target_types, height, 0, false);
-                num_exchanges += optimizePartitions(quad_tree, distance_function, target_types, height, 0, true);
+                num_exchanges += optimizePartitions(quad_tree, distance_function, target_types, height, 0, normal_pass_pairings, false);
+                num_exchanges += optimizePartitions(quad_tree, distance_function, target_types, height, 0, normal_pass_pairings, true);
+
+                if (extra_pass) {
+                    num_exchanges += optimizePartitions(quad_tree, distance_function, target_types, height, 0, extra_pass_pairings, false);
+                    num_exchanges += optimizePartitions(quad_tree, distance_function, target_types, height, 0, extra_pass_pairings, true);
+                }
 
                 if (use_partition_swaps && height > 1) {
-                    num_exchanges += optimizePartitions(quad_tree, distance_function, target_types, height, height - 1, false);
-                    num_exchanges += optimizePartitions(quad_tree, distance_function, target_types, height, height - 1, true);
+                    num_exchanges += optimizePartitions(quad_tree, distance_function, target_types, height, height - 1, normal_pass_pairings, false);
+                    num_exchanges += optimizePartitions(quad_tree, distance_function, target_types, height, height - 1, normal_pass_pairings, true);
                 }
 
                 distance = new_distance;

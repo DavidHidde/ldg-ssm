@@ -30,7 +30,7 @@ namespace program
            ("distance_change_factor", "Minimum distance change for convergence.", cxxopts::value<double>()->default_value("1"))
            ("iterations_change_factor", "Minimum distance change for convergence.", cxxopts::value<double>()->default_value("1"))
            ("seed", "Randomization seed.", cxxopts::value<size_t>()->default_value(std::to_string(std::rand())))
-           ("partition_swaps", "Enable partition swaps.", cxxopts::value<bool>()->default_value("true")->implicit_value("true"))
+           ("partition_swaps", "Enable partition swaps.", cxxopts::value<bool>()->default_value("true")->implicit_value("false"))
            ("randomize", "Randomize the assignment at the start.", cxxopts::value<bool>()->default_value("true")->implicit_value("true"))
            ("combine_targets", "Combine targets into a single target. If false, one target will be used per pass, with the last target repeating until the end.", cxxopts::value<bool>()->default_value("false")->implicit_value("true"))
            ("distance_function", "Distance function to use. Options are: Euclidean distance: 0, Cosine Similarity: 1", cxxopts::value<size_t>()->default_value("0"))
