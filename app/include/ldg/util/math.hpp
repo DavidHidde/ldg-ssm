@@ -44,7 +44,6 @@ namespace ldg
 
     /**
      * Aggregate multiple vectors into one, ignoring null pointers and dividing by the number of elements.
-     * Note that we assume that the default constructor of the template type initializes to 0.
      *
      * @tparam VectorType
      * @param vectors

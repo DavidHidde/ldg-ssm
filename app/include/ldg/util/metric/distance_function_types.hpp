@@ -2,7 +2,7 @@
 #define DISTANCE_FUNCTION_TYPES_HPP
 
 #include "cosine_distance.hpp"
-#include "euclidean_distance.hpp"
+#include "normalized_euclidean_distance.hpp"
 
 #include <cassert>
 #include <functional>
@@ -31,7 +31,7 @@ namespace ldg
     {
         switch (type) {
             case EUCLIDEAN_DISTANCE:
-                return euclideanDistance<VectorType>;
+                return normalizedEuclideanDistance<VectorType>;
             case COSINE_SIMILARITY:
                 return cosineDistance<VectorType>;
             default:
