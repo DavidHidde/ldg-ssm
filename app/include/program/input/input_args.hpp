@@ -2,7 +2,7 @@
 #define LDG_SSM_INPUT_ARGS_HPP
 
 #include <iostream>
-#include "app/cmake-build-debug/_deps/cxxopts-src/include/cxxopts.hpp"
+#include "cxxopts.hpp"
 
 namespace program
 {
