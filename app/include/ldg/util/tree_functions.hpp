@@ -23,7 +23,6 @@ namespace ldg
         auto assignment_copy(quad_tree.getAssignment());
         std::sort(assignment_copy.begin(), assignment_copy.end());
         for (size_t idx = 0; idx < assignment_copy.size(); ++idx) {
-            auto copy = assignment_copy[idx];
             assert(idx == assignment_copy[idx] && "Failed asserting the completeness of the assignment!");
         }
     }

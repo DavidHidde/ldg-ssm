@@ -71,9 +71,12 @@ namespace program
         for (size_t idx = 0; idx < schedule.number_of_passes; ++idx) {
             std::cout << "--- Pass " << idx + 1 << " ---" << std::endl;
             logger.setNumPass(idx).setMaxIterations(max_iterations).setDistanceThreshold(distance_threshold).setTargets(target_schedule[idx]);
-            std::string pass_output_dir = base_output_dir + "pass" + std::to_string(idx + 1) + std::filesystem::__cxx11::path::preferred_separator;
-            std::filesystem::create_directories(pass_output_dir);
-            export_settings.output_dir = pass_output_dir;
+
+            if (schedule.passes_per_checkpoint > 0 && idx % schedule.passes_per_checkpoint == 0) {
+                std::string pass_output_dir = base_output_dir + "pass" + std::to_string(idx + 1) + std::filesystem::__cxx11::path::preferred_separator;
+                std::filesystem::create_directories(pass_output_dir);
+                export_settings.output_dir = pass_output_dir;
+            }
 
             ssm::sort(
                 quad_tree,
@@ -94,6 +97,11 @@ namespace program
 
         ldg::assertUniqueAssignment(quad_tree);
         logger.close();
+
+        export_settings.output_dir = base_output_dir;
+        export_settings.file_name = "final";
+        program::exportQuadTree(quad_tree, sort_options.distance_function, export_settings);
+
         std::cout << "Final HND: " << ldg::computeHierarchyNeighborhoodDistance(0, sort_options.distance_function, quad_tree) << std::endl;
         printf("Time elapsed: %.5f\n\n", omp_get_wtime() - start);
     }

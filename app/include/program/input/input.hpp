@@ -122,6 +122,7 @@ namespace program
             result["iterations_change_factor"].as<double>(),
             result["min_distance_change"].as<double>(),
             result["distance_change_factor"].as<double>(),
+            result["passes_per_checkpoint"].as<size_t>(),
             result["iterations_per_checkpoint"].as<size_t>(),
             result["combine_targets"].as<bool>(),
         };

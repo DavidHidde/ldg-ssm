@@ -104,14 +104,17 @@ namespace ssm
                 if (iterations_between_checkpoint > 0 && iterations % iterations_between_checkpoint == 0) {
                     export_settings.file_name = "height-" + std::to_string(height) + "-it(" + std::to_string(iterations) + ')';
                     program::exportQuadTree(quad_tree, distance_function, export_settings);
-                    logger.write(height, iterations, new_distance, num_exchanges);
                 }
+                logger.write(height, iterations, new_distance, num_exchanges);
                 ++iterations;
             } while (iterations < max_iterations && num_exchanges > 0 && distanceHasChanged(distance, new_distance, distance_threshold));
 
-            export_settings.file_name = "height-" + std::to_string(height) + "-final";
-            program::exportQuadTree(quad_tree, distance_function, export_settings);
+            if (iterations_between_checkpoint > 0) {
+                export_settings.file_name = "height-" + std::to_string(height) + "-final";
+                program::exportQuadTree(quad_tree, distance_function, export_settings);
+            }
             logger.write(height, iterations, new_distance, num_exchanges);
+
             if (iterations >= max_iterations) {
                 reason = " (max iterations reached)";
             } else if (num_exchanges == 0) {
