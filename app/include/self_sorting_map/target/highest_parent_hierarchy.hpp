@@ -30,8 +30,8 @@ namespace ssm
     )
     {
         using namespace ldg;
-        auto projected_dims = quad_tree.getBounds(CellPosition{ partition_height, 0 }).second;
-        auto comparison_height_dims = quad_tree.getBounds(CellPosition{ comparison_height, 0 }).second;
+        auto projected_dims = quad_tree.getBounds(partition_height).second;
+        auto comparison_height_dims = quad_tree.getBounds(comparison_height).second;
         size_t num_elems = projected_dims.first * projected_dims.second;
         size_t partition_len = size_t(std::pow(2, partition_height - comparison_height));
 

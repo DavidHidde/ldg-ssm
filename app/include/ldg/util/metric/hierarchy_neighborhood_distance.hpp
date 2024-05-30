@@ -26,7 +26,7 @@ namespace ldg
     {
         computeAggregates(quad_tree);
         double sum = 0.;
-        auto [num_rows, num_cols] = quad_tree.getBounds(CellPosition{ height, 0 }).second;
+        auto [num_rows, num_cols] = quad_tree.getBounds(height).second;
         const size_t num_elems = num_rows * num_cols;
         std::map<std::pair<size_t, size_t>, double> cache;
 

@@ -36,7 +36,7 @@ namespace ssm
         bool is_shift
     )
     {
-        auto comparison_height_dims = quad_tree.getBounds(ldg::CellPosition{ comparison_height, 0 }).second;
+        auto comparison_height_dims = quad_tree.getBounds(comparison_height).second;
         std::vector<std::vector<std::shared_ptr<VectorType>>> target_map(comparison_height_dims.first * comparison_height_dims.second);
 
         for (TargetType target_type: target_types) {
