@@ -42,7 +42,7 @@ namespace program
                 std::copy((*data_ptr).begin(), (*data_ptr).end(), data_copy.begin() + idx * element_len); // Assumes type is an Eigen Vector type
             }
         }
-        helper::bzip_compress(data_copy, output_dir + data_file_name + ".raw.bz2");
+        adapter::compressBZipFile(data_copy, output_dir + data_file_name + ".raw.bz2");
 
         // Create the input config for the data
         InputConfiguration visualization_input_config;
@@ -107,7 +107,7 @@ namespace program
         }
 
         std::string assignment_file_name = file_name + "-visualization-assignment";
-        helper::bzip_compress(assignment_copy, output_dir + assignment_file_name + ".raw.bz2");
+        adapter::compressBZipFile(assignment_copy, output_dir + assignment_file_name + ".raw.bz2");
         return assignment_file_name + ".raw.bz2";
     }
 
@@ -130,7 +130,7 @@ namespace program
     ) {
         std::string disparity_file_name = file_name + "-disparity";
         auto disparities = computeDisparity(quad_tree, distance_function);
-        helper::bzip_compress(disparities, output_dir + disparity_file_name + ".raw.bz2");
+        adapter::compressBZipFile(disparities, output_dir + disparity_file_name + ".raw.bz2");
 
         // Create the input config for the saved disparity values
         InputConfiguration disparity_configuration;

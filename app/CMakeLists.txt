@@ -15,7 +15,7 @@ target_include_directories(ldg_core PUBLIC ..)
 target_include_directories(ldg_ssm PUBLIC ..)
 
 target_compile_features(ldg_core PUBLIC cxx_std_17)
-target_compile_features(ldg_ssm PUBLIC cxx_std_17)
+target_compile_features(ldg_ssm PUBLIC cxx_std_20)
 
 include(FetchContent)
 
@@ -36,7 +36,6 @@ FetchContent_MakeAvailable(helper)
 add_library(helper INTERFACE)
 target_include_directories(helper INTERFACE ${helper_SOURCE_DIR})
 target_link_libraries(ldg_core PUBLIC helper)
-target_link_libraries(ldg_ssm PUBLIC helper)
 
 # CXXOpts
 FetchContent_Declare(
