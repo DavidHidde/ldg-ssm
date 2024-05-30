@@ -34,6 +34,7 @@ namespace program
            ("partition_swaps", "Enable partition swaps.", cxxopts::value<bool>()->default_value("true")->implicit_value("false"))
            ("randomize", "Randomize the assignment at the start.", cxxopts::value<bool>()->default_value("true")->implicit_value("true"))
            ("combine_targets", "Combine targets into a single target. If false, one target will be used per pass, with the last target repeating until the end.", cxxopts::value<bool>()->default_value("false")->implicit_value("true"))
+           ("parent_type", "Type of parent representation to use. Options are: Normalized average: 0, Minimum child: 1", cxxopts::value<size_t>()->default_value("0"))
            ("distance_function", "Distance function to use. Options are: Euclidean distance: 0, Cosine Similarity: 1", cxxopts::value<size_t>()->default_value("0"))
            ("targets", "Targets of the SSM. Options are: Aggregate Hierarchy: 0, Highest Parent: 1, Aggregate Hierarchy (4 connected): 2, Highest Parent (4 connected): 3, Partition Neighbourhood: 4, Cell Neighbourhood: 5", cxxopts::value<std::vector<size_t>>()->default_value("4"))
            // Debug parameters

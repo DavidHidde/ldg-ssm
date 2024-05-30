@@ -37,7 +37,7 @@ namespace ssm
         std::vector<std::shared_ptr<VectorType>> values;
         values.reserve(4);
 
-        auto [num_rows, num_cols] = quad_tree.getBounds(CellPosition{ comparison_height, 0 }).second;
+        auto [num_rows, num_cols] = quad_tree.getBounds(comparison_height).second;
         size_t num_elems = num_rows * num_cols;
 #pragma omp parallel for private(values) schedule(static)
         for (size_t idx = 0; idx < num_elems; ++idx) {

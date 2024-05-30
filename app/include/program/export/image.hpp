@@ -21,7 +21,7 @@ namespace program
     void saveImage(ldg::QuadAssignmentTree<VectorType> &quad_tree, std::string const filename, size_t const height)
     {
         using namespace cimg_library;
-        auto dimensions = quad_tree.getBounds(ldg::CellPosition{ height, 0 }).second;    // num_rows, num_cols
+        auto dimensions = quad_tree.getBounds(height).second;    // num_rows, num_cols
         CImg img(dimensions.second, dimensions.first, 1, 3);
         for (ldg::RowMajorIterator<VectorType> it(height, quad_tree); it != it.end(); ++it) {
             auto position = it.getPosition();

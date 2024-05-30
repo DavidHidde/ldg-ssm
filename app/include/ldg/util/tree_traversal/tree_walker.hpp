@@ -65,8 +65,8 @@ namespace ldg
     template<typename VectorType>
     TreeWalker<VectorType>::TreeWalker(CellPosition position, QuadAssignmentTree<VectorType> &quad_tree):
         node(position),
-        num_rows(quad_tree.getBounds(position).second.first),
-        num_cols(quad_tree.getBounds(position).second.second),
+        num_rows(quad_tree.getBounds(position.height).second.first),
+        num_cols(quad_tree.getBounds(position.height).second.second),
         quad_tree(quad_tree)
     {
     }

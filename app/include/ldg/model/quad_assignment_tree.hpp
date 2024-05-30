@@ -3,6 +3,7 @@
 
 #include "app/include/ldg/util/math.hpp"
 #include "cell_position.hpp"
+#include "parent_type.hpp"
 
 #include <vector>
 #include <cstddef>
@@ -25,6 +26,7 @@ namespace ldg
         size_t num_real_elements;
         std::array<size_t, 3> data_dims;
 
+        ParentType parent_type;
         std::vector<std::shared_ptr<VectorType>> data;
         std::vector<size_t> assignment;
         std::vector<std::pair<std::pair<size_t, size_t>, std::pair<size_t, size_t>>> bounds_cache;
@@ -37,7 +39,8 @@ namespace ldg
             size_t num_cols,
             size_t depth,
             size_t num_real_elements,
-            std::array<size_t, 3> data_dims
+            std::array<size_t, 3> data_dims,
+            ParentType aggregation_type
         );
 
         size_t getDepth() const;
@@ -52,6 +55,8 @@ namespace ldg
 
         size_t getDataElementLen() const;
 
+        ParentType getParentType() const;
+
         std::vector<size_t> &getAssignment();
 
         std::vector<std::shared_ptr<VectorType>> &getData();
@@ -64,7 +69,7 @@ namespace ldg
 
         bool setAssignmentValue(CellPosition position, const size_t &value);
 
-        std::pair<std::pair<size_t, size_t>, std::pair<size_t, size_t>> getBounds(CellPosition position);
+        std::pair<std::pair<size_t, size_t>, std::pair<size_t, size_t>> getBounds(size_t height);
 
         std::pair<std::pair<size_t, size_t>, std::pair<size_t, size_t>> getLeafBounds(CellPosition position);
     };
@@ -90,7 +95,8 @@ namespace ldg
         size_t num_cols,
         size_t depth,
         size_t num_real_elements,
-        std::array<size_t, 3> data_dims
+        std::array<size_t, 3> data_dims,
+        ParentType aggregation_type
     ):
         data(data),
         assignment(assignment),
@@ -98,7 +104,8 @@ namespace ldg
         num_cols(num_cols),
         depth(depth),
         num_real_elements(num_real_elements),
-        data_dims(data_dims)
+        data_dims(data_dims),
+        parent_type(aggregation_type)
     {
         // Generate the bounds cache
         bounds_cache.reserve(depth);
@@ -125,14 +132,14 @@ namespace ldg
     /**
      * Get the bounds of the data arrays for the given position.
      *
-     * @param position
+     * @param height
      * @tparam VectorType
      * @return <[start, end) of the data array at the given height, [num_rows, num_cols] for the given height>
      */
     template<typename VectorType>
-    std::pair<std::pair<size_t, size_t>, std::pair<size_t, size_t>> QuadAssignmentTree<VectorType>::getBounds(CellPosition position)
+    std::pair<std::pair<size_t, size_t>, std::pair<size_t, size_t>> QuadAssignmentTree<VectorType>::getBounds(size_t height)
     {
-        return bounds_cache[position.height];
+        return bounds_cache[height];
     }
 
     /**
@@ -181,7 +188,7 @@ namespace ldg
     template<typename VectorType>
     std::shared_ptr<VectorType> QuadAssignmentTree<VectorType>::getValue(CellPosition position)
     {
-        auto bounds = getBounds(position);
+        auto bounds = getBounds(position.height);
         auto start_end = bounds.first;
         size_t index = start_end.first + position.index;
         return index < start_end.second ? data[assignment[index]] : nullptr;
@@ -198,7 +205,7 @@ namespace ldg
     template<typename VectorType>
     bool QuadAssignmentTree<VectorType>::setValue(CellPosition position, VectorType *value)
     {
-        auto bounds = getBounds(position);
+        auto bounds = getBounds(position.height);
         auto start_end = bounds.first;
         size_t index = start_end.first + position.index;
 
@@ -226,7 +233,7 @@ namespace ldg
     template<typename VectorType>
     size_t QuadAssignmentTree<VectorType>::getAssignmentValue(CellPosition position)
     {
-        auto bounds = getBounds(position);
+        auto bounds = getBounds(position.height);
         auto start_end = bounds.first;
         size_t index = start_end.first + position.index;
         return assignment[index];
@@ -243,7 +250,7 @@ namespace ldg
     template<typename VectorType>
     bool QuadAssignmentTree<VectorType>::setAssignmentValue(const CellPosition position, const size_t &value)
     {
-        auto [start_end, dims] = getBounds(position);
+        auto [start_end, dims] = getBounds(position.height);
 
         if (size_t index = start_end.first + position.index; index < start_end.second) {
             assignment[index] = value;
@@ -334,6 +341,16 @@ namespace ldg
     size_t QuadAssignmentTree<DataType>::getDataElementLen() const
     {
         return data_dims[0] * data_dims[1] * data_dims[2];
+    }
+
+    /**
+     * @tparam VectorType
+     * @return
+     */
+    template<typename VectorType>
+    ParentType QuadAssignmentTree<VectorType>::getParentType() const
+    {
+        return parent_type;
     }
 }
 

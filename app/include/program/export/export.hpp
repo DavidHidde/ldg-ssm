@@ -87,7 +87,7 @@ namespace program
                 std::set<int> previous_values;  // Use a set to avoid not replacing overwritten parents
                 while (base_value != nullptr && walker.moveUp()) {
                     double distance = distance_function(base_value, walker.getNodeValue());
-                    auto [array_range, dims] = quad_tree.getBounds(walker.getNode());
+                    auto [array_range, dims] = quad_tree.getBounds(walker.getNode().height);
                     size_t parent_idx = array_range.first + walker.getNode().index;
                     if (previous_values.count(assignment_copy[parent_idx]) > 0 || distance < min_distances[parent_idx]) {
                         previous_values.insert(assignment_copy[parent_idx]);

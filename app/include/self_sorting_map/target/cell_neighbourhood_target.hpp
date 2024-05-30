@@ -30,7 +30,7 @@ namespace ssm
     )
     {
         using namespace ldg;
-        auto comparison_height_dims = quad_tree.getBounds(CellPosition{ comparison_height, 0 }).second;
+        auto comparison_height_dims = quad_tree.getBounds(comparison_height).second;
         size_t num_elems = comparison_height_dims.first * comparison_height_dims.second;
         int cells_before = (CELL_NUM_BLOCKS_PER_DIMENSION - 1) / 2;
         int cells_after = cells_before + (CELL_NUM_BLOCKS_PER_DIMENSION - 1) % 2;

@@ -39,10 +39,10 @@ namespace ssm
     {
         using namespace ldg;
         size_t height = quad_tree.getDepth() - 1;
-        auto dims = quad_tree.getBounds(CellPosition{ height, 0 }).second;
+        auto dims = quad_tree.getBounds(height).second;
         while (height > 0 && dims.first < 4 && dims.second < 4) {
             --height;
-            dims = quad_tree.getBounds(CellPosition{ height, 0 }).second;
+            dims = quad_tree.getBounds(height).second;
         }
         return height;
     }

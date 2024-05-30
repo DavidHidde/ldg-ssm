@@ -157,7 +157,7 @@ namespace ssm
         using namespace ldg;
 
         long partition_len = long(std::pow(2., partition_height - comparison_height));
-        auto comparison_height_dims = quad_tree.getBounds(CellPosition{ comparison_height, 0 }).second;
+        auto comparison_height_dims = quad_tree.getBounds(comparison_height).second;
 
         std::pair<long, long> offset{ 0, 0 };
         std::pair<long, long> iteration_dims(comparison_height_dims);
@@ -170,7 +170,7 @@ namespace ssm
             iteration_dims.second += (elements_per_x - 1) * 2 * partition_len;
         }
 
-        computeAggregates(quad_tree);
+        computeParents(quad_tree, distance_function);
         auto target_map = getTargetMap(target_types, quad_tree, partition_height, comparison_height, apply_shift);
         return performPartitionExchanges(
             quad_tree,

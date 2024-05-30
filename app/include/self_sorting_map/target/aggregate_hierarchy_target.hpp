@@ -52,10 +52,10 @@ namespace ssm
         size_t num_parents = max_height - min_height;
 
         // We iterate over the dims of the first parent, since this marks the partition with the same parents and therefore targets.
-        auto projected_dims = quad_tree.getBounds(CellPosition{ min_height, 0 }).second;
+        auto projected_dims = quad_tree.getBounds(min_height).second;
         size_t num_elems = projected_dims.first * projected_dims.second;
 
-        auto [num_rows, num_cols] = quad_tree.getBounds(CellPosition{ comparison_height, 0 }).second;
+        auto [num_rows, num_cols] = quad_tree.getBounds(comparison_height).second;
         auto partition_len = static_cast<size_t>(std::pow(2, min_height - comparison_height));
         std::vector<std::shared_ptr<VectorType>> values;
         values.reserve(num_parents);
