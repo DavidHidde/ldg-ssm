@@ -71,7 +71,7 @@ namespace program
                 data,
                 assignment,
                 {num_rows, num_cols},
-                std::ceil(std::log2(std::max(num_rows, num_cols))) + 1,
+                static_cast<size_t>(std::ceil(std::log2(std::max(num_rows, num_cols))) + 1),
                 num_rows * num_cols,
                 { 3, 1, 1 }
             };
