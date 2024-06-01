@@ -46,7 +46,7 @@ namespace program
 
         // Create the input config for the data
         InputConfiguration visualization_input_config;
-        visualization_input_config.grid_dims = { quad_tree.getNumRows(), quad_tree.getNumRows() };
+        visualization_input_config.grid_dims = { quad_tree.getNumRows(), quad_tree.getNumCols() };
         visualization_input_config.type = InputType::VISUALIZATION;
         visualization_input_config.data_dims = quad_tree.getDataDims();
         visualization_input_config.num_elements  = quad_tree.getData().size();
