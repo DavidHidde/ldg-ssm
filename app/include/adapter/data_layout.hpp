@@ -4,7 +4,7 @@
 #include <vector>
 #include <cstddef>
 #include <cmath>
-#include "app/include/shared/util/math.hpp"
+#include "app/include/ldg/util/math.hpp"
 
 /*
  * These functions handle layout conversions between two types of layouts:
@@ -56,6 +56,7 @@ namespace adapter
             partition_areas.push_back(partition_length * partition_length);
         }
 
+#pragma omp parallel for schedule(static)
         for (size_t idx = 0; idx < source.size(); ++idx) {
             size_t x = 0;
             size_t y = 0;
@@ -69,7 +70,7 @@ namespace adapter
             }
 
             if (x < num_cols && y < num_rows) {
-                destination[shared::rowMajorIndex(y, x, num_cols)] = source[idx];
+                destination[ldg::rowMajorIndex(y, x, num_cols)] = source[idx];
             }
         }
     }
@@ -106,6 +107,7 @@ namespace adapter
         }
 
         size_t num_elements = num_rows * num_cols;
+#pragma omp parallel for schedule(static)
         for (size_t idx = 0; idx < num_elements; ++idx) {
             size_t x = idx % num_cols;
             size_t y = idx / num_cols;

@@ -3,56 +3,12 @@
 
 #include <vector>
 #include <memory>
-#include "app/include/shared/model/cell_position.hpp"
-#include "app/include/shared/model/quad_assignment_tree.hpp"
-#include "app/include/shared/util/tree_traversal/tree_walker.hpp"
+#include "app/include/ldg/model/cell_position.hpp"
+#include "app/include/ldg/model/quad_assignment_tree.hpp"
+#include "app/include/ldg/util/tree_traversal/tree_walker.hpp"
 
 namespace ssm
 {
-    /**
-     * Get a buffer for the longest dimension axis to determine the number of parents to traverse before the parents become the same.
-     * This buffer can be used to determine the last unique parent when comparing nodes in even-odd or odd-even configurations.
-     *
-     * For an even-odd iteration, this has to be partition_height due to the quad_tree structure, but for an even-odd iteration
-     * every node breaches into different partitions and therefore this becomes a function of the axis length.
-     *
-     * @tparam VectorType
-     * @param partition_height
-     * @param quad_tree
-     * @param is_shift
-     * @return
-     */
-    template<typename VectorType>
-    std::vector<size_t> getMaxHeightBuffer(size_t partition_height, shared::QuadAssignmentTree<VectorType> &quad_tree, bool is_shift)
-    {
-        auto partition_dims = quad_tree.getBounds(shared::CellPosition{ partition_height, 0 }).second;
-        std::size_t size = std::max(partition_dims.first, partition_dims.second);
-
-        if (!is_shift) {
-            return std::vector<size_t>(size, partition_height);
-        }
-
-        std::vector<size_t> buffer;
-        buffer.reserve(size);
-        size_t max_height = partition_height + 1;
-        size_t base = 4;
-        size_t max_value = size_t(std::pow(2., std::ceil(std::log2(size)) - 1));
-        // Basically count how many hierarchy levels we've passed. This needs to be inversed after the middle since we also should count from the bottom
-        for (size_t idx = 0; idx < size; ++idx) {
-            if (idx < max_value) {  // Top-down hierarchy size counting
-                if (idx >= base) {
-                    base *= 2;
-                    max_height += 1;
-                }
-                buffer.push_back(max_height);
-            } else { // Bottom-up hierarchy size counting
-                buffer.push_back(buffer[2 * max_value - idx - 1]);
-            }
-        }
-
-        return buffer;
-    }
-
     /**
      * Load the parent targets into a targets data array.
      * This target is the last unique parent when considering comparisons, representing a hierarchical neighbourhood.
@@ -67,31 +23,23 @@ namespace ssm
     template<typename VectorType>
     void loadHighestParentHierarchyTargets(
         std::vector<std::vector<std::shared_ptr<VectorType>>> &target_map,
-        shared::QuadAssignmentTree<VectorType> &quad_tree,
-        size_t partition_height,
-        size_t comparison_height,
+        ldg::QuadAssignmentTree<VectorType> &quad_tree,
+        const size_t partition_height,
+        const size_t comparison_height,
         bool is_shift
     )
     {
-        using namespace shared;
-        auto projected_dims = quad_tree.getBounds(CellPosition{ partition_height, 0 }).second;
-        auto comparison_height_dims = quad_tree.getBounds(CellPosition{ comparison_height, 0 }).second;
+        using namespace ldg;
+        auto projected_dims = quad_tree.getBounds(partition_height).second;
+        auto comparison_height_dims = quad_tree.getBounds(comparison_height).second;
         size_t num_elems = projected_dims.first * projected_dims.second;
         size_t partition_len = size_t(std::pow(2, partition_height - comparison_height));
-        int odd_offset = is_shift ? 0 : 1;
-        std::vector<size_t> max_height_buffer = getMaxHeightBuffer(partition_height, quad_tree, is_shift);
 
-#pragma omp parallel for
+#pragma omp parallel for schedule(static)
         for (size_t idx = 0; idx < num_elems; ++idx) {
             int partition_x = idx % projected_dims.second;
             int partition_y = idx / projected_dims.second;
-            size_t max_parent_height = max_height_buffer[std::max(
-                std::min(   // Take the minimum dimension from the top-left partition.
-                    partition_x - (partition_x % 2) * odd_offset,
-                    partition_y - (partition_y % 2) * odd_offset
-                ),
-                0
-            )];
+            size_t max_parent_height = is_shift ? partition_height + 1: partition_height;
 
             TreeWalker<VectorType> walker{ CellPosition{ partition_height, idx }, quad_tree };
             for (size_t height = partition_height; height < max_parent_height; ++height) {

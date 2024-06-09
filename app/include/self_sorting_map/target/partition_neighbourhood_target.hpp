@@ -1,9 +1,8 @@
 #ifndef LDG_CORE_PARTITION_NEIGHBOURHOOD_TARGET_HPP
 #define LDG_CORE_PARTITION_NEIGHBOURHOOD_TARGET_HPP
 
-#include "app/include/shared/model/cell_position.hpp"
-#include "app/include/shared/model/quad_assignment_tree.hpp"
-#include "app/include/shared/util/tree_traversal/tree_walker.hpp"
+#include "app/include/ldg/model/cell_position.hpp"
+#include "app/include/ldg/model/quad_assignment_tree.hpp"
 
 namespace ssm
 {
@@ -24,17 +23,17 @@ namespace ssm
     template<typename VectorType>
     void loadPartitionNeighbourhoodTargets(
         std::vector<std::vector<std::shared_ptr<VectorType>>> &target_map,
-        shared::QuadAssignmentTree<VectorType> &quad_tree,
-        size_t partition_height,
-        size_t comparison_height,
+        ldg::QuadAssignmentTree<VectorType> &quad_tree,
+        const size_t partition_height,
+        const size_t comparison_height,
         bool is_shift
     )
     {
-        using namespace shared;
-        auto projected_dims = quad_tree.getBounds(CellPosition{ partition_height, 0 }).second;
+        using namespace ldg;
+        auto projected_dims = quad_tree.getBounds(partition_height).second;
         size_t num_elems = projected_dims.first * projected_dims.second;
 
-        auto comparison_height_dims = quad_tree.getBounds(CellPosition{ comparison_height, 0 }).second;
+        auto comparison_height_dims = quad_tree.getBounds(comparison_height).second;
         size_t partition_len = size_t(std::pow(2, partition_height - comparison_height));
         std::vector<std::shared_ptr<VectorType>> values;
         values.reserve(PARTITION_NUM_BLOCKS_PER_DIMENSION * PARTITION_NUM_BLOCKS_PER_DIMENSION);
@@ -42,15 +41,15 @@ namespace ssm
         int shift = is_shift ? 0 : (PARTITION_NUM_BLOCKS_PER_DIMENSION - 1) % 2;
         int blocks_offset = (PARTITION_NUM_BLOCKS_PER_DIMENSION - 1) / 2;
 
-#pragma omp parallel for private(values)
+#pragma omp parallel for private(values) schedule(static)
         for (size_t idx = 0; idx < num_elems; ++idx) {
             int partition_x = idx % projected_dims.second;
             int partition_y = idx / projected_dims.second;
 
             size_t min_y = std::max(partition_y - blocks_offset - (partition_y % 2 == 0 ? 1 : 0) * shift, 0);
-            size_t max_y = std::min(size_t(partition_y + blocks_offset + (partition_y % 2) * shift), projected_dims.first);
+            size_t max_y = std::min(static_cast<size_t>(partition_y + blocks_offset + (partition_y % 2) * shift), projected_dims.first);
             size_t min_x = std::max(partition_x - blocks_offset - (partition_x % 2 == 0 ? 1 : 0) * shift, 0);
-            size_t max_x = std::min(size_t(partition_x + blocks_offset + (partition_x % 2) * shift), projected_dims.second);
+            size_t max_x = std::min(static_cast<size_t>(partition_x + blocks_offset + (partition_x % 2) * shift), projected_dims.second);
 
             for (size_t y = min_y; y < max_y; ++y) {
                 for (size_t x = min_x; x < max_x; ++x) {
