@@ -1,0 +1,16 @@
+{
+  "type": "data",
+  "grid": {
+    "rows": 1024,
+    "columns": 1024
+  },
+  "data": {
+    "path": "absolute-or-relative/path/to/my/data",
+    "length": 1048576,
+    "dimensions": {
+      "x": 42,
+      "y": 42,
+      "z": 1
+    }
+  }
+}
