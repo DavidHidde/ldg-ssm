@@ -28,7 +28,7 @@ namespace adapter
 
         // Load the data
         std::vector<double> data(element_len * grid_num_elements, 0.);
-        if (!helper::bzip_decompress(data, config_dir + config.data_path)) {
+        if (!readFileIntoBuffer(data, config_dir + config.data_path)) {
             std::cerr << "Error: Unable to load data from file \"" << config_dir + config.data_path << "\"\n";
             exit(EXIT_FAILURE);
         }

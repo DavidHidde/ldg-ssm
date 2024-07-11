@@ -130,7 +130,7 @@ namespace ldg
     }
 
     /**
-     * Get the bounds of the data arrays for the given position.
+     * Get the bounds of the data arrays for the given height.
      *
      * @param height
      * @tparam VectorType

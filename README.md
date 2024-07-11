@@ -1,187 +1,97 @@
-<div id="top"></div>
+# LDG-SSM: Fast hierarchical grid sorting 
 
+<p align="center">
+  <img src="./img/cover.png" align="center" height="500" width="500" />
+</p>
 
-<!-- ABOUT THE PROJECT -->
-## About The Project
+The LDG-SSM is a fast hierarchical sorting approach combining the quad-tree structure and objective of the [Level-of-Detail Grid (LDG)](https://doi.org/10.1111/cgf.14537) and the sorting approach of the [Self-Sorting Map (SSM)](https://doi.org/10.1109/TMM.2014.2306183).
 
-This is the implementation of grid layout method described in this EuroVis 2022 paper:
+Grids sorted using the LDG-SSM can be visualized using the separate [LDG-SSM interface](https://github.com/DavidHidde/ldg-ssm-interface).
 
-S. Frey, “Optimizing Grid Layouts for Level-of-Detail Exploration of Large Data Collections,” 2022, <https://doi.org/10.1111/cgf.14537>.
-
-It has been tested on macOS BigSur and Ubuntu 22.04. 
-
-
-## Prerequisites
-
-These libraries are prerequisites for building
-
-* Cairo graphics library
-
-* bzip2
-
-* cmake
-
-
-<!-- GETTING STARTED -->
 ## Getting Started
+The LDG-SSM is a C++ application that can be compiled natively or using Docker. Most of the dependencies are automatically handled by the CMake project, but some need to be installed manually:
 
-*ldg_core* can simply be built via cmake.
-These are exemplary steps to get you started on Linux/macOS.
+* BZip2
+* OpenMP
 
-* Obtain the code from the repository https://github.com/freysn/ldg_core , e.g., via <code>git clone https://github.com/freysn/ldg_core.git</code>
+These dependencies are handled automatically using the Dockerfile. A Makefile is provided for easy environment setup using Docker:
 
-* Enter the directory: <code>cd ldg_core</code>
+1. `make build-image` Builds the Docker container image. This only has to be run once.
+2. `make build-cmake` Builds the CMake project in the folder `app/make-build-default`.
+3. `make compile` Compiles the CMake project. The executable is compiled to `app/make-build-default/ldg-ssm`.
+4. `make bash` Gives access to a bash interface in the container. You can start the LDG-SSM from here using `make-build-default/ldg-ssm <arguments>`.
 
-* Create a build directory: <code>mkdir build</code>
+Alternatively, the `make build-all` performs all build commands at once.
 
-* Now create a Makefile using cmake <code>cmake ..</code>. Some variants of this might be useful:
-
-- cmake -DCMAKE_BUILD_TYPE=Release ..
-- cmake -DCMAKE_BUILD_TYPE=Debug ..
-- cmake .. -DCMAKE_BUILD_TYPE=Release -D CMAKE_CXX_COMPILER=clang-mp-14 -D CMAKE_EXE_LINKER_FLAGS=-lc++ (Note that on macOS, the standard compiler can be used but offers no support for OpenMP. For OpenMP, a different compiler needs to be used. For example, on my mac, I use clang-14 (obtained via macports).).
-
-<!-- USAGE EXAMPLES -->
 ## Usage
+The LDG-SSM supports the use of many CLI arguments to adjust its behaviour. These can be listed using the `--help` argument.
 
-*ldg_core* can both be used to optimize the placement of member of data collections as well as rendering the resulting grid.
+### Input
+| Argument   | Description                                 |
+|:-----------|:--------------------------------------------|
+| `--config` | Path to the config file                     |
+| `--input`  | Path to the previous assignment file        |
 
-- run_examples_1k.sh exemplifies the usage for datasets with 1024 members
-- run_examples_full.sh demonstrates the usage for the full datasets (note that this requires more compute time and memory to run)
+The program accepts a configuration JSON file that specifies the input data. An [example](data/input/example_data.json) of the format is provided. The input data that is read is assumed to be either a `.raw` file containing a flattened data array file of doubles or a BZip2 compressed `.raw.bz2` variant of this array.
+The input assignment is in the format of the original LDG and can be used to initialize the assignment of the method.
 
-The required data package can be downloaded from here: <https://www.dropbox.com/s/cp4rsq8cyjfl7qs/ldg_data.zip?dl=0>.
+### Output
+| Argument                      | Description                                                                                                                                              |
+|-------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `--output`                    | Path to the output directory. (default: `./`)                                                                                                            |
+| `--export`                    | Export the assignment, disparities and data if visualization data is not specified. The export can be used with the LDG-SSM interface. (default: `true`) |
+| `--visualization_config`      | Path to the config for the data that visually represents the data model (default: `""`)                                                                  |
+| `--log_only`                  | Disable saving the result in any other way than a log.                                                                                                   |
+| `--passes_per_checkpoint`     | Number of passes between checkpoints. If bigger than 0, will also log the final result of a pass. (default: `0`)                                         |
+| `--iterations_per_checkpoint` | Number of iterations on a height between checkpoints. If bigger than 0, will also log the final result of a height. (default: `0`)                       |                                   |
 
-Unless any termination criteria are specified, the optimizer runs until it is interrupted by CTRL-C.  
-By default, it prints a short update with the current evaluation score and for how long the assignment has been unchanged (among others). 
-It then completes the ongoing pass phase and then writes the assignment file "qtLeafAssigning.raw.bz" in the specified output directory. 
+The output of the LDG-SSM is always nested under a single output directory. Checkpointing per sorting pass/iteration is supported, which creates a nested directory per pass and indicates the iteration in the filename. Using iteration checkpoints also enables checkpointing per height. The final results is always saved in the output directory using a `-final` suffix.
+Unless the `log_only` option is specified, the output per checkpoint consists of at most 6 files:
 
-<!-- Please see the code snippet for an example how an assignment file asFile can be read and a resulting image can be generated (by means of rearranged RGB colors in an image img with image dimensions imgDim): -->
+* `<prefix>-config.json`: The main configuration to be loaded by the interface. This config specifies all subfiles that comprise the output.
+* `<prefix>-assignment.raw.bz2`: The assignment in LDG format. Can be used as input to the method.
+* `<prefix>-disparity.json`: A data configuration file pointing to the disparity data buffer.
+* `<prefix>-disparity.raw.bz2`: The flattened disparity data array in LDG-SSM format.
+* `<prefix>-visualization-data.json`: A visualization configuration pointing to the raw data buffer. If `visualization_config` is specified, this is not generated.
+* `<prefix>-visualization-data.raw.bz2`: A raw data buffer dump from the LDG-SSM. This needs to be post-processed to be visualized. If `visualization_config` is specified, this is not generated.
 
-<!-- ``` -->
-<!-- const auto qtLeafAssignment= -->
-<!-- 	supertiles::place::read_qtLeafAssignment(asFile, -->
-<!-- 						 imgDim); -->
+Post-processing Python files which can be used for the datasets used with the original LDG can be provided upon request.
 
-<!-- const auto leaf2gridPos = -->
-<!-- 	helper::invertMap(gridPos2QTLeaves(imgDim)); -->
+### Sorting
+| Argument                   | Description                                                                                                                                                                                                                     |
+|----------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `--passes`                 | Number of passes. (default: `1`)                                                                                                                                                                                                |
+| `--max_iterations`         | Number of maximum iterations for convergence. (default: `100`)                                                                                                                                                                  |
+| `--min_distance_change`    | Minimum distance change for convergence. (default: `0.00001`)                                                                                                                                                                   |
+| `--distance_change_factor` | Distance change ratio change factor per pass. (default: `1`)                                                                                                                                                                    |
+| `--seed`                   | Randomization seed. (default: random)                                                                                                                                                                                           |
+| `--partition_swaps`        | Enable partition swaps. (default: `true`)                                                                                                                                                                                       |
+| `--randomize`              | Randomize the assignment at the start. (default: `true`)                                                                                                                                                                        |
+| `--combine_targets`        | Combine targets into a single target. If `false`, one target will be used per pass, with the last target repeating until the end. (default: `false`)                                                                            |
+| `--distance_function`      | Distance function to use. Options are: Euclidean distance: `0`, Cosine Similarity: `1` (default: `0`)                                                                                                                           |
+| `--targets`                | Targets of the SSM. Options are: Aggregate Hierarchy: `0`, Highest Parent: `1`, Aggregate Hierarchy (4 connected): `2`, Highest Parent (4 connected): `3`, Partition Neighbourhood: `4`, Cell Neighbourhood: `5` (default: `4`) |
 
+The main sorting parameters. Note that support is build in for using multiple target functions at the same time by combining them or by using different targets per sorting pass. This can be achieved by specifying an array of targets (`"value1,value2,value3"`).
 
-<!-- std::vector<unsigned char> o(helper::ii2n(imgDim)*nChannels, 0); -->
-<!-- for(const auto leafPos : helper::range_n(helper::ii2n(imgDim))) -->
-<!-- 	{ -->
-<!-- 	  const auto imgIdx = qtLeafAssignment[leafPos]; -->
-<!-- 	  const auto gridPos = leaf2gridPos[leafPos]; -->
-<!-- 	  for(const auto c : helper::range_n(nChannels)) -->
-<!-- 	    o[nChannels*gridPos+c] = img[nChannels*imgIdx+c]; -->
-<!-- 	} -->
-      
-<!-- helper::cimgWrite("colRGB_fromPNG.png", &o[0], imgDim, nChannels); -->
-<!-- ``` -->
+### Misc
+| Argument    | Description                                               |
+|-------------|-----------------------------------------------------------|
+| `--debug`   | Enable debugging (use synthetic data). (default: `false`) |
+| `--rows`    | Number of rows of the grid. (default: `128`)              |
+| `--columns` | Number of columns of the grid. (default: `128`)           |
+| `--cores`   | Number of cores to use for parallel. (default: all cores) |
 
+A synthetic dataset of uniform RGB values can be used by setting the debug parameters. This dataset is also exported as images, directly visualizing the RGB grid across different heights. The dimension parameters are only used in combination with the RGB dataset.
+Additionally, the `--cores` flag can be used to control the number of cores used during operation of the method, which is set to all cores by default.
 
-### command line switches
-Useful command line switches for ldg_core (incomplete list, but should contain most important ones to get started); they all expect one argument:
+## Compatability
+The LDG-SSM is compatible with the [original LDG implementation](https://github.com/freysn/ldg_core) through an adapter interface. The LDG-SSM can translate assignments from and to the format of the original LDG with the difference in measured assignment cost between the two implementations staying within the error margin.
 
-* --dataconf, -d | custom config format describing the input dataset (see description below).
-* --outDir | directory where to store generated assignment files
-* --distFuncType | 1: Euclidean distance or 2: Cosine distance
-* --seed | seed for the pseudo RNG
-* --nNeighbors | 4 (for 4-neighborhood, default) or 8 (for 8-neighborhood)
-* --termIterations | specify how many optimization iterations the code should run (default: infinity)
-* —termSame” | interrupt after the assignment hasn't been changed for said number of iterations.
-* --termTime | interrupt after running for a certain number of seconds
+However, the LDG-SSM interface is only compatible with the LDG-SSM output format. To translate an assignment from the original LDG, simply use the LDG assignment as an input assignment for the LDG-SSM, enable exporting and set all sorting parameters to 0. This results in the files required to visualize a LDG assignment in the LDG-SSM interface.
 
-
-### data config files
-
-_config_ files contain textual descriptions of the files to load. It assumes that the data is stored in a raw file.
-
-* VOLUME\_FILE _arg_ | name of the raw file to load
-* VOLUME\_DIM _arg0_ _arg1_ _arg2_ | volume dimension in x, y, and z direction (integers)
-* VOLUME\_DATA_TYPE _arg_ | element type, possible values: _UCHAR_, _USHORT_, _FLOAT_, _DOUBLE_, _UCHAR4_
-* VOLUME\_FORMAT | data format, possible values: _RAW_, _RAW_BZ2_ (raw data file compressed with bzip2)
-
-<!-- _For more examples, please refer to the [Documentation](https://example.com)_ -->
-
-<!-- <p align="right">(<a href="#top">back to top</a>)</p> -->
-
-
-
-<!-- ROADMAP -->
-<!-- ## Roadmap -->
-
-<!-- - [] Feature 1 -->
-<!-- - [] Feature 2 -->
-<!-- - [] Feature 3 -->
-<!--     - [] Nested Feature -->
-
-<!-- See the [open issues](https://github.com/github_username/repo_name/issues) for a full list of proposed features (and known issues). -->
-
-<!-- <p align="right">(<a href="#top">back to top</a>)</p> -->
+## Project structure
+* `app`: All C++ source code and the root of the CMake project. Due to the extensive use of templates, the project almost exclusively consists of header files.
+* `data`: The data directory mounted by default by Docker. Input and output data should ideally reside here.
+* `scripts`: Some scripts that test the properties of the LDG-SSM. These take the executable as their first argument with the second argument being the output directory. Please check the scripts themselves for scripts specific arguments.
 
 
-
-<!-- CONTRIBUTING -->
-<!-- ## Contributing -->
-
-<!-- Contributions are what make the open source community such an amazing place to learn, inspire, and create. Any contributions you make are **greatly appreciated**. -->
-
-<!-- If you have a suggestion that would make this better, please fork the repo and create a pull request. You can also simply open an issue with the tag "enhancement". -->
-<!-- Don't forget to give the project a star! Thanks again! -->
-
-<!-- 1. Fork the Project -->
-<!-- 2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`) -->
-<!-- 3. Commit your Changes (`git commit -m 'Add some AmazingFeature'`) -->
-<!-- 4. Push to the Branch (`git push origin feature/AmazingFeature`) -->
-<!-- 5. Open a Pull Request -->
-
-<!-- <p align="right">(<a href="#top">back to top</a>)</p> -->
-
-
-
-## License
-
-Distributed under the MIT License. See `license.md` for more information.
-
-<!-- <p align="right">(<a href="#top">back to top</a>)</p> -->
-
-
-
-<!-- CONTACT -->
-## Contact
-
-Steffen Frey - s.d.frey@rug.nl
-
-Project Link: [https://github.com/freysn/ldg_core](https://github.com/freysn/ldg_core)
-
-An interactive demo for exploring LDGs is provided here: <https://ldg-demo.github.io>.
-
-<!-- <p align="right">(<a href="#top">back to top</a>)</p> -->
-
-
-
-<!-- ACKNOWLEDGMENTS -->
-<!-- ## Acknowledgments -->
-
-<!-- * []() -->
-<!-- * []() -->
-<!-- * []() -->
-
-<!-- <p align="right">(<a href="#top">back to top</a>)</p> -->
-
-
-
-<!-- MARKDOWN LINKS & IMAGES -->
-<!-- https://www.markdownguide.org/basic-syntax/#reference-style-links -->
-<!-- [contributors-shield]: https://img.shields.io/github/contributors/github_username/repo_name.svg?style=for-the-badge -->
-<!-- [contributors-url]: https://github.com/github_username/repo_name/graphs/contributors -->
-<!-- [forks-shield]: https://img.shields.io/github/forks/github_username/repo_name.svg?style=for-the-badge -->
-<!-- [forks-url]: https://github.com/github_username/repo_name/network/members -->
-<!-- [stars-shield]: https://img.shields.io/github/stars/github_username/repo_name.svg?style=for-the-badge -->
-<!-- [stars-url]: https://github.com/github_username/repo_name/stargazers -->
-<!-- [issues-shield]: https://img.shields.io/github/issues/github_username/repo_name.svg?style=for-the-badge -->
-<!-- [issues-url]: https://github.com/github_username/repo_name/issues -->
-<!-- [license-shield]: https://img.shields.io/github/license/github_username/repo_name.svg?style=for-the-badge -->
-<!-- [license-url]: https://github.com/github_username/repo_name/blob/master/LICENSE.txt -->
-<!-- [linkedin-shield]: https://img.shields.io/badge/-LinkedIn-black.svg?style=for-the-badge&logo=linkedin&colorB=555 -->
-<!-- [linkedin-url]: https://linkedin.com/in/linkedin_username -->
-<!-- [product-screenshot]: images/screenshot.png -->
