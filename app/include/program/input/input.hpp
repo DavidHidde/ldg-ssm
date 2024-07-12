@@ -123,8 +123,7 @@ namespace program
             result["min_distance_change"].as<double>(),
             result["distance_change_factor"].as<double>(),
             result["passes_per_checkpoint"].as<size_t>(),
-            result["iterations_per_checkpoint"].as<size_t>(),
-            result["combine_targets"].as<bool>(),
+            result["iterations_per_checkpoint"].as<size_t>()
         };
     }
 
@@ -139,15 +138,11 @@ namespace program
     template<typename VectorType>
     program::SortOptions<VectorType> loadSortOptionsFromInput(cxxopts::ParseResult const &result)
     {
-        auto parsed_targets = result["targets"].as<std::vector<size_t>>();
-        std::vector<ssm::TargetType> targets(parsed_targets.size());
-        std::transform(parsed_targets.begin(), parsed_targets.end(), targets.begin(), [](size_t x) { return static_cast<ssm::TargetType>(x);});
-
         return {
             result["randomize"].as<bool>(),
             result["seed"].as<size_t>(),
             result["partition_swaps"].as<bool>(),
-            targets,
+            result["ssm_mode"].as<bool>(),
             ldg::mapFunctionTypeToFunction<VectorType>(static_cast<ldg::DistanceFunctionType>(result["distance_function"].as<size_t>()))
         };
     }

@@ -23,7 +23,6 @@ namespace program
             "num_exchanges",
             "max_iterations",
             "distance_threshold",
-            "targets",
             "using_partition_swaps",
             "rows",
             "columns"
@@ -40,7 +39,6 @@ namespace program
         size_t max_iterations = 0;
         double distance_threshold = 0.;
         bool using_partition_swaps = true;
-        std::string targets = "";
 
     public:
         explicit Logger(double start_time, std::string const &output_dir);
@@ -56,18 +54,11 @@ namespace program
 
         // Flush setters
         Logger &setNumRows(size_t num_rows);
-
         Logger &setNumCols(size_t num_cols);
-
         Logger &setNumPass(size_t num_pass);
-
         Logger &setMaxIterations(size_t max_iterations);
-
         Logger &setDistanceThreshold(double distance_threshold);
-
         Logger &setUsingPartitionSwaps(bool using_partition_swaps);
-
-        Logger &setTargets(const std::vector<ssm::TargetType> &targets);
     };
 
     /**
@@ -104,7 +95,6 @@ namespace program
             num_exchanges << csv_separator <<
             max_iterations << csv_separator <<
             distance_threshold << csv_separator <<
-            targets << csv_separator <<
             using_partition_swaps << csv_separator <<
             num_rows << csv_separator <<
             num_cols << '\n';
@@ -175,25 +165,6 @@ namespace program
     inline Logger &Logger::setUsingPartitionSwaps(bool using_partition_swaps)
     {
         this->using_partition_swaps = using_partition_swaps;
-        return *this;
-    }
-
-    /**
-     * Cast and stringify the targets.
-     *
-     * @param targets
-     * @return
-     */
-    inline Logger &Logger::setTargets(const std::vector<ssm::TargetType> &targets)
-    {
-        std::string stringified_targets;
-        for (size_t idx = 0; idx < targets.size(); ++idx) {
-            stringified_targets += std::to_string(static_cast<size_t>(targets[idx]));
-            if (idx < targets.size() - 1)
-                stringified_targets += ',';
-        }
-
-        this->targets = stringified_targets;
         return *this;
     }
 }

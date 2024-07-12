@@ -35,7 +35,7 @@ namespace ssm
         std::vector<ldg::CellPosition> &node_buffer,
         ldg::QuadAssignmentTree<VectorType> &quad_tree,
         std::function<double(std::shared_ptr<VectorType>, std::shared_ptr<VectorType>)> distance_function,
-        std::vector<std::vector<std::shared_ptr<VectorType>>> &target_map
+        std::vector<std::shared_ptr<VectorType>> &target_map
     ) {
         auto [num_y_elems, num_x_elems] = elems_per_dim;
         auto [num_rows, num_cols] = comparison_height_dims;
@@ -77,7 +77,7 @@ namespace ssm
     size_t performPartitionExchanges(
         ldg::QuadAssignmentTree<VectorType> &quad_tree,
         std::function<double(std::shared_ptr<VectorType>, std::shared_ptr<VectorType>)> distance_function,
-        std::vector<std::vector<std::shared_ptr<VectorType>>> &target_map,
+        std::vector<std::shared_ptr<VectorType>> &target_map,
         const size_t comparison_height,
         const long partition_len,
         std::pair<long, long> &offset,
@@ -136,10 +136,10 @@ namespace ssm
      * @tparam VectorType
      * @param quad_tree
      * @param distance_function
-     * @param target_types   Types of targets for the target comparisons
      * @param partition_height  The height of the partitions being compared.
      * @param comparison_height The height at which the elements should be compared.
      * @param elements_per_dim Number of elements that should be paired per dimension, defined in [elements per y, elements per x]
+     * @param ssm_mode
      * @param apply_shift   Whether the shift (odd-even) configuration should be used.
      * @return
      */
@@ -147,10 +147,10 @@ namespace ssm
     size_t optimizePartitions(
         ldg::QuadAssignmentTree<VectorType> &quad_tree,
         std::function<double(std::shared_ptr<VectorType>, std::shared_ptr<VectorType>)> distance_function,
-        std::vector<TargetType> const &target_types,
         size_t partition_height,
         size_t comparison_height,
         std::pair<size_t, size_t> &elements_per_dim,
+        bool ssm_mode,
         bool apply_shift
     )
     {
@@ -171,7 +171,7 @@ namespace ssm
         }
 
         computeParents(quad_tree, distance_function);
-        auto target_map = getTargetMap(target_types, quad_tree, partition_height, comparison_height, apply_shift);
+        auto target_map = getTargetMap(ssm_mode ? TargetType::PARTITION_NEIGHBOURHOOD : TargetType::HIGHEST_PARENT_HIERARCHY, quad_tree, partition_height, comparison_height, apply_shift);
         return performPartitionExchanges(
             quad_tree,
             distance_function,
