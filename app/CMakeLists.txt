@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.14)
 
 project(
     ldg_ssm
-    VERSION 0.1
+    VERSION 1.0
     DESCRIPTION "Level-of-Detail Self-Sorting Map Grids"
     LANGUAGES CXX
 )
