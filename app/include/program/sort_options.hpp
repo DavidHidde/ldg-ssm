@@ -20,7 +20,7 @@ namespace program
         bool randomize_assignment;
         size_t randomization_seed;
         bool use_partition_swaps;
-        std::vector<ssm::TargetType> target_types;
+        bool ssm_mode;
         std::function<double(std::shared_ptr<VectorType>, std::shared_ptr<VectorType>)> distance_function;
     };
 }

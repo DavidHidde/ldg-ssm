@@ -27,10 +27,10 @@ Alternatively, the `make build-all` performs all build commands at once.
 The LDG-SSM supports the use of many CLI arguments to adjust its behaviour. These can be listed using the `--help` argument.
 
 ### Input
-| Argument   | Description                                 |
-|:-----------|:--------------------------------------------|
-| `--config` | Path to the config file                     |
-| `--input`  | Path to the previous assignment file        |
+| Argument   | Description                                     |
+|:-----------|:------------------------------------------------|
+| `--config` | Path to the config file                         |
+| `--input`  | Path to the previous assignment file            |
 
 The program accepts a configuration JSON file that specifies the input data. An [example](data/input/example_data.json) of the format is provided. The input data that is read is assumed to be either a `.raw` file containing a flattened data array file of doubles or a BZip2 compressed `.raw.bz2` variant of this array.
 The input assignment is in the format of the original LDG and can be used to initialize the assignment of the method.
@@ -58,31 +58,31 @@ Unless the `log_only` option is specified, the output per checkpoint consists of
 Post-processing Python files which can be used for the datasets used with the original LDG can be provided upon request.
 
 ### Sorting
-| Argument                   | Description                                                                                                                                                                                                                     |
-|----------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `--passes`                 | Number of passes. (default: `1`)                                                                                                                                                                                                |
-| `--max_iterations`         | Number of maximum iterations for convergence. (default: `100`)                                                                                                                                                                  |
-| `--min_distance_change`    | Minimum distance change for convergence. (default: `0.00001`)                                                                                                                                                                   |
-| `--distance_change_factor` | Distance change ratio change factor per pass. (default: `1`)                                                                                                                                                                    |
-| `--seed`                   | Randomization seed. (default: random)                                                                                                                                                                                           |
-| `--partition_swaps`        | Enable partition swaps. (default: `true`)                                                                                                                                                                                       |
-| `--randomize`              | Randomize the assignment at the start. (default: `true`)                                                                                                                                                                        |
-| `--combine_targets`        | Combine targets into a single target. If `false`, one target will be used per pass, with the last target repeating until the end. (default: `false`)                                                                            |
-| `--distance_function`      | Distance function to use. Options are: Euclidean distance: `0`, Cosine Similarity: `1` (default: `0`)                                                                                                                           |
-| `--targets`                | Targets of the SSM. Options are: Aggregate Hierarchy: `0`, Highest Parent: `1`, Aggregate Hierarchy (4 connected): `2`, Highest Parent (4 connected): `3`, Partition Neighbourhood: `4`, Cell Neighbourhood: `5` (default: `4`) |
+| Argument                   | Description                                                                                                                                                                        |
+|----------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `--passes`                 | Number of passes. (default: `1`)                                                                                                                                                   |
+| `--max_iterations`         | Number of maximum iterations for convergence. (default: `100`)                                                                                                                     |
+| `--min_distance_change`    | Minimum distance change for convergence. (default: `0.00001`)                                                                                                                      |
+| `--distance_change_factor` | Distance change ratio change factor per pass. (default: `1`)                                                                                                                       |
+| `--seed`                   | Randomization seed. (default: random)                                                                                                                                              |
+| `--partition_swaps`        | Enable partition swaps. (default: `true`)                                                                                                                                          |
+| `--randomize`              | Randomize the assignment at the start. (default: `true`)                                                                                                                           |
+| `--distance_function`      | Distance function to use. Options are: Euclidean distance: `0`, Cosine Similarity: `1` (default: `0`)                                                                              |
+| `--ssm_mode`               | Whether the sorting should mimic the Self-Sorting Map (SSM). This changes some parameters like the start sorting height, the target function and cell pairings. (default: `false`) |
 
-The main sorting parameters. Note that support is build in for using multiple target functions at the same time by combining them or by using different targets per sorting pass. This can be achieved by specifying an array of targets (`"value1,value2,value3"`).
+The main sorting parameters. Note that the original SSM can be used for sorting using the `ssm_mode` parameter. This does not fully represent the original SSM, but rather a version that is slightly adjusted to use the LDG quad tree properly.
 
 ### Misc
-| Argument    | Description                                               |
-|-------------|-----------------------------------------------------------|
-| `--debug`   | Enable debugging (use synthetic data). (default: `false`) |
-| `--rows`    | Number of rows of the grid. (default: `128`)              |
-| `--columns` | Number of columns of the grid. (default: `128`)           |
-| `--cores`   | Number of cores to use for parallel. (default: all cores) |
+| Argument         | Description                                                                                                 |
+|------------------|-------------------------------------------------------------------------------------------------------------|
+| `--debug`        | Enable debugging (use synthetic data). (default: `false`)                                                   |
+| `--rows`         | Number of rows of the grid. (default: `128`)                                                                |
+| `--columns`      | Number of columns of the grid. (default: `128`)                                                             |
+| `--cores`        | Number of cores to use for parallel. (default: all cores)                                                   |
+| `--parent_type`  | Type of parent representation to use. Options are: Normalized average: 0, Minimum child: 1. (default: `0`)  |
 
 A synthetic dataset of uniform RGB values can be used by setting the debug parameters. This dataset is also exported as images, directly visualizing the RGB grid across different heights. The dimension parameters are only used in combination with the RGB dataset.
-Additionally, the `--cores` flag can be used to control the number of cores used during operation of the method, which is set to all cores by default.
+Additionally, the `--cores` flag can be used to control the number of cores used during operation of the method, which is set to all cores by default. The parent type represents how LDG quad tree parents are calculated, which can be set to `1` for nominal data.
 
 ## Compatability
 The LDG-SSM is compatible with the [original LDG implementation](https://github.com/freysn/ldg_core) through an adapter interface. The LDG-SSM can translate assignments from and to the format of the original LDG with the difference in measured assignment cost between the two implementations staying within the error margin.

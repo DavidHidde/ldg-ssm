@@ -18,10 +18,6 @@ namespace program
 
         size_t passes_per_checkpoint;       // Number of passes that should be passed before an intermediate checkpoint should be made.
         size_t iterations_per_checkpoint;   // Number of iterations within a height that should be passed before an intermediate checkpoint should be made.
-
-        bool combine_targets;               /* Whether all the SSM targets should be combined in a single pass or run separately.
-                                               In case this is false and the number of targets does not match the number of passes, we repeat the last target.
-                                            */
     };
 }// ldg
 

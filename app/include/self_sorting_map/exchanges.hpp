@@ -22,7 +22,7 @@ namespace ssm
         std::vector<ldg::CellPosition> &nodes,
         ldg::QuadAssignmentTree<VectorType> &quad_tree,
         std::function<double(std::shared_ptr<VectorType>, std::shared_ptr<VectorType>)> distance_function,
-        std::vector<std::vector<std::shared_ptr<VectorType>>> &target_map
+        std::vector<std::shared_ptr<VectorType>> &target_map
     )
     {
         using namespace ldg;
@@ -60,12 +60,10 @@ namespace ssm
         do {
             double distance = 0.;
             for (size_t idx = 0; idx < num_nodes; ++idx) {
-                for (auto &target : target_map[nodes[idx].index]) {
-                    distance += distance_function(
-                        node_data[permutation[idx]],
-                        target
-                    );
-                }
+                distance += distance_function(
+                    node_data[permutation[idx]],
+                    target_map[nodes[idx].index]
+                );
             }
 
             // Better permutation, save it

@@ -15,29 +15,6 @@
 namespace program
 {
     /**
-     * Create a schedule for which targets to use at which step. Note that if we don't combine the targets and we have less targets
-     * specified than needed, we just repeat the last one.
-     *
-     * @tparam VectorType
-     * @param schedule
-     * @param sort_options
-     * @return
-     */
-    template<typename VectorType>
-    std::vector<std::vector<ssm::TargetType>> createTargetSchedule(Schedule &schedule, SortOptions<VectorType> &sort_options)
-    {
-        if (schedule.combine_targets) {
-            return std::vector<std::vector<ssm::TargetType>>(schedule.number_of_passes, sort_options.target_types);
-        }
-
-        std::vector<std::vector<ssm::TargetType>> target_schedule;
-        for (size_t idx = 0; idx < schedule.number_of_passes; ++idx) {
-            target_schedule.push_back({sort_options.target_types[std::min(idx, sort_options.target_types.size() - 1)]});
-        }
-        return target_schedule;
-    }
-
-    /**
      * Run the actual sorting procedure on a quad tree following a schedule given set options.
      * Note that we assume everything has been initialized from the input at this point, and we only do a couple of sanity checks before proceeding.
      *
@@ -60,7 +37,6 @@ namespace program
 
         size_t max_iterations = schedule.max_iterations;
         double distance_threshold = schedule.distance_threshold;
-        auto target_schedule = createTargetSchedule(schedule, sort_options);
 
         // Main loop where we perform the sorting.
         const double start = omp_get_wtime();
@@ -70,7 +46,7 @@ namespace program
         logger.setUsingPartitionSwaps(sort_options.use_partition_swaps).setNumRows(quad_tree.getNumRows()).setNumCols(quad_tree.getNumCols());
         for (size_t idx = 0; idx < schedule.number_of_passes; ++idx) {
             std::cout << "--- Pass " << idx + 1 << " ---" << std::endl;
-            logger.setNumPass(idx).setMaxIterations(max_iterations).setDistanceThreshold(distance_threshold).setTargets(target_schedule[idx]);
+            logger.setNumPass(idx).setMaxIterations(max_iterations).setDistanceThreshold(distance_threshold);
 
             if (schedule.passes_per_checkpoint > 0 && idx % schedule.passes_per_checkpoint == 0) {
                 std::string pass_output_dir = base_output_dir + "pass" + std::to_string(idx + 1) + std::filesystem::__cxx11::path::preferred_separator;
@@ -84,7 +60,7 @@ namespace program
                 schedule.iterations_per_checkpoint,
                 max_iterations,
                 distance_threshold,
-                target_schedule[idx],
+                sort_options.ssm_mode,
                 sort_options.use_partition_swaps,
                 logger,
                 export_settings
