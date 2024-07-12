@@ -47,14 +47,14 @@ namespace ldg
      *
      * @tparam VectorType
      * @param vectors
-     * @param num_elements
+     * @param vector_num_elements
      * @return
      */
     template<typename VectorType>
-    VectorType aggregate(std::vector<std::shared_ptr<VectorType>> &vectors, size_t num_elements)
+    VectorType aggregate(std::vector<std::shared_ptr<VectorType>> &vectors, size_t vector_num_elements)
     {
         double count = 0.;
-        VectorType aggregate = VectorType::Zero(num_elements);
+        VectorType aggregate = VectorType::Zero(vector_num_elements);
 
         for (auto vector_ptr : vectors) {
             if (vector_ptr != nullptr) {
@@ -64,6 +64,43 @@ namespace ldg
         }
 
         return aggregate / std::max(1., count);
+    }
+
+    /**
+     * Find the value with the minimum distance to all other vectors.
+     * Assumes a symmetric distance function.
+     *
+     * @tparam VectorType
+     * @param vectors
+     * @param distance_function
+     * @return
+     */
+    template<typename VectorType>
+    VectorType findMinimum(
+        std::vector<std::shared_ptr<VectorType>> &vectors,
+        std::function<double(std::shared_ptr<VectorType>, std::shared_ptr<VectorType>)> distance_function
+    ) {
+        double min_distance = std::numeric_limits<double>::max();
+        VectorType result;
+        std::vector<double> distances(vectors.size(), 0.);
+        for (size_t idx = 0; idx < vectors.size(); ++idx) {
+            if (vectors[idx] == nullptr)
+                continue;
+
+            for (size_t compare_idx = idx + 1; compare_idx < vectors.size(); ++compare_idx) {
+                double distance = distance_function(vectors[idx], vectors[compare_idx]);
+                distances[idx] += distance;
+                distances[compare_idx] += distance;
+            }
+
+            // Check if total distance is smaller and accept if it is
+            if (min_distance > distances[idx]) {
+                result = *vectors[idx];
+                min_distance = distances[idx];
+            }
+        }
+
+        return result;
     }
 
     /**

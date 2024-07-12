@@ -170,7 +170,7 @@ namespace ssm
             iteration_dims.second += (elements_per_x - 1) * 2 * partition_len;
         }
 
-        computeAggregates(quad_tree);
+        computeParents(quad_tree, distance_function);
         auto target_map = getTargetMap(target_types, quad_tree, partition_height, comparison_height, apply_shift);
         return performPartitionExchanges(
             quad_tree,

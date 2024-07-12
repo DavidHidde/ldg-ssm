@@ -24,7 +24,7 @@ namespace ldg
         QuadAssignmentTree<VectorType> &quad_tree
     )
     {
-        computeAggregates(quad_tree);
+        computeParents(quad_tree, distance_function);
         double sum = 0.;
         auto [num_rows, num_cols] = quad_tree.getBounds(height).second;
         const size_t num_elems = num_rows * num_cols;

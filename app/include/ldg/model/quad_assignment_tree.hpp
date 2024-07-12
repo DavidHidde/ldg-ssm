@@ -3,6 +3,7 @@
 
 #include "app/include/ldg/util/math.hpp"
 #include "cell_position.hpp"
+#include "parent_type.hpp"
 
 #include <vector>
 #include <cstddef>
@@ -25,6 +26,7 @@ namespace ldg
         size_t num_real_elements;
         std::array<size_t, 3> data_dims;
 
+        ParentType parent_type;
         std::vector<std::shared_ptr<VectorType>> data;
         std::vector<size_t> assignment;
         std::vector<std::pair<std::pair<size_t, size_t>, std::pair<size_t, size_t>>> bounds_cache;
@@ -37,7 +39,8 @@ namespace ldg
             size_t num_cols,
             size_t depth,
             size_t num_real_elements,
-            std::array<size_t, 3> data_dims
+            std::array<size_t, 3> data_dims,
+            ParentType aggregation_type
         );
 
         size_t getDepth() const;
@@ -51,6 +54,8 @@ namespace ldg
         std::array<size_t, 3> getDataDims() const;
 
         size_t getDataElementLen() const;
+
+        ParentType getParentType() const;
 
         std::vector<size_t> &getAssignment();
 
@@ -90,7 +95,8 @@ namespace ldg
         size_t num_cols,
         size_t depth,
         size_t num_real_elements,
-        std::array<size_t, 3> data_dims
+        std::array<size_t, 3> data_dims,
+        ParentType aggregation_type
     ):
         data(data),
         assignment(assignment),
@@ -98,7 +104,8 @@ namespace ldg
         num_cols(num_cols),
         depth(depth),
         num_real_elements(num_real_elements),
-        data_dims(data_dims)
+        data_dims(data_dims),
+        parent_type(aggregation_type)
     {
         // Generate the bounds cache
         bounds_cache.reserve(depth);
@@ -334,6 +341,16 @@ namespace ldg
     size_t QuadAssignmentTree<DataType>::getDataElementLen() const
     {
         return data_dims[0] * data_dims[1] * data_dims[2];
+    }
+
+    /**
+     * @tparam VectorType
+     * @return
+     */
+    template<typename VectorType>
+    ParentType QuadAssignmentTree<VectorType>::getParentType() const
+    {
+        return parent_type;
     }
 }
 
