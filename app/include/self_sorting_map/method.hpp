@@ -81,12 +81,11 @@ namespace ssm
 
         // Main loop
         long height = ssm_mode ? getSSMStartHeight(quad_tree) : quad_tree.getDepth() - 2;
-        long min_height = ssm_mode ? 1 : 0;
         size_t num_exchanges;
         std::string reason;
         std::pair<size_t, size_t> normal_pass_pairings{ 2, 2 }; // Separate X-Y passes can be enabled by tweaking this, but this is not needed here.
 
-        for (; height >= min_height; --height) {
+        for (; height > 0; --height) {
             size_t iterations = 0;
 
             do {
@@ -103,7 +102,7 @@ namespace ssm
                 distance = new_distance;
                 new_distance = computeHierarchyNeighborhoodDistance(0, distance_function, quad_tree);
 
-                if (iterations_between_checkpoint > 0 && iterations % iterations_between_checkpoint == 0) {
+                if (iterations_between_checkpoint > 0 && iterations > 0 && iterations % iterations_between_checkpoint == 0) {
                     export_settings.file_name = "height-" + std::to_string(height) + "-it(" + std::to_string(iterations) + ')';
                     program::exportQuadTree(quad_tree, distance_function, export_settings);
                 }

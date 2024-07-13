@@ -22,7 +22,7 @@ namespace ssm
      */
     template<typename VectorType>
     void loadHighestParentHierarchyTargets(
-        std::vector<std::shared_ptr<VectorType>> &target_map,
+        std::vector<std::vector<std::shared_ptr<VectorType>>> &target_map,
         ldg::QuadAssignmentTree<VectorType> &quad_tree,
         const size_t partition_height,
         const size_t comparison_height,
@@ -54,7 +54,7 @@ namespace ssm
             size_t max_x = std::min(min_x + partition_len, comparison_height_dims.second);
             for (size_t y = min_y; y < max_y; ++y) {
                 for (size_t x = min_x; x < max_x; ++x) {
-                    target_map[rowMajorIndex(y, x, comparison_height_dims.second)] = target;
+                    target_map[rowMajorIndex(y, x, comparison_height_dims.second)].push_back(target);
                 }
             }
         }

@@ -63,7 +63,7 @@ namespace ssm
     size_t performPartitionExchanges(
         ldg::QuadAssignmentTree<VectorType> &quad_tree,
         std::function<double(std::shared_ptr<VectorType>, std::shared_ptr<VectorType>)> distance_function,
-        std::vector<std::shared_ptr<VectorType>> &target_map,
+        std::vector<std::vector<std::shared_ptr<VectorType>>> &target_map,
         std::array<std::vector<long>, 4> &cell_pairings_array,
         const size_t comparison_height,
         const long partition_len,
