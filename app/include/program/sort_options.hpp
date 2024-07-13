@@ -18,7 +18,6 @@ namespace program
     struct SortOptions
     {
         bool randomize_assignment;
-        size_t randomization_seed;
         bool use_partition_swaps;
         bool ssm_mode;
         std::function<double(std::shared_ptr<VectorType>, std::shared_ptr<VectorType>)> distance_function;

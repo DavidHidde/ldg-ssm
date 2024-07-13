@@ -30,7 +30,7 @@ namespace program
         ldg::assertUniqueAssignment(quad_tree);
         std::cout << "Initial HND: " << ldg::computeHierarchyNeighborhoodDistance(0, sort_options.distance_function, quad_tree) << std::endl;
         if (sort_options.randomize_assignment) {
-            ldg::randomizeAssignment(quad_tree, sort_options.randomization_seed);
+            ldg::randomizeAssignment(quad_tree);
             std::cout << "Randomized HND: " << ldg::computeHierarchyNeighborhoodDistance(0, sort_options.distance_function, quad_tree) << std::endl;
         }
         std::cout << std::endl;

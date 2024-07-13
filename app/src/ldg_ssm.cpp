@@ -9,7 +9,6 @@
 #include "app/include/program/input/input_args.hpp"
 #include "app/include/program/input/input.hpp"
 
-
 /**
  * Entrypoint of the application. Handles input and then delegates to the runner.
  *
@@ -30,6 +29,8 @@ int main(int argc, const char **argv)
         auto schedule = program::loadScheduleFromInput(parse_result);
         auto sort_options = program::loadSortOptionsFromInput<Eigen::VectorXd>(parse_result);
         auto export_settings = program::loadExportSettingsFromInput(parse_result);
+        program::RANDOMIZER = std::mt19937(parse_result["seed"].as<size_t>());
+
         program::run(quad_tree, schedule, sort_options, export_settings);
     } catch (const std::exception &exception) {
         std::cerr << "ldg_ssm: " << exception.what() << std::endl;

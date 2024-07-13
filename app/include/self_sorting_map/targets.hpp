@@ -25,7 +25,7 @@ namespace ssm
      * @return  A num_rows x num_cols map at the comparison height where each index contains the targets for that node.
      */
     template<typename VectorType>
-    std::vector<std::shared_ptr<VectorType>> getTargetMap(
+    std::vector<std::vector<std::shared_ptr<VectorType>>> getTargetMap(
         const TargetType target_type,
         ldg::QuadAssignmentTree<VectorType> &quad_tree,
         size_t partition_height,
@@ -34,7 +34,7 @@ namespace ssm
     )
     {
         auto comparison_height_dims = quad_tree.getBounds(comparison_height).second;
-        std::vector<std::shared_ptr<VectorType>> target_map(comparison_height_dims.first * comparison_height_dims.second);
+        std::vector<std::vector<std::shared_ptr<VectorType>>> target_map(comparison_height_dims.first * comparison_height_dims.second);
 
         switch (target_type) {
             case HIGHEST_PARENT_HIERARCHY:

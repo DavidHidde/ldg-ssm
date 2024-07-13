@@ -6,6 +6,7 @@
 #include "app/include/ldg/model/quad_assignment_tree.hpp"
 #include "app/include/ldg/util/tree_traversal/tree_walker.hpp"
 #include "app/include/ldg/util/math.hpp"
+#include "app/include/program/random.hpp"
 
 #include <cassert>
 
@@ -69,10 +70,10 @@ namespace ldg
      * @tparam VectorType
      */
     template<typename VectorType>
-    void randomizeAssignment(QuadAssignmentTree<VectorType> &quad_tree, size_t seed)
+    void randomizeAssignment(QuadAssignmentTree<VectorType> &quad_tree)
     {
         auto &assignment = quad_tree.getAssignment();
-        std::shuffle(assignment.begin(), assignment.begin() + quad_tree.getNumRows() * quad_tree.getNumCols(), std::mt19937(seed));
+        std::shuffle(assignment.begin(), assignment.begin() + quad_tree.getNumRows() * quad_tree.getNumCols(), program::RANDOMIZER);
     }
 
     /**
