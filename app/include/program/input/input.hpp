@@ -140,7 +140,6 @@ namespace program
     {
         return {
             result["randomize"].as<bool>(),
-            result["seed"].as<size_t>(),
             result["partition_swaps"].as<bool>(),
             result["ssm_mode"].as<bool>(),
             ldg::mapFunctionTypeToFunction<VectorType>(static_cast<ldg::DistanceFunctionType>(result["distance_function"].as<size_t>()))

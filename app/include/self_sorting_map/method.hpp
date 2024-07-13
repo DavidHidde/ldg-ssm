@@ -80,18 +80,20 @@ namespace ssm
         double new_distance = distance;
 
         // Main loop
-        size_t height = ssm_mode ? getSSMStartHeight(quad_tree) : quad_tree.getDepth() - 2;
+        long height = ssm_mode ? getSSMStartHeight(quad_tree) : quad_tree.getDepth() - 2;
+        long min_height = ssm_mode ? 1 : 0;
         size_t num_exchanges;
         std::string reason;
         std::pair<size_t, size_t> normal_pass_pairings{ 2, 2 }; // Separate X-Y passes can be enabled by tweaking this, but this is not needed here.
 
-        for (; height > 0; --height) {
+        for (; height >= min_height; --height) {
             size_t iterations = 0;
 
             do {
                 num_exchanges = 0;
                 num_exchanges += optimizePartitions(quad_tree, distance_function, height, 0, normal_pass_pairings, ssm_mode, false);
-                num_exchanges += optimizePartitions(quad_tree, distance_function, height, 0, normal_pass_pairings, ssm_mode, true);
+                if (height < quad_tree.getDepth() - 2)
+                    num_exchanges += optimizePartitions(quad_tree, distance_function, height, 0, normal_pass_pairings, ssm_mode, true);
 
                 if (use_partition_swaps && height > 1) {
                     num_exchanges += optimizePartitions(quad_tree, distance_function, height, height - 1, normal_pass_pairings, ssm_mode, false);

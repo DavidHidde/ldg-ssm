@@ -30,7 +30,7 @@ namespace program
            ("min_distance_change", "Minimum distance change for convergence.", cxxopts::value<double>()->default_value("0.00001"))
            ("distance_change_factor", "Distance change ratio change factor per pass.", cxxopts::value<double>()->default_value("1"))
            ("iterations_change_factor", "Maximum number of iterations change factor per pass.", cxxopts::value<double>()->default_value("1"))
-           ("seed", "Randomization seed.", cxxopts::value<size_t>()->default_value(std::to_string(std::rand())))
+           ("seed", "Randomization seed.", cxxopts::value<size_t>()->default_value(std::to_string(std::time(0))))
            ("partition_swaps", "Enable partition swaps.", cxxopts::value<bool>()->default_value("false")->implicit_value("true"))
            ("randomize", "Randomize the assignment at the start.", cxxopts::value<bool>()->default_value("true")->implicit_value("true"))
            ("parent_type", "Type of parent representation to use. Options are: Normalized average: 0, Minimum child: 1", cxxopts::value<size_t>()->default_value("0"))

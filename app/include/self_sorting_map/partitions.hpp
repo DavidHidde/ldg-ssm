@@ -9,51 +9,36 @@
 namespace ssm
 {
     /**
-     * Gather [a, b] nodes starting from a top-left (x, y) coordinate and perform exchanges between them.
+     * Generate the pairings of each cell in a partition to each other cell.
+     * If in SSM mode, then the cell of each partition should correspond to the same cell in another partition.
+     * If not, randomize the pairings to avoid local minima through bad pairings.
      *
-     * @tparam VectorType
-     * @param x
-     * @param y
-     * @param stride
-     * @param height
-     * @param elems_per_dim [nodes in y dimension, nodes in x dimension]
-     * @param comparison_height_dims
-     * @param node_buffer
-     * @param quad_tree
-     * @param distance_function
-     * @param target_map
+     * @param num_elements
+     * @param randomize
      * @return
      */
-    template<typename VectorType>
-    size_t pairNodesAndPerformExchanges(
-        const long x,
-        const long y,
-        const long stride,
-        const size_t height,
-        std::pair<size_t, size_t> &elems_per_dim,
-        std::pair<size_t, size_t> &comparison_height_dims,
-        std::vector<ldg::CellPosition> &node_buffer,
-        ldg::QuadAssignmentTree<VectorType> &quad_tree,
-        std::function<double(std::shared_ptr<VectorType>, std::shared_ptr<VectorType>)> distance_function,
-        std::vector<std::shared_ptr<VectorType>> &target_map
-    ) {
-        auto [num_y_elems, num_x_elems] = elems_per_dim;
-        auto [num_rows, num_cols] = comparison_height_dims;
-        node_buffer.clear();
+    std::array<std::vector<long>, 4> generateCellPairings(size_t num_elements, bool randomize)
+    {
+        // Create maps per element
+        std::vector<long> map(num_elements);
+        std::iota(map.begin(), map.end(), 0);
 
-        long node_x;
-        long node_y = y;
-        for (long y_idx = 0; y_idx < num_y_elems && node_y < static_cast<long>(num_rows); ++y_idx, node_y += stride) {
-            node_x = x;
-            for (long x_idx = 0; x_idx < num_x_elems && node_x < static_cast<long>(num_cols); ++x_idx, node_x += stride) {
-                // Check if the indices are exist and add the node if they do. The upper ranges for x and y are guarded by the for-loop.
-                if (node_x >= 0 && node_y >= 0) {
-                    node_buffer.push_back(ldg::CellPosition{ height, ldg::rowMajorIndex(node_y, node_x, num_cols) });
-                }
+        // Copy simple ranges into array
+        std::array<std::vector<long>, 4> pair_array{
+            map,
+            map,
+            map,
+            map
+        };
+
+        // Shuffle all elements if not in SSM mode
+        if (randomize) {
+            for (auto &indices : pair_array) {
+                std::shuffle(indices.begin(), indices.end(), program::RANDOMIZER);
             }
         }
 
-        return node_buffer.size() > 1 ? findAndSwapBestPermutation(node_buffer, quad_tree, distance_function, target_map) : 0;
+        return pair_array;
     }
 
     /**
@@ -65,6 +50,7 @@ namespace ssm
      * @param quad_tree
      * @param distance_function
      * @param target_map
+     * @param cell_pairings_array
      * @param comparison_height
      * @param partition_len Length of the current partition.
      * @param offset    Offset [rows, columns] for the calculated indices. This is used to project back to actual array indices
@@ -78,6 +64,7 @@ namespace ssm
         ldg::QuadAssignmentTree<VectorType> &quad_tree,
         std::function<double(std::shared_ptr<VectorType>, std::shared_ptr<VectorType>)> distance_function,
         std::vector<std::shared_ptr<VectorType>> &target_map,
+        std::array<std::vector<long>, 4> &cell_pairings_array,
         const size_t comparison_height,
         const long partition_len,
         std::pair<long, long> &offset,
@@ -90,6 +77,7 @@ namespace ssm
 
         auto [iteration_num_rows, iteration_num_cols] = iteration_dims;
         auto [elements_per_y, elements_per_x] = elements_per_dim;
+        auto [comparison_num_rows, comparison_num_cols] = comparison_height_dims;
         auto [offset_y, offset_x] = offset;
 
         long projected_num_rows = iteration_num_rows / elements_per_y + (iteration_num_rows % (elements_per_y * partition_len)) % partition_len;
@@ -107,24 +95,29 @@ namespace ssm
 
             long partition_x = projected_x / partition_len;
             long partition_y = projected_y / partition_len;
+
             long within_partition_x = projected_x % partition_len;
             long within_partition_y = projected_y % partition_len;
+            long within_partition_index = ldg::rowMajorIndex(within_partition_y, within_partition_x, partition_len);
 
-            long base_x = offset_x + within_partition_x + partition_x * partition_len * elements_per_x;
-            long base_y = offset_y + within_partition_y + partition_y * partition_len * elements_per_y;
+            long base_x = offset_x + partition_x * partition_len * elements_per_x;
+            long base_y = offset_y + partition_y * partition_len * elements_per_y;
 
-            num_exchanges += pairNodesAndPerformExchanges(
-                base_x,
-                base_y,
-                partition_len,
-                comparison_height,
-                elements_per_dim,
-                comparison_height_dims,
-                nodes,
-                quad_tree,
-                distance_function,
-                target_map
-            );
+            // Pair nodes and perform exchanges
+            nodes.clear();
+            long count = 0;   // Use a count to adjust for selecting the neighbouring partitions
+            for (auto &cell_pairings : cell_pairings_array) {
+                long pair_index = cell_pairings[within_partition_index];
+                long pair_x = base_x + pair_index % partition_len + (count % 2) * partition_len;
+                long pair_y = base_y + pair_index / partition_len + (count / 2) * partition_len;
+
+                // Check if this node is within range
+                if (pair_x >= 0 && pair_x < comparison_num_cols && pair_y >= 0 && pair_y < comparison_num_rows) {
+                    nodes.push_back(ldg::CellPosition{ comparison_height, ldg::rowMajorIndex(pair_y, pair_x, comparison_num_cols) });
+                }
+                ++count;
+            }
+            num_exchanges += nodes.size() > 1 ? findAndSwapBestPermutation(nodes, quad_tree, distance_function, target_map) : 0;
         }
 
         return num_exchanges;
@@ -172,10 +165,13 @@ namespace ssm
 
         computeParents(quad_tree, distance_function);
         auto target_map = getTargetMap(ssm_mode ? TargetType::PARTITION_NEIGHBOURHOOD : TargetType::HIGHEST_PARENT_HIERARCHY, quad_tree, partition_height, comparison_height, apply_shift);
+        auto cell_pairing_array= generateCellPairings(partition_len * partition_len, !ssm_mode);
+
         return performPartitionExchanges(
             quad_tree,
             distance_function,
             target_map,
+            cell_pairing_array,
             comparison_height,
             partition_len,
             offset,
