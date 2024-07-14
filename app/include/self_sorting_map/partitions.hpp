@@ -148,7 +148,13 @@ namespace ssm
         }
 
         computeParents(quad_tree, distance_function);
-        auto target_map = getTargetMap(ssm_mode ? TargetType::PARTITION_NEIGHBOURHOOD : TargetType::HIGHEST_PARENT_HIERARCHY, quad_tree, partition_height, apply_shift);
+        auto target_map = getTargetMap(
+            ssm_mode ? TargetType::PARTITION_NEIGHBOURHOOD : TargetType::HIGHEST_PARENT_HIERARCHY,
+            quad_tree,
+            distance_function,
+            partition_height,
+            apply_shift
+        );
         auto cell_pairing_array= generateCellPairings(partition_len * partition_len, !ssm_mode);
 
         return performPartitionExchanges(
