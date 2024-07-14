@@ -51,12 +51,9 @@ namespace ssm
      * @param distance_function
      * @param target_map
      * @param cell_pairings_array
-     * @param comparison_height
      * @param partition_len Length of the current partition.
      * @param offset    Offset [rows, columns] for the calculated indices. This is used to project back to actual array indices
      * @param iteration_dims    The dimensions to be iterated over.
-     * @param comparison_height_dims The dimensions at the height of comparison.
-     * @param elements_per_dim Number of elements that should be paired per dimension, defined in [elements per y, elements per x]
      * @return
      */
     template<typename VectorType>
@@ -65,27 +62,22 @@ namespace ssm
         std::function<double(std::shared_ptr<VectorType>, std::shared_ptr<VectorType>)> distance_function,
         std::vector<std::vector<std::shared_ptr<VectorType>>> &target_map,
         std::array<std::vector<long>, 4> &cell_pairings_array,
-        const size_t comparison_height,
         const long partition_len,
         std::pair<long, long> &offset,
-        std::pair<long, long> &iteration_dims,
-        std::pair<size_t, size_t> &comparison_height_dims,
-        std::pair<size_t, size_t> &elements_per_dim
-    )
-    {
+        std::pair<long, long> &iteration_dims
+    ) {
         using namespace ldg;
 
         auto [iteration_num_rows, iteration_num_cols] = iteration_dims;
-        auto [elements_per_y, elements_per_x] = elements_per_dim;
-        auto [comparison_num_rows, comparison_num_cols] = comparison_height_dims;
+        auto [comparison_num_rows, comparison_num_cols] = quad_tree.getBounds(0).second;
         auto [offset_y, offset_x] = offset;
 
-        long projected_num_rows = iteration_num_rows / elements_per_y + (iteration_num_rows % (elements_per_y * partition_len)) % partition_len;
-        long projected_num_cols = iteration_num_cols / elements_per_x + (iteration_num_cols % (elements_per_x * partition_len)) % partition_len;
+        long projected_num_rows = iteration_num_rows / 2 + (iteration_num_rows % (2 * partition_len)) % partition_len;
+        long projected_num_cols = iteration_num_cols / 2 + (iteration_num_cols % (2 * partition_len)) % partition_len;
         long num_elems = projected_num_rows * projected_num_cols;
 
         std::vector<CellPosition> nodes;
-        nodes.reserve(elements_per_x * elements_per_y);
+        nodes.reserve(4);
         size_t num_exchanges = 0;
 
 #pragma omp parallel for private(nodes) reduction(+:num_exchanges) schedule(static)
@@ -100,8 +92,8 @@ namespace ssm
             long within_partition_y = projected_y % partition_len;
             long within_partition_index = ldg::rowMajorIndex(within_partition_y, within_partition_x, partition_len);
 
-            long base_x = offset_x + partition_x * partition_len * elements_per_x;
-            long base_y = offset_y + partition_y * partition_len * elements_per_y;
+            long base_x = offset_x + partition_x * partition_len * 2;
+            long base_y = offset_y + partition_y * partition_len * 2;
 
             // Pair nodes and perform exchanges
             nodes.clear();
@@ -113,7 +105,7 @@ namespace ssm
 
                 // Check if this node is within range
                 if (pair_x >= 0 && pair_x < comparison_num_cols && pair_y >= 0 && pair_y < comparison_num_rows) {
-                    nodes.push_back(ldg::CellPosition{ comparison_height, ldg::rowMajorIndex(pair_y, pair_x, comparison_num_cols) });
+                    nodes.push_back(ldg::CellPosition{ 0, ldg::rowMajorIndex(pair_y, pair_x, comparison_num_cols) });
                 }
                 ++count;
             }
@@ -130,8 +122,6 @@ namespace ssm
      * @param quad_tree
      * @param distance_function
      * @param partition_height  The height of the partitions being compared.
-     * @param comparison_height The height at which the elements should be compared.
-     * @param elements_per_dim Number of elements that should be paired per dimension, defined in [elements per y, elements per x]
      * @param ssm_mode
      * @param apply_shift   Whether the shift (odd-even) configuration should be used.
      * @return
@@ -140,31 +130,25 @@ namespace ssm
     size_t optimizePartitions(
         ldg::QuadAssignmentTree<VectorType> &quad_tree,
         std::function<double(std::shared_ptr<VectorType>, std::shared_ptr<VectorType>)> distance_function,
-        size_t partition_height,
-        size_t comparison_height,
-        std::pair<size_t, size_t> &elements_per_dim,
-        bool ssm_mode,
-        bool apply_shift
-    )
-    {
+        const size_t partition_height,
+        const bool ssm_mode,
+        const bool apply_shift
+    ) {
         using namespace ldg;
 
-        long partition_len = long(std::pow(2., partition_height - comparison_height));
-        auto comparison_height_dims = quad_tree.getBounds(comparison_height).second;
-
+        long partition_len = long(std::pow(2., partition_height));
         std::pair<long, long> offset{ 0, 0 };
-        std::pair<long, long> iteration_dims(comparison_height_dims);
+        std::pair<long, long> iteration_dims(quad_tree.getBounds(0).second);
 
         if (apply_shift) {  // Odd-even configuration - We basically shift the whole block back by the size of the partition
-            auto [elements_per_y, elements_per_x] = elements_per_dim;
-            offset.first -= (elements_per_y - 1) * partition_len;
-            offset.second -= (elements_per_x - 1) * partition_len;
-            iteration_dims.first += (elements_per_y - 1) * 2 * partition_len;
-            iteration_dims.second += (elements_per_x - 1) * 2 * partition_len;
+            offset.first -= partition_len;
+            offset.second -= partition_len;
+            iteration_dims.first += 2 * partition_len;
+            iteration_dims.second += 2 * partition_len;
         }
 
         computeParents(quad_tree, distance_function);
-        auto target_map = getTargetMap(ssm_mode ? TargetType::PARTITION_NEIGHBOURHOOD : TargetType::HIGHEST_PARENT_HIERARCHY, quad_tree, partition_height, comparison_height, apply_shift);
+        auto target_map = getTargetMap(ssm_mode ? TargetType::PARTITION_NEIGHBOURHOOD : TargetType::HIGHEST_PARENT_HIERARCHY, quad_tree, partition_height, apply_shift);
         auto cell_pairing_array= generateCellPairings(partition_len * partition_len, !ssm_mode);
 
         return performPartitionExchanges(
@@ -172,12 +156,9 @@ namespace ssm
             distance_function,
             target_map,
             cell_pairing_array,
-            comparison_height,
             partition_len,
             offset,
-            iteration_dims,
-            comparison_height_dims,
-            elements_per_dim
+            iteration_dims
         );
     }
 }

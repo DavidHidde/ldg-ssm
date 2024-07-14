@@ -77,19 +77,17 @@ namespace ssm
         double new_distance = distance;
 
         // Main loop
-        long height = ssm_mode ? getSSMStartHeight(quad_tree) : quad_tree.getDepth() - 2;
         size_t num_exchanges;
         std::string reason;
-        std::pair<size_t, size_t> normal_pass_pairings{ 2, 2 }; // Separate X-Y passes can be enabled by tweaking this, but this is not needed here.
 
-        for (; height > 0; --height) {
+        for (size_t height = ssm_mode ? getSSMStartHeight(quad_tree) : quad_tree.getDepth() - 2; height > 0; --height) {
             size_t iterations = 0;
 
             do {
                 num_exchanges = 0;
-                num_exchanges += optimizePartitions(quad_tree, distance_function, height, 0, normal_pass_pairings, ssm_mode, false);
+                num_exchanges += optimizePartitions(quad_tree, distance_function, height, ssm_mode, false);
                 if (height < quad_tree.getDepth() - 2)
-                    num_exchanges += optimizePartitions(quad_tree, distance_function, height, 0, normal_pass_pairings, ssm_mode, true);
+                    num_exchanges += optimizePartitions(quad_tree, distance_function, height, ssm_mode, true);
 
                 distance = new_distance;
                 new_distance = computeHierarchyNeighborhoodDistance(0, distance_function, quad_tree);
