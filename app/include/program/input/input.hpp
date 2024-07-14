@@ -118,10 +118,6 @@ namespace program
     {
         return {
             result["passes"].as<size_t>(),
-            result["max_iterations"].as<size_t>(),
-            result["iterations_change_factor"].as<double>(),
-            result["min_distance_change"].as<double>(),
-            result["distance_change_factor"].as<double>(),
             result["passes_per_checkpoint"].as<size_t>(),
             result["iterations_per_checkpoint"].as<size_t>()
         };
@@ -139,10 +135,11 @@ namespace program
     program::SortOptions<VectorType> loadSortOptionsFromInput(cxxopts::ParseResult const &result)
     {
         return {
+            result["max_iterations"].as<size_t>(),
+            result["min_distance_change"].as<double>(),
+            ldg::mapFunctionTypeToFunction<VectorType>(static_cast<ldg::DistanceFunctionType>(result["distance_function"].as<size_t>())),
             result["randomize"].as<bool>(),
-            result["partition_swaps"].as<bool>(),
-            result["ssm_mode"].as<bool>(),
-            ldg::mapFunctionTypeToFunction<VectorType>(static_cast<ldg::DistanceFunctionType>(result["distance_function"].as<size_t>()))
+            result["ssm_mode"].as<bool>()
         };
     }
 

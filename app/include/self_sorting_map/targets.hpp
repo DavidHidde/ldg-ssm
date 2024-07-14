@@ -20,7 +20,6 @@ namespace ssm
      * @param target_type
      * @param quad_tree
      * @param partition_height
-     * @param comparison_height
      * @param is_shift
      * @return  A num_rows x num_cols map at the comparison height where each index contains the targets for that node.
      */
@@ -29,18 +28,17 @@ namespace ssm
         const TargetType target_type,
         ldg::QuadAssignmentTree<VectorType> &quad_tree,
         size_t partition_height,
-        size_t comparison_height,
         bool is_shift
     )
     {
-        auto comparison_height_dims = quad_tree.getBounds(comparison_height).second;
-        std::vector<std::vector<std::shared_ptr<VectorType>>> target_map(comparison_height_dims.first * comparison_height_dims.second);
+        auto [num_rows, num_cols] = quad_tree.getBounds(0).second;
+        std::vector<std::vector<std::shared_ptr<VectorType>>> target_map(num_rows * num_cols);
 
         switch (target_type) {
             case HIGHEST_PARENT_HIERARCHY:
-                loadHighestParentHierarchyTargets(target_map, quad_tree, partition_height, comparison_height, is_shift);
+                loadHighestParentHierarchyTargets(target_map, quad_tree, partition_height, is_shift);
             case PARTITION_NEIGHBOURHOOD:
-                loadPartitionNeighbourhoodTargets(target_map, quad_tree, partition_height, comparison_height, is_shift);
+                loadPartitionNeighbourhoodTargets(target_map, quad_tree, partition_height, is_shift);
                 break;
         }
 

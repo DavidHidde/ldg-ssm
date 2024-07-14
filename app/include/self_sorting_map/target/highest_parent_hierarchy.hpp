@@ -17,7 +17,6 @@ namespace ssm
      * @param target_map
      * @param quad_tree
      * @param partition_height
-     * @param comparison_height
      * @param is_shift
      */
     template<typename VectorType>
@@ -25,15 +24,14 @@ namespace ssm
         std::vector<std::vector<std::shared_ptr<VectorType>>> &target_map,
         ldg::QuadAssignmentTree<VectorType> &quad_tree,
         const size_t partition_height,
-        const size_t comparison_height,
         bool is_shift
     )
     {
         using namespace ldg;
         auto projected_dims = quad_tree.getBounds(partition_height).second;
-        auto comparison_height_dims = quad_tree.getBounds(comparison_height).second;
+        auto [num_rows, num_cols] = quad_tree.getBounds(0).second;
         size_t num_elems = projected_dims.first * projected_dims.second;
-        size_t partition_len = size_t(std::pow(2, partition_height - comparison_height));
+        size_t partition_len = size_t(std::pow(2, partition_height));
 
 #pragma omp parallel for schedule(static)
         for (size_t idx = 0; idx < num_elems; ++idx) {
@@ -49,12 +47,12 @@ namespace ssm
 
             // Copy to all relevant cells
             size_t min_y = partition_y * partition_len;
-            size_t max_y = std::min(min_y + partition_len, comparison_height_dims.first);
+            size_t max_y = std::min(min_y + partition_len, num_rows);
             size_t min_x = partition_x * partition_len;
-            size_t max_x = std::min(min_x + partition_len, comparison_height_dims.second);
+            size_t max_x = std::min(min_x + partition_len, num_cols);
             for (size_t y = min_y; y < max_y; ++y) {
                 for (size_t x = min_x; x < max_x; ++x) {
-                    target_map[rowMajorIndex(y, x, comparison_height_dims.second)].push_back(target);
+                    target_map[rowMajorIndex(y, x, num_cols)].push_back(target);
                 }
             }
         }
