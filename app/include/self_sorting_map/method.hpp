@@ -58,7 +58,6 @@ namespace ssm
      * @param max_iterations
      * @param distance_threshold
      * @param ssm_mode
-     * @param use_partition_swaps
      * @param logger
      * @param export_settings
      */
@@ -70,11 +69,9 @@ namespace ssm
         const size_t max_iterations,
         const double distance_threshold,
         const bool ssm_mode,
-        const bool use_partition_swaps,
         program::Logger &logger,
         program::ExportSettings &export_settings
-    )
-    {
+    ) {
         using namespace ldg;
         double distance = computeHierarchyNeighborhoodDistance(0, distance_function, quad_tree);
         double new_distance = distance;
@@ -93,11 +90,6 @@ namespace ssm
                 num_exchanges += optimizePartitions(quad_tree, distance_function, height, 0, normal_pass_pairings, ssm_mode, false);
                 if (height < quad_tree.getDepth() - 2)
                     num_exchanges += optimizePartitions(quad_tree, distance_function, height, 0, normal_pass_pairings, ssm_mode, true);
-
-                if (use_partition_swaps && height > 1) {
-                    num_exchanges += optimizePartitions(quad_tree, distance_function, height, height - 1, normal_pass_pairings, ssm_mode, false);
-                    num_exchanges += optimizePartitions(quad_tree, distance_function, height, height - 1, normal_pass_pairings, ssm_mode, true);
-                }
 
                 distance = new_distance;
                 new_distance = computeHierarchyNeighborhoodDistance(0, distance_function, quad_tree);

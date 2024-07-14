@@ -35,15 +35,15 @@ namespace program
         }
         std::cout << std::endl;
 
-        size_t max_iterations = schedule.max_iterations;
-        double distance_threshold = schedule.distance_threshold;
+        size_t max_iterations = sort_options.max_iterations;
+        double distance_threshold = sort_options.distance_threshold;
 
         // Main loop where we perform the sorting.
         const double start = omp_get_wtime();
         std::string base_output_dir = export_settings.output_dir;
         std::filesystem::create_directories(base_output_dir);
         Logger logger(start, base_output_dir);
-        logger.setUsingPartitionSwaps(sort_options.use_partition_swaps).setNumRows(quad_tree.getNumRows()).setNumCols(quad_tree.getNumCols());
+        logger.setNumRows(quad_tree.getNumRows()).setNumCols(quad_tree.getNumCols());
         for (size_t idx = 0; idx < schedule.number_of_passes; ++idx) {
             std::cout << "--- Pass " << idx + 1 << " ---" << std::endl;
             logger.setNumPass(idx).setMaxIterations(max_iterations).setDistanceThreshold(distance_threshold);
@@ -61,13 +61,9 @@ namespace program
                 max_iterations,
                 distance_threshold,
                 sort_options.ssm_mode,
-                sort_options.use_partition_swaps,
                 logger,
                 export_settings
             );
-
-            distance_threshold *= schedule.threshold_change_factor;
-            max_iterations = std::ceil(static_cast<double>(max_iterations) * schedule.iterations_change_factor);
             std::cout << std::endl;
         }
 

@@ -23,7 +23,6 @@ namespace program
             "num_exchanges",
             "max_iterations",
             "distance_threshold",
-            "using_partition_swaps",
             "rows",
             "columns"
         };
@@ -38,7 +37,6 @@ namespace program
         size_t num_pass = 0;
         size_t max_iterations = 0;
         double distance_threshold = 0.;
-        bool using_partition_swaps = true;
 
     public:
         explicit Logger(double start_time, std::string const &output_dir);
@@ -58,7 +56,6 @@ namespace program
         Logger &setNumPass(size_t num_pass);
         Logger &setMaxIterations(size_t max_iterations);
         Logger &setDistanceThreshold(double distance_threshold);
-        Logger &setUsingPartitionSwaps(bool using_partition_swaps);
     };
 
     /**
@@ -95,7 +92,6 @@ namespace program
             num_exchanges << csv_separator <<
             max_iterations << csv_separator <<
             distance_threshold << csv_separator <<
-            using_partition_swaps << csv_separator <<
             num_rows << csv_separator <<
             num_cols << '\n';
     }
@@ -155,16 +151,6 @@ namespace program
     inline Logger &Logger::setDistanceThreshold(double distance_threshold)
     {
         this->distance_threshold = distance_threshold;
-        return *this;
-    }
-
-    /**
-     * @param using_partition_swaps
-     * @return
-     */
-    inline Logger &Logger::setUsingPartitionSwaps(bool using_partition_swaps)
-    {
-        this->using_partition_swaps = using_partition_swaps;
         return *this;
     }
 }
