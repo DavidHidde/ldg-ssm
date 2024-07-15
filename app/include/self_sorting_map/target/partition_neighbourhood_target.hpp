@@ -16,16 +16,16 @@ namespace ssm
      * @tparam VectorType
      * @param target_map
      * @param quad_tree
+     * @param distance_function
      * @param partition_height
-     * @param comparison_height
      * @param is_shift
      */
     template<typename VectorType>
     void loadPartitionNeighbourhoodTargets(
         std::vector<std::vector<std::shared_ptr<VectorType>>> &target_map,
         ldg::QuadAssignmentTree<VectorType> &quad_tree,
+        std::function<double(std::shared_ptr<VectorType>, std::shared_ptr<VectorType>)> distance_function,
         const size_t partition_height,
-        const size_t comparison_height,
         bool is_shift
     )
     {
@@ -33,8 +33,8 @@ namespace ssm
         auto projected_dims = quad_tree.getBounds(partition_height).second;
         size_t num_elems = projected_dims.first * projected_dims.second;
 
-        auto comparison_height_dims = quad_tree.getBounds(comparison_height).second;
-        size_t partition_len = size_t(std::pow(2, partition_height - comparison_height));
+        auto [num_rows, num_cols] = quad_tree.getBounds(0).second;
+        size_t partition_len = size_t(std::pow(2, partition_height));
         std::vector<std::shared_ptr<VectorType>> values;
         values.reserve(PARTITION_NUM_BLOCKS_PER_DIMENSION * PARTITION_NUM_BLOCKS_PER_DIMENSION);
 
@@ -56,16 +56,19 @@ namespace ssm
                     values.push_back(quad_tree.getValue(CellPosition{ partition_height, rowMajorIndex(y, x, projected_dims.second) }));
                 }
             }
-            auto target = std::make_shared<VectorType>(aggregate(values, quad_tree.getDataElementLen()));
+            auto target = std::make_shared<VectorType>(quad_tree.getParentType() == ParentType::NORMALIZED_AVERAGE ?
+                aggregate(values, quad_tree.getDataElementLen()) :
+                findMinimum(values, distance_function)
+            );
 
             // Copy to all relevant cells
             min_y = partition_y * partition_len;
-            max_y = std::min(min_y + partition_len, comparison_height_dims.first);
+            max_y = std::min(min_y + partition_len, num_rows);
             min_x = partition_x * partition_len;
-            max_x = std::min(min_x + partition_len, comparison_height_dims.second);
+            max_x = std::min(min_x + partition_len, num_cols);
             for (size_t y = min_y; y < max_y; ++y) {
                 for (size_t x = min_x; x < max_x; ++x) {
-                    target_map[rowMajorIndex(y, x, comparison_height_dims.second)].push_back(target);
+                    target_map[rowMajorIndex(y, x, num_cols)].push_back(target);
                 }
             }
 

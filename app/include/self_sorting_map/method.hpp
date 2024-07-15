@@ -35,12 +35,12 @@ namespace ssm
      * @return
      */
     template<typename VectorType>
-    size_t getStartHeight(ldg::QuadAssignmentTree<VectorType> &quad_tree)
+    size_t getSSMStartHeight(ldg::QuadAssignmentTree<VectorType> &quad_tree)
     {
         using namespace ldg;
         size_t height = quad_tree.getDepth() - 1;
         auto dims = quad_tree.getBounds(height).second;
-        while (height > 0 && dims.first < 4 && dims.second < 4) {
+        while (height > 0 && (dims.first < 4 || dims.second < 4)) {
             --height;
             dims = quad_tree.getBounds(height).second;
         }
@@ -48,7 +48,7 @@ namespace ssm
     }
 
     /**
-     * The self-sorting map as detailed in https://doi.org/10.1109/TMM.2014.2306183,
+     * The self-sorting map (as detailed in https://doi.org/10.1109/TMM.2014.2306183) with some extra parameters and modifications,
      * specifically for a QuadAssignmentTree given a distance function.
      *
      * @tparam VectorType
@@ -57,8 +57,7 @@ namespace ssm
      * @param iterations_between_checkpoint
      * @param max_iterations
      * @param distance_threshold
-     * @param target_types
-     * @param use_partition_swaps
+     * @param ssm_mode
      * @param logger
      * @param export_settings
      */
@@ -69,39 +68,31 @@ namespace ssm
         const size_t iterations_between_checkpoint,
         const size_t max_iterations,
         const double distance_threshold,
-        const std::vector<TargetType> target_types,
-        const bool use_partition_swaps,
+        const bool ssm_mode,
         program::Logger &logger,
         program::ExportSettings &export_settings
-    )
-    {
+    ) {
         using namespace ldg;
         double distance = computeHierarchyNeighborhoodDistance(0, distance_function, quad_tree);
         double new_distance = distance;
 
         // Main loop
-        size_t height = getStartHeight(quad_tree);
         size_t num_exchanges;
         std::string reason;
-        std::pair<size_t, size_t> normal_pass_pairings{ 2, 2 }; // Separate X-Y passes can be enabled by tweaking this, but this is not needed here.
 
-        for (; height > 0; --height) {
+        for (size_t height = ssm_mode ? getSSMStartHeight(quad_tree) : quad_tree.getDepth() - 2; height > 0; --height) {
             size_t iterations = 0;
 
             do {
                 num_exchanges = 0;
-                num_exchanges += optimizePartitions(quad_tree, distance_function, target_types, height, 0, normal_pass_pairings, false);
-                num_exchanges += optimizePartitions(quad_tree, distance_function, target_types, height, 0, normal_pass_pairings, true);
-
-                if (use_partition_swaps && height > 1) {
-                    num_exchanges += optimizePartitions(quad_tree, distance_function, target_types, height, height - 1, normal_pass_pairings, false);
-                    num_exchanges += optimizePartitions(quad_tree, distance_function, target_types, height, height - 1, normal_pass_pairings, true);
-                }
+                num_exchanges += optimizePartitions(quad_tree, distance_function, height, ssm_mode, false);
+                if (height < quad_tree.getDepth() - 2)
+                    num_exchanges += optimizePartitions(quad_tree, distance_function, height, ssm_mode, true);
 
                 distance = new_distance;
                 new_distance = computeHierarchyNeighborhoodDistance(0, distance_function, quad_tree);
 
-                if (iterations_between_checkpoint > 0 && iterations % iterations_between_checkpoint == 0) {
+                if (iterations_between_checkpoint > 0 && iterations > 0 && iterations % iterations_between_checkpoint == 0) {
                     export_settings.file_name = "height-" + std::to_string(height) + "-it(" + std::to_string(iterations) + ')';
                     program::exportQuadTree(quad_tree, distance_function, export_settings);
                 }

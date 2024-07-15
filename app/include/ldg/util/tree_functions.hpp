@@ -6,6 +6,7 @@
 #include "app/include/ldg/model/quad_assignment_tree.hpp"
 #include "app/include/ldg/util/tree_traversal/tree_walker.hpp"
 #include "app/include/ldg/util/math.hpp"
+#include "app/include/program/random.hpp"
 
 #include <cassert>
 
@@ -28,34 +29,37 @@ namespace ldg
     }
 
     /**
-     * Compute and update the aggregates of the quad tree.
-     * For this we assume we can perform basic arithmetic functions on VectorType.
+     * Compute the parent of the quad tree based on the parent type.
      *
      * @tparam VectorType
+     * @param quad_tree
+     * @param distance_function
      */
     template<typename VectorType>
-    void computeAggregates(QuadAssignmentTree<VectorType> &quad_tree)
-    {
-        size_t curr_num_rows = ceilDivideByFactor(quad_tree.getNumRows(), 2.);
-        size_t curr_num_cols = ceilDivideByFactor(quad_tree.getNumCols(), 2.);
-
-        // Compute the aggregates bottom-up
+    void computeParents(
+        QuadAssignmentTree<VectorType> &quad_tree,
+        std::function<double(std::shared_ptr<VectorType>, std::shared_ptr<VectorType>)> distance_function
+    ) {
         for (size_t height = 1; height < quad_tree.getDepth(); ++height) {
+            auto [num_rows, num_cols] = quad_tree.getBounds(height).second;
+
 #pragma omp parallel for schedule(static)
-            for (size_t idx = 0; idx < curr_num_rows * curr_num_cols; ++idx) {
+            for (size_t idx = 0; idx < num_rows * num_cols; ++idx) {
                 CellPosition position{ height, idx };
-                TreeWalker<VectorType> walker(position, curr_num_rows, curr_num_cols, quad_tree);
+                TreeWalker<VectorType> walker(position, num_rows, num_cols, quad_tree);
                 auto children = walker.getChildrenValues();
                 if (children[0] == nullptr && children[1] == nullptr && children[2] == nullptr && children[3] == nullptr) {
                     quad_tree.setValue(position, nullptr);
                 } else {
-                    VectorType aggregated_value = aggregate(std::vector<std::shared_ptr<VectorType>>(children.begin(), children.end()), quad_tree.getDataElementLen());
-                    quad_tree.setValue(position, &aggregated_value);
+                    std::vector<std::shared_ptr<VectorType>> child_vector(children.begin(), children.end());
+
+                    VectorType parent_value = quad_tree.getParentType() == ParentType::NORMALIZED_AVERAGE ?
+                        aggregate(child_vector, quad_tree.getDataElementLen()) :
+                        findMinimum(child_vector, distance_function);
+
+                    quad_tree.setValue(position, &parent_value);
                 }
             }
-
-            curr_num_rows = ceilDivideByFactor(curr_num_rows, 2.);
-            curr_num_cols = ceilDivideByFactor(curr_num_cols, 2.);
         }
     }
 
@@ -66,10 +70,10 @@ namespace ldg
      * @tparam VectorType
      */
     template<typename VectorType>
-    void randomizeAssignment(QuadAssignmentTree<VectorType> &quad_tree, size_t seed)
+    void randomizeAssignment(QuadAssignmentTree<VectorType> &quad_tree)
     {
         auto &assignment = quad_tree.getAssignment();
-        std::shuffle(assignment.begin(), assignment.begin() + quad_tree.getNumRows() * quad_tree.getNumCols(), std::mt19937(seed));
+        std::shuffle(assignment.begin(), assignment.begin() + quad_tree.getNumRows() * quad_tree.getNumCols(), program::RANDOMIZER);
     }
 
     /**

@@ -17,11 +17,12 @@ namespace program
     template<typename VectorType>
     struct SortOptions
     {
-        bool randomize_assignment;
-        size_t randomization_seed;
-        bool use_partition_swaps;
-        std::vector<ssm::TargetType> target_types;
+        size_t max_iterations;              // Maximum number of iterations before the SSM should move to the next height.
+        double distance_threshold;          // Minimum ratio of distance that should be changed before the SSM should move to the next height.
         std::function<double(std::shared_ptr<VectorType>, std::shared_ptr<VectorType>)> distance_function;
+
+        bool randomize_assignment;
+        bool ssm_mode;
     };
 }
 
