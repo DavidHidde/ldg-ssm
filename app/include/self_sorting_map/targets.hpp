@@ -40,7 +40,9 @@ namespace ssm
             case HIGHEST_PARENT_HIERARCHY:
                 loadHighestParentHierarchyTargets(target_map, quad_tree, partition_height, is_shift);
             case PARTITION_NEIGHBOURHOOD:
-                loadPartitionNeighbourhoodTargets(target_map, quad_tree, distance_function, partition_height, is_shift);
+                if (partition_height < quad_tree.getDepth() - 2) {
+                    loadPartitionNeighbourhoodTargets(target_map, quad_tree, distance_function, partition_height, is_shift);
+                }
                 break;
         }
 
