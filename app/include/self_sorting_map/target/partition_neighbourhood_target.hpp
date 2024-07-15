@@ -16,6 +16,7 @@ namespace ssm
      * @tparam VectorType
      * @param target_map
      * @param quad_tree
+     * @param distance_function
      * @param partition_height
      * @param is_shift
      */
@@ -23,6 +24,7 @@ namespace ssm
     void loadPartitionNeighbourhoodTargets(
         std::vector<std::vector<std::shared_ptr<VectorType>>> &target_map,
         ldg::QuadAssignmentTree<VectorType> &quad_tree,
+        std::function<double(std::shared_ptr<VectorType>, std::shared_ptr<VectorType>)> distance_function,
         const size_t partition_height,
         bool is_shift
     )
@@ -54,7 +56,10 @@ namespace ssm
                     values.push_back(quad_tree.getValue(CellPosition{ partition_height, rowMajorIndex(y, x, projected_dims.second) }));
                 }
             }
-            auto target = std::make_shared<VectorType>(aggregate(values, quad_tree.getDataElementLen()));
+            auto target = std::make_shared<VectorType>(quad_tree.getParentType() == ParentType::NORMALIZED_AVERAGE ?
+                aggregate(values, quad_tree.getDataElementLen()) :
+                findMinimum(values, distance_function)
+            );
 
             // Copy to all relevant cells
             min_y = partition_y * partition_len;
